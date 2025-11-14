@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports: 
+      - "9000:9000"
+    volumes:
+      - ./backend:/usr/src/app
+      - ./data:/usr/src/app/data
+    networks:
+      - transcendence
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports: 
+      - "8000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
