@@ -1,72 +1,34 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Minimal Frontend</title>
-  </head>
-  <body>
-    <h1>Hello from the Frontendddd</h1>
-    <p id="backend">Checking backend...</p>
-    <h2>Database tables:</h2>
-    <pre id="tables">Loading...</pre>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arcade Pong & Tic-Tac-Toe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
 
-    <!-- New section to add a user -->
-    <h2>Add User</h2>
-    <input id="newUser" placeholder="Username" />
-    <input id="newPass" type="password" placeholder="Password" />
-    <button id="addBtn">Add User</button>
-    <p id="addStatus"></p>
+  <!-- Menú -->
+  <div id="menu" class="text-center space-y-8">
+    <h1 class="text-7xl font-extrabold text-yellow-400 drop-shadow-lg">ARCADE</h1>
+    <div class="space-y-4">
+      <button id="btnPlayer" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🏓 Pong - Jugador vs Jugador</button>
+      <button id="btnIA" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🤖 Pong - Jugador vs IA</button>
+      <button id="btnTic" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">❌⭕ Tres en Raya - 2 Jugadores</button>
+    </div>
+  </div>
 
-    <script>
-      async function loadBackend() {
-        try {
-          const res = await fetch("/api/");
-          const data = await res.json();
-          document.getElementById("backend").textContent =
-            "Backend says: " + JSON.stringify(data);
-        } catch (e) {
-          document.getElementById("backend").textContent =
-            "Failed to reach backend.";
-        }
-      }
+  <!-- Contador -->
+  <div id="countdown" class="fixed inset-0 flex items-center justify-center text-9xl font-extrabold text-yellow-300 hidden">
+    <span id="countdownText" class="animate-pulse"></span>
+  </div>
 
-      async function loadTables() {
-        try {
-          const res = await fetch("/api/users");
-          const data = await res.json();
-          document.getElementById("tables").textContent = JSON.stringify(data, null, 2);
-        } catch (e) {
-          document.getElementById("tables").textContent =
-            "Failed to reach /tables → " + e;
-        }
-      }
+  <!-- Canvas -->
+  <div id="gameContainer" class="hidden flex items-center justify-center">
+    <canvas id="gameCanvas" width="600" height="600" class="border-4 border-gray-700 rounded-2xl shadow-2xl bg-black"></canvas>
+  </div>
 
-      // Button handler for adding a user
-      document.getElementById("addBtn").onclick = async () => {
-        const username = document.getElementById("newUser").value;
-        const password = document.getElementById("newPass").value;
-        try {
-          const res = await fetch("/api/users/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-          });
-          const data = await res.json();
-          document.getElementById("addStatus").textContent =
-            data.message || JSON.stringify(data);
-          loadTables(); // refresh users list
-        } catch (err) {
-          document.getElementById("addStatus").textContent =
-            "Failed to add user: " + err;
-        }
-      };
-
-      // Run both on load
-      loadBackend();
-      loadTables();
-
-      // Optional: auto-refresh every 5 seconds to simulate "real-time"
-      setInterval(loadTables, 5000);
-    </script>
-  </body>
+  <script src="game.js"></script>
+  <script src="tic-tac-toe.js"></script>
+</body>
 </html>
