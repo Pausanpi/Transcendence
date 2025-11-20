@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Minimal Frontend</title>
+  </head>
+  <body>
+    <h1>Hello from the Frontendddd</h1>
+    <p id="backend">Checking backend...</p>
+    <h2>Database tables:</h2>
+    <pre id="tables">Loading...</pre>
+
+    <!-- New section to add a user -->
+    <h2>Add User</h2>
+    <input id="newUser" placeholder="Username" />
+    <input id="newPass" type="password" placeholder="Password" />
+    <button id="addBtn">Add User</button>
+    <p id="addStatus"></p>
+
+    <script>
+      async function loadBackend() {
+        try {
+          const res = await fetch("/api/");
+          const data = await res.json();
+          document.getElementById("backend").textContent =
+            "Backend says: " + JSON.stringify(data);
+        } catch (e) {
+          document.getElementById("backend").textContent =
+            "Failed to reach backend.";
+        }
+      }
+
+      async function loadTables() {
+        try {
+          const res = await fetch("/api/users");
+          const data = await res.json();
+          document.getElementById("tables").textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+          document.getElementById("tables").textContent =
+            "Failed to reach /tables → " + e;
+        }
+      }
+
+      // Button handler for adding a user
+      document.getElementById("addBtn").onclick = async () => {
+        const username = document.getElementById("newUser").value;
+        const password = document.getElementById("newPass").value;
+        try {
+          const res = await fetch("/api/users/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json();
+          document.getElementById("addStatus").textContent =
+            data.message || JSON.stringify(data);
+          loadTables(); // refresh users list
+        } catch (err) {
+          document.getElementById("addStatus").textContent =
+            "Failed to add user: " + err;
+        }
+      };
+
+      // Run both on load
+      loadBackend();
+      loadTables();
+
+      // Optional: auto-refresh every 5 seconds to simulate "real-time"
+      setInterval(loadTables, 5000);
+    </script>
+  </body>
+</html>

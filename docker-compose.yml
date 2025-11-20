@@ -1,0 +1,46 @@
+services:
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    expose:
+      - "8080"
+    depends_on:
+      - backend
+    networks:
+      - transcendence
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - "8000:80"
+      - "8443:443"
+    volumes:
+      - "./frontend:/usr/share/nginx/html:ro"
+    depends_on:
+      - backend
+    networks:
+      - transcendence
+
+  backend:
+    build: ./backend
+    container_name: backend
+    expose: 
+      - "9000"
+    volumes:
+      - ./backend:/usr/src/app
+      - ./data:/usr/src/app/data
+    networks:
+      - transcendence
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    volumes:
+      - ./frontend:/app
+    networks:
+      - transcendence
+
+networks:
+  transcendence:
+    name: transcendence
