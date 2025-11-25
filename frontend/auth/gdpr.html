@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title data-i18n="gdpr.title"></title>
+	<link rel="stylesheet" href="/css/common.css">
+	<link rel="stylesheet" href="/css/gdpr.css">
+</head>
+<body>
+	<div class="container">
+		<span class="security-badge" data-i18n="gdpr.compliance"></span>
+		<h1 data-i18n="gdpr.title"></h1>
+		<p class="subtitle" data-i18n="gdpr.subtitle"></p>
+		<div class="gdpr-section">
+			<h2 data-i18n="gdpr.personalData"></h2>
+			<div id="userDataSummary" class="data-summary">
+				<p data-i18n="gdpr.loadingData"></p>
+			</div>
+			<button class="btn btn-secondary" onclick="exportUserData()" data-i18n="gdpr.exportData">
+			</button>
+		</div>
+		<div class="gdpr-section">
+			<h2 data-i18n="gdpr.privacyPreferences"></h2>
+			<form id="consentForm" class="consent-form">
+				<div class="consent-item">
+					<label class="consent-checkbox">
+						<input type="checkbox" name="dataProcessing" checked>
+						<span class="checkmark"></span>
+						<span data-i18n="gdpr.dataProcessing"></span>
+					</label>
+				</div>
+				<div class="consent-item">
+					<label class="consent-checkbox">
+						<input type="checkbox" name="marketingEmails">
+						<span class="checkmark"></span>
+						<span data-i18n="gdpr.marketingEmails"></span>
+					</label>
+				</div>
+				<div class="consent-item">
+					<label class="consent-checkbox">
+						<input type="checkbox" name="analytics" checked>
+						<span class="checkmark"></span>
+						<span data-i18n="gdpr.analytics"></span>
+					</label>
+				</div>
+				<button type="submit" class="btn" data-i18n="gdpr.savePreferences">
+				</button>
+			</form>
+		</div>
+		<div class="gdpr-section warning-section">
+			<h2 data-i18n="gdpr.anonymization"></h2>
+			<p data-i18n="gdpr.anonymizationDesc">
+			</p>
+			<ul>
+				<li data-i18n="gdpr.anonymizationList.0"></li>
+				<li data-i18n="gdpr.anonymizationList.1"></li>
+				<li data-i18n="gdpr.anonymizationList.2"></li>
+			</ul>
+			<button class="btn btn-warning" onclick="showAnonymizeConfirmation()" data-i18n="gdpr.anonymizeData">
+			</button>
+		</div>
+		<div class="gdpr-section danger-section">
+			<h2 data-i18n="gdpr.accountDeletion"></h2>
+			<p data-i18n="gdpr.deletionDesc">
+			</p>
+			<ul>
+				<li data-i18n="gdpr.deletionList.0"></li>
+				<li data-i18n="gdpr.deletionList.1"></li>
+				<li data-i18n="gdpr.deletionList.2"></li>
+			</ul>
+			<button class="btn btn-danger" onclick="showDeleteConfirmation()" data-i18n="gdpr.deleteAccount">
+			</button>
+		</div>
+		<div class="navigation-section">
+			<a href="/auth/profile" class="btn btn-secondary" data-i18n="common.back">
+			</a>
+		</div>
+		<div id="message" style="margin-top: 20px;"></div>
+	</div>
+	<div id="confirmationModal" class="modal" style="display: none;">
+		<div class="modal-content">
+			<span class="close" onclick="closeModal()">&times;</span>
+			<div id="modalContent"></div>
+		</div>
+	</div>
+	<script src="/js/language-manager.js"></script>
+	<script>
+		let authToken = '';
+		function getTranslation(key) {
+			if (window.languageManager && window.languageManager.getTranslation) {
+				return window.languageManager.getTranslation(key);
+			}
+			return key;
+		}
+		function applyTranslations() {
+			if (window.languageManager && window.languageManager.applyTranslations) {
+				window.languageManager.applyTranslations();
+			}
+		}
+		async function getAuthToken() {
+			try {
+				const response = await fetch('/auth/profile-data', {
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				});
+				if (response.ok) {
+					const data = await response.json();
+					return data.jwtToken;
+				} else {
+					console.error('Failed to get profile data:', response.status);
+					if (response.status === 401) {
+						console.warn('No JWT token available, will rely on session auth');
+						return null;
+					}
+				}
+			} catch (error) {
+				console.error('Error obteniendo token:', error);
+			}
+			return null;
+		}
+		function showMessage(message, type) {
+			const messageDiv = document.getElementById('message');
+			messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
+			setTimeout(() => {
+				messageDiv.innerHTML = '';
+			}, 5000);
+		}
+		async function loadUserData() {
+			try {
+				showMessage(window.languageManager.getTranslation('common.loading'), 'success');
+				const token = await getAuthToken();
+				const headers = {
+					'Content-Type': 'application/json'
+				};
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`;
+				}
+				const response = await fetch('/gdpr/user-data', {
+					headers: headers,
+					credentials: 'include'
+				});
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${window.languageManager.getTranslation('messages.connectionError')}`);
+				}
+				const result = await response.json();
+				displayUserData(result.data);
+				showMessage(window.languageManager.getTranslation('gdpr.dataLoaded'), 'success');
+			} catch (error) {
+				console.error('Error loading user data:', error);
+				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
+			}
+		}
+		async function exportUserData() {
+			try {
+				showMessage(window.languageManager.getTranslation('gdpr.exportInProgress'), 'success');
+				const token = await getAuthToken();
+				const headers = {
+					'Content-Type': 'application/json'
+				};
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`;
+				}
+				const response = await fetch('/gdpr/export-data', {
+					method: 'POST',
+					headers: headers,
+					credentials: 'include'
+				});
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${window.languageManager.getTranslation('gdpr.exportError')}`);
+				}
+				const result = await response.json();
+				const dataStr = JSON.stringify(result.data, null, 2);
+				const dataBlob = new Blob([dataStr], { type: 'application/json' });
+				const url = URL.createObjectURL(dataBlob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `my-data-${new Date().toISOString().split('T')[0]}.json`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
+				showMessage(window.languageManager.getTranslation('messages.dataExported'), 'success');
+			} catch (error) {
+				console.error('Error exporting data:', error);
+				showMessage(window.languageManager.getTranslation('gdpr.exportError'), 'error');
+			}
+		}
+		async function anonymizeUserData() {
+			try {
+				showMessage(window.languageManager.getTranslation('gdpr.anonymizingData'), 'success');
+				closeModal();
+				const token = await getAuthToken();
+				const headers = {
+					'Content-Type': 'application/json'
+				};
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`;
+				}
+				const response = await fetch('/gdpr/anonymize', {
+					method: 'POST',
+					headers: headers,
+					credentials: 'include'
+				});
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${window.languageManager.getTranslation('gdpr.anonymizationError')}`);
+				}
+				const result = await response.json();
+				showMessage(window.languageManager.getTranslation('messages.dataAnonymized'), 'success');
+				setTimeout(() => {
+					window.location.href = '/auth/logout';
+				}, 2000);
+			} catch (error) {
+				console.error('Error anonymizing data:', error);
+				showMessage(window.languageManager.getTranslation('gdpr.anonymizationError'), 'error');
+			}
+		}
+		async function confirmAccountDeletion() {
+			try {
+				const deleteText = getTranslation('gdpr.deleteConfirmationText');
+				const inputValue = document.getElementById('deleteConfirmation').value;
+				if (inputValue !== deleteText) {
+					showMessage(window.languageManager.getTranslation('gdpr.invalidConfirmation'), 'error');
+					return;
+				}
+				showMessage(window.languageManager.getTranslation('gdpr.deletingAccount'), 'success');
+				closeModal();
+				const token = await getAuthToken();
+				const headers = {
+					'Content-Type': 'application/json'
+				};
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`;
+				}
+				const response = await fetch('/gdpr/delete-account', {
+					method: 'POST',
+					headers: headers,
+					credentials: 'include',
+					body: JSON.stringify({ confirmation: deleteText })
+				});
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${window.languageManager.getTranslation('gdpr.deletionError')}`);
+				}
+				const result = await response.json();
+				showMessage(window.languageManager.getTranslation('messages.accountDeleted'), 'success');
+				setTimeout(() => {
+					window.location.href = '/';
+				}, 2000);
+			} catch (error) {
+				console.error('Error deleting account:', error);
+				showMessage(window.languageManager.getTranslation('gdpr.deletionError'), 'error');
+			}
+		}
+		async function saveConsentPreferences(e) {
+			e.preventDefault();
+			try {
+				const form = document.getElementById('consentForm');
+				const formData = new FormData(form);
+				const preferences = {
+					dataProcessing: formData.get('dataProcessing') === 'on',
+					marketingEmails: formData.get('marketingEmails') === 'on',
+					analytics: formData.get('analytics') === 'on'
+				};
+				const token = await getAuthToken();
+				const headers = {
+					'Content-Type': 'application/json'
+				};
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`;
+				}
+				const response = await fetch('/gdpr/update-consent', {
+					method: 'POST',
+					headers: headers,
+					credentials: 'include',
+					body: JSON.stringify(preferences)
+				});
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}: ${window.languageManager.getTranslation('gdpr.consentUpdateError')}`);
+				}
+				showMessage(window.languageManager.getTranslation('messages.preferencesUpdated'), 'success');
+			} catch (error) {
+				console.error('Error saving preferences:', error);
+				showMessage(window.languageManager.getTranslation('gdpr.consentUpdateError'), 'error');
+			}
+		}
+		function displayUserData(data) {
+			const summaryDiv = document.getElementById('userDataSummary');
+			if (data && data.dataSummary) {
+				summaryDiv.innerHTML = `
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span data-i18n="gdpr.sessions"></span>
+                            <span>${data.dataSummary.activity.sessionCount}</span>
+                        </div>
+                        <div class="data-item">
+                            <span data-i18n="gdpr.accountCreated"></span>
+                            <span>${new Date(data.dataSummary.activity.accountCreated).toLocaleDateString()}</span>
+                        </div>
+                        <div class="data-item">
+                            <span data-i18n="gdpr.lastUpdated"></span>
+                            <span>${new Date(data.dataSummary.activity.lastUpdated).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+				applyTranslations();
+			}
+		}
+		function showAnonymizeConfirmation() {
+			const modalContent = document.getElementById('modalContent');
+			modalContent.innerHTML = `
+                <h3 data-i18n="gdpr.anonymizeConfirmation"></h3>
+                <p data-i18n="gdpr.anonymizeConfirmText">
+                </p>
+                <ul>
+                    <li data-i18n="gdpr.anonymizeDetails.0"></li>
+                    <li data-i18n="gdpr.anonymizeDetails.1"></li>
+                    <li data-i18n="gdpr.anonymizeDetails.2"></li>
+                    <li data-i18n="gdpr.anonymizeDetails.3"></li>
+                </ul>
+                <p data-i18n="gdpr.accountRemains"></p>
+                <button class="btn btn-warning" onclick="anonymizeUserData()"
+                        data-i18n="gdpr.yesAnonymize">
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()"
+                        data-i18n="common.cancel">
+                </button>
+            `;
+			applyTranslations();
+			document.getElementById('confirmationModal').style.display = 'block';
+		}
+		function showDeleteConfirmation() {
+			const deleteText = getTranslation('gdpr.deleteConfirmationText');
+			const modalContent = document.getElementById('modalContent');
+			modalContent.innerHTML = `
+                <h3 data-i18n="gdpr.deletionConfirmation"></h3>
+                <p data-i18n="gdpr.deletionWarning">
+                </p>
+                <p><strong data-i18n="gdpr.irreversible">
+                </strong></p>
+                <div class="form-group">
+                    <label data-i18n="gdpr.typeConfirmation">
+                        ${window.languageManager.getTranslation('gdpr.typeConfirmation')}: <strong>${deleteText}</strong>
+                    </label>
+                    <input type="text" id="deleteConfirmation" placeholder="${deleteText}"
+                           style="width: 100%; padding: 10px; margin: 10px 0;
+                                  border: 2px solid #dc3545; border-radius: 4px;">
+                </div>
+                <button class="btn btn-danger" onclick="confirmAccountDeletion()"
+                        id="deleteBtn" disabled data-i18n="gdpr.deleteButton">
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()"
+                        data-i18n="common.cancel">
+                </button>
+            `;
+			applyTranslations();
+			const deleteInput = document.getElementById('deleteConfirmation');
+			const deleteBtn = document.getElementById('deleteBtn');
+			deleteInput.addEventListener('input', function (e) {
+				deleteBtn.disabled = e.target.value !== deleteText;
+			});
+			document.getElementById('confirmationModal').style.display = 'block';
+		}
+		function closeModal() {
+			document.getElementById('confirmationModal').style.display = 'none';
+		}
+		document.addEventListener('DOMContentLoaded', async function () {
+			if (window.languageManager && window.languageManager.renderLanguageSelector) {
+				window.languageManager.renderLanguageSelector('.container');
+			}
+			await loadUserData();
+			document.getElementById('consentForm').addEventListener('submit', saveConsentPreferences);
+			window.onclick = function (event) {
+				const modal = document.getElementById('confirmationModal');
+				if (event.target === modal) {
+					closeModal();
+				}
+			};
+		});
+	</script>
+</body>
+</html>

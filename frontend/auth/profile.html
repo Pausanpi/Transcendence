@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title data-i18n="profile.title"></title>
+	<link rel="stylesheet" href="/css/common.css">
+	<link rel="stylesheet" href="/css/profile.css">
+	<link rel="icon" href="/icon.png">
+	<style>
+	</style>
+</head>
+<body>
+	<div class="container">
+		<span class="security-badge" data-i18n="common.securityBadge"></span>
+		<div class="profile-header">
+			<h1><span data-i18n="common.welcome"></span> <span id="username"></span></h1>
+			<img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+		</div>
+		<div class="profile-info">
+			<p><strong data-i18n="profile.user"></strong> <span id="userUsername"></span></p>
+			<p><strong data-i18n="profile.email"></strong> <span id="userEmail"></span></p>
+			<p><strong data-i18n="profile.id"></strong> <span id="userId"></span></p>
+			<p><strong data-i18n="profile.2fa"></strong> <span id="user2FAStatus"></span></p>
+		</div>
+		<div class="jwt-token">
+			<strong data-i18n="profile.jwtToken"></strong>
+			<div id="jwtToken"></div>
+		</div>
+		<div style="margin-top: 20px;">
+			<a href="/game/index.html" class="btn btn-game" data-i18n="profile.playGame"></a>
+			<a href="/2fa/management" class="btn" id="2faBtn" data-i18n="profile.configure2FA"></a>
+			<a href="/gdpr/management" class="btn btn-secondary" data-i18n="profile.privacyData"></a>
+			<a href="/auth/logout" class="btn btn-danger" data-i18n="common.logout"></a>
+		</div>
+	</div>
+	<script src="/js/language-manager.js"></script>
+	<script>
+		async function loadUserProfile() {
+			try {
+				const response = await fetch('/auth/profile-data', { credentials: 'include' });
+				if (response.ok) {
+					const userData = await response.json();
+					displayUserData(userData);
+				} else {
+					window.location.href = '/';
+				}
+			} catch (error) {
+				console.error('Error loading profile:', error);
+				showErrorMessage('messages.connectionError');
+			}
+		}
+
+		function displayUserData(userData) {
+			document.getElementById('username').textContent = userData.username;
+			document.getElementById('userUsername').textContent = userData.username;
+			document.getElementById('userEmail').textContent = userData.email || window.languageManager.getTranslation('profile.notAvailable');
+			document.getElementById('userId').textContent = userData.id;
+
+			const enabledText = window.languageManager.getTranslation('common.enabled');
+			const disabledText = window.languageManager.getTranslation('common.disabled');
+			document.getElementById('user2FAStatus').textContent = userData.twoFactorEnabled ?
+				`${enabledText}` : `${disabledText}`;
+
+			document.getElementById('userAvatar').src = userData.avatar || '';
+			document.getElementById('jwtToken').textContent = userData.jwtToken || window.languageManager.getTranslation('profile.notAvailable');
+
+			const btn2FA = document.getElementById('2faBtn');
+			const configureText = window.languageManager.getTranslation('profile.configure2FA');
+			const manageText = window.languageManager.getTranslation('profile.manage2FA');
+			btn2FA.textContent = userData.twoFactorEnabled ? manageText : configureText;
+		}
+
+		function showErrorMessage(messageKey) {
+			const message = window.languageManager.getTranslation(messageKey);
+			alert(message);
+		}
+
+		document.addEventListener('DOMContentLoaded', async function () {
+			await loadUserProfile();
+		});
+
+		if (window.languageManager && window.languageManager.renderLanguageSelector) {
+			window.languageManager.renderLanguageSelector('.container');
+		}
+	</script>
+</body>
+</html>

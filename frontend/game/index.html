@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arcade Pong & Tic-Tac-Toe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+
+  <!-- Menú -->
+  <div id="menu" class="text-center space-y-8">
+    <h1 class="text-7xl font-extrabold text-yellow-400 drop-shadow-lg">ARCADE</h1>
+    <div class="space-y-4">
+      <button id="btnPlayer" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🏓 Pong - Jugador vs Jugador</button>
+      <button id="btnIA" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🤖 Pong - Jugador vs IA</button>
+      <button id="btnTic" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">❌⭕ Tres en Raya - 2 Jugadores</button>
+    </div>
+  </div>
+
+  <!-- Contador -->
+  <div id="countdown" class="fixed inset-0 flex items-center justify-center text-9xl font-extrabold text-yellow-300 hidden">
+    <span id="countdownText" class="animate-pulse"></span>
+  </div>
+
+  <!-- Canvas -->
+  <div id="gameContainer" class="hidden flex items-center justify-center">
+    <canvas id="gameCanvas" width="600" height="600" class="border-4 border-gray-700 rounded-2xl shadow-2xl bg-black"></canvas>
+  </div>
+
+  <script src="/game/game.js"></script>
+  <script src="/game/tic-tac-toe.js"></script>
+
+</body>
+</html>

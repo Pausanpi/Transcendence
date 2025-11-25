@@ -1,0 +1,92 @@
+.profile-header {
+	margin-bottom: 30px;
+}
+
+.user-avatar {
+	border-radius: 50%;
+	margin: 20px 0;
+	border: 4px solid #0366d6;
+	width: 120px;
+	height: 120px;
+}
+
+.profile-info {
+	background: #f8f9fa;
+	padding: 20px;
+	border-radius: 12px;
+	margin: 20px 0;
+	text-align: left;
+}
+
+.profile-info p {
+	margin: 10px 0;
+	color: #333;
+	font-size: 16px;
+}
+
+.profile-info strong {
+	color: #0366d6;
+}
+
+.security-info {
+	background: #e7f3ff;
+	border-left: 4px solid #0366d6;
+	padding: 15px;
+	margin-top: 20px;
+	text-align: left;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.security-info strong {
+	color: #0366d6;
+}
+
+.jwt-token {
+	background: #f8f9fa;
+	padding: 15px;
+	border-radius: 8px;
+	margin: 15px 0;
+	word-break: break-all;
+	font-family: monospace;
+	font-size: 12px;
+	border-left: 4px solid #28a745;
+}
+
+.game-link {
+	display: inline-block;
+	margin-top: 20px;
+	padding: 12px 24px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	text-decoration: none;
+	border-radius: 8px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.game-link:hover {
+	background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.divider-text {
+	text-align: center;
+	margin: 20px 0;
+	color: #666;
+}
+
+.btn-game {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	border: none;
+	transition: all 0.3s ease;
+}
+
+.btn-game:hover {
+	background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}

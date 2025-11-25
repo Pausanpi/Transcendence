@@ -1,0 +1,27 @@
+{
+  "title": "Logs del sistema",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "title": "Logs de NGINX",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{job=\"nginx\"}"
+        }
+      ],
+      "gridPos": { "w": 24, "h": 8, "x": 0, "y": 0 }
+    },
+    {
+      "title": "Logs de Redis",
+      "type": "logs",
+      "targets": [
+        {
+          "expr": "{job=\"redis\"}"
+        }
+      ],
+      "gridPos": { "w": 24, "h": 8, "x": 0, "y": 8 }
+    }
+  ]
+}

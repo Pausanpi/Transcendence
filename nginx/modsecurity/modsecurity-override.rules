@@ -1,0 +1,30 @@
+
+# Permitir métodos HTTP necesarios
+SecAction "id:900200,phase:1,nolog,pass,t:none,\
+    setvar:tx.allowed_methods=GET HEAD POST PUT DELETE OPTIONS PATCH"
+
+# Nivel de paranoia (1-4, 2 es balanceado)
+SecAction "id:900000,phase:1,nolog,pass,t:none,\
+    setvar:tx.paranoia_level=2"
+
+# Límites de request body
+SecRequestBodyLimit 13107200
+SecRequestBodyNoFilesLimit 131072
+
+# Permitir JSON en POST/PUT
+SecAction "id:900001,phase:1,nolog,pass,t:none,\
+    setvar:tx.allowed_request_content_type=|application/x-www-form-urlencoded| |multipart/form-data| |text/xml| |application/xml| |application/soap+xml| |application/json|"
+
+# Excluir rutas específicas de algunas reglas
+SecRule REQUEST_URI "@beginsWith /api" \
+    "id:1000,phase:1,pass,nolog,ctl:ruleEngine=DetectionOnly"
+
+# Permitir cookies de sesión largas
+SecAction "id:900003,phase:1,nolog,pass,t:none,\
+    setvar:tx.max_cookie_size=4096"
+
+# Logging
+SecAuditEngine RelevantOnly
+SecAuditLogParts ABIJDEFHZ
+SecAuditLogType Serial
+SecAuditLog /var/log/modsec_audit.log
