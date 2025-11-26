@@ -18,6 +18,9 @@ function startTicTacToe() {
   showCanvas();
 
   const canvas = document.getElementById('gameCanvas');
+  // Ajustar tamaño del canvas para Tic-Tac-Toe
+  canvas.width = 600;
+  canvas.height = 600;
   const ctx = canvas.getContext('2d');
   const size = 600;
   const cell = size / 3;

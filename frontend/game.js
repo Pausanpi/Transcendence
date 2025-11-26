@@ -6,8 +6,14 @@ const btnIA = document.getElementById('btnIA');
 const countdownEl = document.getElementById('countdown');
 const countdownText = document.getElementById('countdownText');
 const gameContainer = document.getElementById('gameContainer');
+const difficultyModal = document.getElementById('difficultyModal');
+const btnEasy = document.getElementById('btnEasy');
+const btnMedium = document.getElementById('btnMedium');
+const btnHard = document.getElementById('btnHard');
+const btnCancelDifficulty = document.getElementById('btnCancelDifficulty');
 
 let isAIMode = false;
+let aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
 let gameStarted = false;
 const WINNING_SCORE = 5;
 let score1 = 0;
@@ -18,7 +24,29 @@ const paddle2 = { x: canvas.width - 20, y: canvas.height / 2 - 50, width: 10, he
 const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 5, speedY: 5 };
 
 btnPlayer.addEventListener('click', () => startGame(false));
-btnIA.addEventListener('click', () => startGame(true));
+btnIA.addEventListener('click', showDifficultyModal);
+
+// Event listeners para el modal de dificultad
+btnEasy.addEventListener('click', () => startGameWithDifficulty('easy'));
+btnMedium.addEventListener('click', () => startGameWithDifficulty('medium'));
+btnHard.addEventListener('click', () => startGameWithDifficulty('hard'));
+btnCancelDifficulty.addEventListener('click', hideDifficultyModal);
+
+function showDifficultyModal() {
+  menu.classList.add('hidden');
+  difficultyModal.classList.remove('hidden');
+}
+
+function hideDifficultyModal() {
+  difficultyModal.classList.add('hidden');
+  menu.classList.remove('hidden');
+}
+
+function startGameWithDifficulty(difficulty) {
+  aiDifficulty = difficulty;
+  difficultyModal.classList.add('hidden');
+  startGame(true);
+}
 
 function hideMenu() {
   menu.classList.add('hidden');
@@ -34,6 +62,9 @@ function hideCanvas() {
 
 function startGame(aiMode) {
   isAIMode = aiMode;
+  // Ajustar tamaño del canvas para Pong
+  canvas.width = 800;
+  canvas.height = 600;
   hideMenu();
   showCanvas();
   resetGame();
@@ -46,7 +77,9 @@ function startGame(aiMode) {
 function resetGame() {
   score1 = 0;
   score2 = 0;
+  paddle1.x = 10;
   paddle1.y = canvas.height / 2 - 50;
+  paddle2.x = canvas.width - 20;
   paddle2.y = canvas.height / 2 - 50;
   resetBall();
   gameStarted = false;
@@ -112,10 +145,36 @@ function predictBallPosition() {
 function updateAI() {
   const predictedY = predictBallPosition();
   const paddleCenter = paddle2.y + paddle2.height / 2;
-  const aiSpeed = paddle2.speed * 0.85;
+  
+  // Configuración según dificultad
+  let aiSpeed, reactionZone, errorMargin;
+  
+  switch(aiDifficulty) {
+    case 'easy':
+      aiSpeed = paddle2.speed * 0.5;  // Más lento
+      reactionZone = 40;  // Zona de reacción más amplia (menos preciso)
+      errorMargin = Math.random() * 60 - 30;  // Error aleatorio mayor
+      break;
+    case 'medium':
+      aiSpeed = paddle2.speed * 0.75;
+      reactionZone = 20;
+      errorMargin = Math.random() * 30 - 15;  // Error aleatorio moderado
+      break;
+    case 'hard':
+      aiSpeed = paddle2.speed * 0.95;  // Muy rápido
+      reactionZone = 5;  // Muy preciso
+      errorMargin = Math.random() * 10 - 5;  // Error mínimo
+      break;
+    default:
+      aiSpeed = paddle2.speed * 0.75;
+      reactionZone = 20;
+      errorMargin = 0;
+  }
+  
+  const targetY = predictedY + errorMargin;
 
-  if (paddleCenter < predictedY - 15) paddle2.y += aiSpeed;
-  else if (paddleCenter > predictedY + 15) paddle2.y -= aiSpeed;
+  if (paddleCenter < targetY - reactionZone) paddle2.y += aiSpeed;
+  else if (paddleCenter > targetY + reactionZone) paddle2.y -= aiSpeed;
 
   if (paddle2.y < 0) paddle2.y = 0;
   if (paddle2.y > canvas.height - paddle2.height) paddle2.y = canvas.height - paddle2.height;
