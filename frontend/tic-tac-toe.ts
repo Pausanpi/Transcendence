@@ -1,40 +1,32 @@
-const btnTic = document.getElementById('btnTic');
+type CellValue = 'X' | 'O' | '';
+type Board = CellValue[][];
+type GameResult = 'X' | 'O' | 'Empate' | null;
+
+const btnTic = document.getElementById('btnTic') as HTMLButtonElement;
 btnTic.addEventListener('click', startTicTacToe);
 
-function hideMenu() {
-  document.getElementById('menu').classList.add('hidden');
-}
-
-function showCanvas() {
-  document.getElementById('gameContainer').classList.remove('hidden');
-}
-
-function hideCanvas() {
-  document.getElementById('gameContainer').classList.add('hidden');
-}
-
-function startTicTacToe() {
+function startTicTacToe(): void {
   hideMenu();
   showCanvas();
 
-  const canvas = document.getElementById('gameCanvas');
+  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   // Ajustar tamaño del canvas para Tic-Tac-Toe
   canvas.width = 600;
   canvas.height = 600;
-  const ctx = canvas.getContext('2d');
-  const size = 600;
-  const cell = size / 3;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  const size: number = 600;
+  const cell: number = size / 3;
 
-  let board = [
+  let board: Board = [
     ['', '', ''],
     ['', '', ''],
     ['', '', '']
   ];
 
-  let currentPlayer = 'X';
-  let gameOver = false;
+  let currentPlayer: CellValue = 'X';
+  let gameOver: boolean = false;
 
-  function drawBoard() {
+  function drawBoard(): void {
     ctx.clearRect(0, 0, size, size);
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 4;
@@ -52,7 +44,7 @@ function startTicTacToe() {
 
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 3; col++) {
-        const val = board[row][col];
+        const val: CellValue = board[row][col];
         if (val) {
           ctx.font = '120px sans-serif';
           ctx.fillStyle = val === 'X' ? 'rgba(30, 30, 166, 1)' : 'rgba(194, 24, 24, 1)';
@@ -64,8 +56,8 @@ function startTicTacToe() {
     }
   }
 
-  function checkWin() {
-    const lines = [
+  function checkWin(): GameResult {
+    const lines: CellValue[][] = [
       // Filas
       [board[0][0], board[0][1], board[0][2]],
       [board[1][0], board[1][1], board[1][2]],
@@ -81,27 +73,27 @@ function startTicTacToe() {
 
     for (let line of lines) {
       if (line[0] && line[0] === line[1] && line[1] === line[2]) {
-        return line[0];
+        return line[0] as 'X' | 'O';
       }
     }
 
     return board.flat().includes('') ? null : 'Empate';
   }
 
-  function handleClick(e) {
+  function handleClick(e: MouseEvent): void {
     if (gameOver) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const rect: DOMRect = canvas.getBoundingClientRect();
+    const x: number = e.clientX - rect.left;
+    const y: number = e.clientY - rect.top;
 
-    const col = Math.floor(x / cell);
-    const row = Math.floor(y / cell);
+    const col: number = Math.floor(x / cell);
+    const row: number = Math.floor(y / cell);
 
     if (board[row][col] !== '') return;
 
     board[row][col] = currentPlayer;
-    const result = checkWin();
+    const result: GameResult = checkWin();
 
     if (result) {
       gameOver = true;
@@ -113,17 +105,18 @@ function startTicTacToe() {
     }
   }
 
-  function showResult(result) {
+  function showResult(result: GameResult): void {
     hideCanvas();
-    const countdownEl = document.getElementById('countdown');
-    const countdownText = document.getElementById('countdownText');
+    const countdownEl = document.getElementById('countdown') as HTMLElement;
+    const countdownText = document.getElementById('countdownText') as HTMLElement;
     countdownEl.classList.remove('hidden');
     countdownText.innerHTML = result === 'Empate' ? '🤝 Empate 🤝' : `🎉 Jugador ${result} Gana 🎉`;
     countdownText.className = 'text-5xl animate-pulse';
 
     setTimeout(() => {
       countdownEl.classList.add('hidden');
-      document.getElementById('menu').classList.remove('hidden');
+      const menu = document.getElementById('menu') as HTMLElement;
+      menu.classList.remove('hidden');
     }, 3001);
   }
 

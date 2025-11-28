@@ -1,27 +1,49 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const menu = document.getElementById('menu');
-const btnPlayer = document.getElementById('btnPlayer');
-const btnIA = document.getElementById('btnIA');
-const countdownEl = document.getElementById('countdown');
-const countdownText = document.getElementById('countdownText');
-const gameContainer = document.getElementById('gameContainer');
-const difficultyModal = document.getElementById('difficultyModal');
-const btnEasy = document.getElementById('btnEasy');
-const btnMedium = document.getElementById('btnMedium');
-const btnHard = document.getElementById('btnHard');
-const btnCancelDifficulty = document.getElementById('btnCancelDifficulty');
+interface Paddle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speed: number;
+}
 
-let isAIMode = false;
-let aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
-let gameStarted = false;
-const WINNING_SCORE = 5;
-let score1 = 0;
-let score2 = 0;
+interface Ball {
+  x: number;
+  y: number;
+  radius: number;
+  speedX: number;
+  speedY: number;
+}
 
-const paddle1 = { x: 10, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
-const paddle2 = { x: canvas.width - 20, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
-const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 5, speedY: 5 };
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+interface Keys {
+  [key: string]: boolean;
+}
+
+const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+const menu = document.getElementById('menu') as HTMLElement;
+const btnPlayer = document.getElementById('btnPlayer') as HTMLButtonElement;
+const btnIA = document.getElementById('btnIA') as HTMLButtonElement;
+const countdownEl = document.getElementById('countdown') as HTMLElement;
+const countdownText = document.getElementById('countdownText') as HTMLElement;
+const gameContainer = document.getElementById('gameContainer') as HTMLElement;
+const difficultyModal = document.getElementById('difficultyModal') as HTMLElement;
+const btnEasy = document.getElementById('btnEasy') as HTMLButtonElement;
+const btnMedium = document.getElementById('btnMedium') as HTMLButtonElement;
+const btnHard = document.getElementById('btnHard') as HTMLButtonElement;
+const btnCancelDifficulty = document.getElementById('btnCancelDifficulty') as HTMLButtonElement;
+
+let isAIMode: boolean = false;
+let aiDifficulty: Difficulty = 'medium';
+let gameStarted: boolean = false;
+const WINNING_SCORE: number = 5;
+let score1: number = 0;
+let score2: number = 0;
+
+const paddle1: Paddle = { x: 10, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
+const paddle2: Paddle = { x: canvas.width - 20, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
+const ball: Ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 5, speedY: 5 };
 
 btnPlayer.addEventListener('click', () => startGame(false));
 btnIA.addEventListener('click', showDifficultyModal);
@@ -32,35 +54,23 @@ btnMedium.addEventListener('click', () => startGameWithDifficulty('medium'));
 btnHard.addEventListener('click', () => startGameWithDifficulty('hard'));
 btnCancelDifficulty.addEventListener('click', hideDifficultyModal);
 
-function showDifficultyModal() {
+function showDifficultyModal(): void {
   menu.classList.add('hidden');
   difficultyModal.classList.remove('hidden');
 }
 
-function hideDifficultyModal() {
+function hideDifficultyModal(): void {
   difficultyModal.classList.add('hidden');
   menu.classList.remove('hidden');
 }
 
-function startGameWithDifficulty(difficulty) {
+function startGameWithDifficulty(difficulty: Difficulty): void {
   aiDifficulty = difficulty;
   difficultyModal.classList.add('hidden');
   startGame(true);
 }
 
-function hideMenu() {
-  menu.classList.add('hidden');
-}
-
-function showCanvas() {
-  gameContainer.classList.remove('hidden');
-}
-
-function hideCanvas() {
-  gameContainer.classList.add('hidden');
-}
-
-function startGame(aiMode) {
+function startGame(aiMode: boolean): void {
   isAIMode = aiMode;
   // Ajustar tamaño del canvas para Pong
   canvas.width = 800;
@@ -74,7 +84,7 @@ function startGame(aiMode) {
   startCountdown();
 }
 
-function resetGame() {
+function resetGame(): void {
   score1 = 0;
   score2 = 0;
   paddle1.x = 10;
@@ -85,14 +95,14 @@ function resetGame() {
   gameStarted = false;
 }
 
-function startCountdown() {
-  let count = 3;
+function startCountdown(): void {
+  let count: number = 3;
   countdownEl.classList.remove('hidden');
-  countdownText.textContent = count;
+  countdownText.textContent = count.toString();
 
   const interval = setInterval(() => {
     count--;
-    if (count > 0) countdownText.textContent = count;
+    if (count > 0) countdownText.textContent = count.toString();
     else if (count === 0) countdownText.textContent = '¡GO!';
     else {
       clearInterval(interval);
@@ -103,11 +113,11 @@ function startCountdown() {
   }, 1000);
 }
 
-const keys = {};
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup', e => keys[e.key] = false);
+const keys: Keys = {};
+window.addEventListener('keydown', (e: KeyboardEvent) => keys[e.key] = true);
+window.addEventListener('keyup', (e: KeyboardEvent) => keys[e.key] = false);
 
-function updatePaddles() {
+function updatePaddles(): void {
   if (keys['w'] && paddle1.y > 0) paddle1.y -= paddle1.speed;
   if (keys['s'] && paddle1.y < canvas.height - paddle1.height) paddle1.y += paddle1.speed;
 
@@ -118,11 +128,11 @@ function updatePaddles() {
   }
 }
 
-function predictBallPosition() {
-  let tempX = ball.x;
-  let tempY = ball.y;
-  let tempSpeedX = ball.speedX;
-  let tempSpeedY = ball.speedY;
+function predictBallPosition(): number {
+  let tempX: number = ball.x;
+  let tempY: number = ball.y;
+  let tempSpeedX: number = ball.speedX;
+  let tempSpeedY: number = ball.speedY;
 
   if (tempSpeedX <= 0) return paddle2.y + paddle2.height / 2;
 
@@ -142,12 +152,12 @@ function predictBallPosition() {
   return tempY;
 }
 
-function updateAI() {
-  const predictedY = predictBallPosition();
-  const paddleCenter = paddle2.y + paddle2.height / 2;
+function updateAI(): void {
+  const predictedY: number = predictBallPosition();
+  const paddleCenter: number = paddle2.y + paddle2.height / 2;
   
   // Configuración según dificultad
-  let aiSpeed, reactionZone, errorMargin;
+  let aiSpeed: number, reactionZone: number, errorMargin: number;
   
   switch(aiDifficulty) {
     case 'easy':
@@ -171,7 +181,7 @@ function updateAI() {
       errorMargin = 0;
   }
   
-  const targetY = predictedY + errorMargin;
+  const targetY: number = predictedY + errorMargin;
 
   if (paddleCenter < targetY - reactionZone) paddle2.y += aiSpeed;
   else if (paddleCenter > targetY + reactionZone) paddle2.y -= aiSpeed;
@@ -180,7 +190,7 @@ function updateAI() {
   if (paddle2.y > canvas.height - paddle2.height) paddle2.y = canvas.height - paddle2.height;
 }
 
-function updateBall() {
+function updateBall(): void {
   ball.x += ball.speedX;
   ball.y += ball.speedY;
 
@@ -193,7 +203,7 @@ function updateBall() {
   ) {
     ball.speedX = Math.abs(ball.speedX) * 1.05;
     ball.x = paddle1.x + paddle1.width + ball.radius;
-    const hitPos = (ball.y - paddle1.y) / paddle1.height - 0.5;
+    const hitPos: number = (ball.y - paddle1.y) / paddle1.height - 0.5;
     ball.speedY += hitPos * 2;
   }
 
@@ -204,7 +214,7 @@ function updateBall() {
   ) {
     ball.speedX = -Math.abs(ball.speedX) * 1.05;
     ball.x = paddle2.x - ball.radius;
-    const hitPos = (ball.y - paddle2.y) / paddle2.height - 0.5;
+    const hitPos: number = (ball.y - paddle2.y) / paddle2.height - 0.5;
     ball.speedY += hitPos * 2;
   }
 
@@ -220,19 +230,19 @@ function updateBall() {
   }
 }
 
-function resetBall() {
+function resetBall(): void {
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 2;
   ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
   ball.speedY = (Math.random() > 0.5 ? 1 : -1) * 5;
 }
 
-function checkWinner() {
+function checkWinner(): void {
   if (score1 >= WINNING_SCORE) showWinner('Jugador 1');
   else if (score2 >= WINNING_SCORE) showWinner(isAIMode ? 'IA' : 'Jugador 2');
 }
 
-function showWinner(winner) {
+function showWinner(winner: string): void {
   gameStarted = false;
   hideCanvas();
   countdownEl.classList.remove('hidden');
@@ -245,7 +255,7 @@ function showWinner(winner) {
   }, 3001);
 }
 
-function draw() {
+function draw(): void {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -275,7 +285,7 @@ function draw() {
   ctx.fillText(`Primera a ${WINNING_SCORE}`, canvas.width / 2 - 80, canvas.height - 20);
 }
 
-function gameLoop() {
+function gameLoop(): void {
   if (!gameStarted) return;
   updatePaddles();
   updateBall();
