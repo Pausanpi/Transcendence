@@ -1,131 +1,129 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import db from '../config/sqlite.js';
+import bcrypt from 'bcrypt';
 
 class TwoFactorService {
-    generateSecret(user) {
-        const issuer = 'OAuthApp';
-        const accountName = (user.email || user.username).replace(/[^a-zA-Z0-9@.]/g, '');
+	generateSecret(user) {
+		const issuer = 'SecureApp';
+		const accountName = (user.email || user.username).replace(/[^a-zA-Z0-9@.]/g, '');
+		const secret = speakeasy.generateSecret({
+			name: `${issuer}:${accountName}`,
+			issuer: issuer,
+			length: 20
+		});
+		return {
+			secret: secret.base32,
+			otpauth_url: secret.otpauth_url
+		};
+	}
 
-        const secret = speakeasy.generateSecret({
-            name: `${issuer}:${accountName}`,
-            issuer: issuer,
-            length: 32
-        });
+	async generateQRCode(otpauthUrl) {
+		try {
+			return await QRCode.toDataURL(otpauthUrl);
+		} catch (error) {
+			console.error('Error generating QR code:', error);
+			throw new Error('QR code generation failed');
+		}
+	}
 
-        const base32 = secret.base32;
-        const otpauthUrl =
-                       + `?secret=${base32}`
-            + `&issuer=${encodeURIComponent(issuer)}`
-            + `&algorithm=SHA1&digits=6&period=300`;
+	verifyToken(secret, token, window = 2) {
+		try {
+			if (!secret || !token) {
+				return false;
+			}
+			return speakeasy.totp.verify({
+				secret: secret,
+				encoding: 'base32',
+				token: token,
+				window: window,
+				step: 30
+			});
+		} catch (error) {
+			console.error('Error verifying token:', error);
+			return false;
+		}
+	}
 
-        return {
-            secret: base32,
-            otpauth_url: otpauthUrl
-        };
-    }
+	generateBackupCodes(count = 8) {
+		const codes = [];
+		for (let i = 0; i < count; i++) {
+			const part1 = Math.floor(10000 + Math.random() * 90000).toString();
+			const part2 = Math.floor(100 + Math.random() * 900).toString();
+			codes.push(`${part1}-${part2}`);
+		}
+		return codes;
+	}
 
-    async generateQRCode(otpauthUrl) {
-        try {
-            return await QRCode.toDataURL(otpauthUrl, {
-                errorCorrectionLevel: 'H',
-                margin: 2,
-                width: 300
-            });
-        } catch (error) {
-            console.error('Error generating QR code:', error);
-            throw new Error('The QR code could not be generated.');
-        }
-    }
+	async saveBackupCodes(userId, codes) {
+		try {
+			await db.run('DELETE FROM backup_codes WHERE user_id = ?', [userId]);
+			for (const code of codes) {
+				const hashedCode = await bcrypt.hash(code, 10);
+				await db.run(
+					'INSERT INTO backup_codes (user_id, code_hash, used) VALUES (?, ?, 0)',
+					[userId, hashedCode]
+				);
+			}
+			return true;
+		} catch (error) {
+			console.error('Error saving backup codes:', error);
+			return false;
+		}
+	}
 
-    verifyToken(secret, token, window = 1) {
-        try {
-            return speakeasy.totp.verify({
-                secret: secret,
-                encoding: 'base32',
-                token: token,
-                window: window,
-                step: 30
-            });
-        } catch (error) {
-            console.error('Error verifying token:', error);
-            return false;
-        }
-    }
+	async verifyBackupCode(userId, code) {
+		try {
+			const rows = await db.all(
+				'SELECT id, code_hash FROM backup_codes WHERE user_id = ? AND used = 0',
+				[userId]
+			);
+			for (const row of rows) {
+				const isValid = await bcrypt.compare(code, row.code_hash);
+				if (isValid) {
+					await db.run('UPDATE backup_codes SET used = 1 WHERE id = ?', [row.id]);
+					return true;
+				}
+			}
+			return false;
+		} catch (error) {
+			console.error('Error verifying backup code:', error);
+			return false;
+		}
+	}
 
-    generateBackupCodes(count = 8) {
-        const codes = [];
-        for (let i = 0; i < count; i++) {
-            const part1 = Math.random().toString().substr(2, 5);
-            const part2 = Math.random().toString().substr(2, 3);
-            codes.push(`${part1}-${part2}`);
-        }
-        return codes;
-    }
+	async getRemainingBackupCodes(userId) {
+		try {
+			const rows = await db.all(
+				'SELECT COUNT(*) as count FROM backup_codes WHERE user_id = ? AND used = 0',
+				[userId]
+			);
+			return rows[0]?.count || 0;
+		} catch (error) {
+			return 0;
+		}
+	}
 
-    verifyBackupCode(backupCodes, code) {
-        return backupCodes.includes(code);
-    }
+	async clearBackupCodes(userId) {
+		try {
+			await db.run('DELETE FROM backup_codes WHERE user_id = ?', [userId]);
+			return true;
+		} catch (error) {
+			return false;
+		}
+	}
 
-    getCurrentToken(secret, time = null) {
-        try {
-            const cleanSecret = secret
-                .replace(/\s/g, '')
-                .toUpperCase();
-
-            const options = {
-                secret: cleanSecret,
-                encoding: 'base32',
-                step: 30
-            };
-
-            if (time) {
-                options.time = time;
-            }
-
-            return speakeasy.totp(options);
-        } catch (error) {
-            console.error('Error getting current token:', error);
-            return null;
-        }
-    }
-
-    verifyTokenWithWindow(secret, token, window = 2) {
-        try {
-            const cleanSecret = secret
-                .replace(/\s/g, '')
-                .toUpperCase();
-
-            const verified = speakeasy.totp.verify({
-                secret: cleanSecret,
-                encoding: 'base32',
-                token: token,
-                window: window,
-                step: 30
-            });
-
-            return verified;
-        } catch (error) {
-            console.error('Error verifying token with window:', error);
-            return false;
-        }
-    }
-
-    getTimeInfo() {
-        const now = Date.now();
-        const unixTime = Math.floor(now / 1000);
-        const step = 30;
-        const currentStep = Math.floor(unixTime / step);
-        const timeInStep = unixTime % step;
-        const timeRemaining = step - timeInStep;
-
-        return {
-            unixTime,
-            currentStep,
-            timeInCurrentStep: timeInStep,
-            secondsUntilNextCode: timeRemaining,
-            localTime: new Date(now).toISOString()
-        };
-    }
+	async getBackupCodes(userId) {
+		try {
+			const rows = await db.all(
+				'SELECT code_hash FROM backup_codes WHERE user_id = ? AND used = 0',
+				[userId]
+			);
+			return rows.map(row => row.code_hash);
+		} catch (error) {
+			return [];
+		}
+	}
 }
 
 export default new TwoFactorService();

@@ -2,7 +2,10 @@ import { findUserById, updateUser, deleteUser, anonymizeUser } from '../models/U
 import { deleteUserSessions } from '../models/Session.js';
 import gdprService from '../services/gdpr.js';
 import { authenticateJWT } from '../middleware/auth.js';
+
 export default async function gdprRoutes(fastify, options) {
+
+	fastify.addHook('preHandler', authenticateJWT);
 	fastify.get('/management', async (request, reply) => {
 		if (!request.isAuthenticated()) {
 			return reply.redirect('/');
@@ -36,9 +39,8 @@ export default async function gdprRoutes(fastify, options) {
 			});
 		}
 	});
-	fastify.post('/anonymize', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
+
+	fastify.post('/anonymize', async (request, reply) => {
 		try {
 			const user = await findUserById(request.user.id);
 			if (!user) {
@@ -47,10 +49,19 @@ export default async function gdprRoutes(fastify, options) {
 					code: 'USER_NOT_FOUND'
 				});
 			}
+
 			const anonymizedUser = await gdprService.anonymizeUserData(user.id);
+			if (!anonymizedUser) {
+				return reply.status(500).send({
+					error: 'gdpr.anonymizationError',
+					code: 'ANONYMIZATION_ERROR'
+				});
+			}
+
 			if (request.session) {
 				request.session.destroy();
 			}
+
 			return {
 				success: true,
 				message: 'messages.dataAnonymized',
@@ -64,6 +75,7 @@ export default async function gdprRoutes(fastify, options) {
 			});
 		}
 	});
+
 	fastify.post('/export-data', {
 		preHandler: authenticateJWT
 	}, async (request, reply) => {
@@ -90,17 +102,22 @@ export default async function gdprRoutes(fastify, options) {
 			});
 		}
 	});
+
+
 	fastify.post('/delete-account', {
 		preHandler: authenticateJWT
 	}, async (request, reply) => {
 		try {
 			const { confirmation } = request.body;
-			if (!confirmation || confirmation !== 'ELIMINAR MI CUENTA') {
+			const confirmationText = request.session?.language === 'es' ? 'ELIMINAR MI CUENTA' : 'DELETE MY ACCOUNT';
+
+			if (!confirmation || confirmation !== confirmationText) {
 				return reply.status(400).send({
-					error: 'gdpr.confirmationRequired',
+					error: 'gdpr.invalidConfirmation',
 					code: 'CONFIRMATION_REQUIRED'
 				});
 			}
+
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
@@ -108,10 +125,19 @@ export default async function gdprRoutes(fastify, options) {
 					code: 'USER_NOT_FOUND'
 				});
 			}
-			await gdprService.deleteUserAccount(user.id);
+
+			const success = await gdprService.deleteUserAccount(user.id);
+			if (!success) {
+				return reply.status(500).send({
+					error: 'gdpr.deletionError',
+					code: 'DELETION_ERROR'
+				});
+			}
+
 			if (request.session) {
 				request.session.destroy();
 			}
+
 			return {
 				success: true,
 				message: 'messages.accountDeleted'
@@ -124,6 +150,7 @@ export default async function gdprRoutes(fastify, options) {
 			});
 		}
 	});
+
 	fastify.post('/update-consent', {
 		preHandler: authenticateJWT
 	}, async (request, reply) => {

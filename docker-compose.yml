@@ -1,108 +1,91 @@
-services:
+x-healthchecks:
+  nginx: &nginx-healthcheck
+    test: ["CMD", "nginx", "-t"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+  redis: &redis-healthcheck
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 5s
+    timeout: 3s
+    retries: 5
+  webapp: &webapp-healthcheck
+    test: ["CMD", "curl", "-f", "-s", "http://localhost:8443/health"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 30s
+    start_interval: 5s
+  prometheus: &prometheus-healthcheck
+    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 15s
+  vault: &vault-healthcheck
+    test: ["CMD-SHELL", "curl -k -s https://localhost:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 30s
+  grafana: &grafana-healthcheck
+    test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3000/api/health || exit 1"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 30s
 
+services:
   nginx-waf:
     image: nginx-waf
     build:
       context: nginx
       dockerfile: Dockerfile
     container_name: nginx-waf
-    ports: ["880:80", "8443:443"]
-    environment:
-      MODSECURITY_ENABLED: 1
-      MODSECURITY: "on"
-      MODSEC_RULE_ENGINE: "on"
-      MODSEC_AUDIT_ENGINE: "on"
-      MODSEC_REQ_BODY_ACCESS: "on"
-      BLOCKING_PARANOIA: 2
+    ports: ["8443:443"]
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./backend/ssl:/etc/nginx/ssl
-      - ./grafana/logs/nginx:/var/log/nginx
-      - ./grafana/logs:/var/log/app_logs
+      - logs-data:/var/log/nginx
     depends_on:
       - web-app
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    healthcheck: *nginx-healthcheck
     networks: [transcendence-net]
-    restart: unless-stopped
+    restart: always
 
   vault:
-    image: hashicorp/vault:latest
+    image: vault
     container_name: vault
-    ports: ["8200:8200"]
-    environment:
-      TZ: "Europe/Madrid"
-      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TOKEN}
-      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
-      VAULT_ADDR: "http://0.0.0.0:8200"
-      VAULT_LOCAL_CONFIG: |
-        disable_mlock = true
-        ui = true
-        storage "file" { path = "/vault/data" }
-        listener "tcp" {
-          address = "0.0.0.0:8200"
-          tls_disable = 1
-        }
-        api_addr = "http://vault:8200"
-    cap_add: [IPC_LOCK]
+    build:
+      context: vault
+      dockerfile: Dockerfile
+    env_file: .env
     volumes:
-      - vault-data:/vault/data
-      - ./grafana/logs/vault:/vault/logs
-    command: >
-      sh -c "
-        vault server -dev -dev-root-token-id=$$VAULT_DEV_ROOT_TOKEN_ID &&
-        sleep 5 &&
-        vault secrets enable -path=secret kv-v2 &&
-        vault policy write app /vault/policies/app-policy.hcl &&
-        vault kv put secret/oauth/github client_id=$$GITHUB_CLIENT_ID client_secret=$$GITHUB_CLIENT_SECRET &&
-        vault kv put secret/session/config secret=$$SESSION_SECRET &&
-        vault kv put secret/database/redis url=redis://redis:6379
-      "
+      - ./nginx/ssl:/vault/ssl:ro
+      - ./vault/policy.hcl:/vault/policies/policy.hcl:ro
+    ports: ["8444:8200"]
     networks: [transcendence-net]
-    healthcheck:
-      test: ["CMD-SHELL", "vault status > /dev/null 2>&1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
+    healthcheck: *vault-healthcheck
     restart: always
 
   redis:
-    image: redis:alpine
+    image: redis
     container_name: redis
-    ports: ["6379:6379"]
+    build:
+      context: redis
+      dockerfile: Dockerfile
     volumes:
       - redis-data:/data
-      - ./grafana/logs/redis:/var/log/redis
+      - logs-data:/var/log/redis
     networks: [transcendence-net]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+    healthcheck: *redis-healthcheck
     restart: always
 
   web-app:
     image: web-app
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     container_name: web-app
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      HTTPS_PORT: 3443
-      REDIS_URL: redis://redis:6379
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: ${VAULT_TOKEN}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      BASE_URL: http://localhost
-      SESSION_SECRET: ${SESSION_SECRET}
-    ports: ["3000:3000", "3443:3443"]
+    env_file: .env
     depends_on:
       vault:
         condition: service_healthy
@@ -111,24 +94,55 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./frontend:/app/frontend
-      - ./package.json:/app/package.json
       - ./data:/app/data
-      - ./backend/ssl:/app/ssl
-      - ./grafana/logs:/app/logs
+      - logs-data:/app/logs
     networks: [transcendence-net]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-      start_interval: 5s
+    healthcheck: *webapp-healthcheck
+
+  prometheus:
+    image: prometheus
+    build:
+      context: prometheus
+      dockerfile: Dockerfile
+    container_name: prometheus
+    volumes:
+      - prometheus-data:/prometheus
+      - logs-data:/logs:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks: [transcendence-net]
+    healthcheck: *prometheus-healthcheck
+    restart: unless-stopped
+
+  grafana:
+    image: grafana
+    build:
+      context: grafana
+      dockerfile: Dockerfile
+    container_name: grafana
+    user: "root"
+    env_file: .env
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - logs-data:/var/log/grafana
+      - ./nginx/ssl:/etc/grafana/ssl:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports: ["8445:3000"]
+    networks: [transcendence-net]
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck: *grafana-healthcheck
+    restart: unless-stopped
 
 volumes:
-  vault-data:
-    name: vault-data
   redis-data:
     name: redis-data
+  logs-data:
+    name: logs-data
+  grafana-data:
+    name: grafana-data
+  prometheus-data:
+    name: prometheus-data
 
 networks:
   transcendence-net:

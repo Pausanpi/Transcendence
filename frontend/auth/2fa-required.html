@@ -1,195 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title data-i18n="2fa.verificationRequired"></title>
-	<link rel="stylesheet" href="/css/common.css">
-	<link rel="stylesheet" href="/css/2fa.css">
-	<link rel="icon" href="/icon.png">
+    <title data-i18n="2fa.verificationRequired"></title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="icon" href="/icon.png">
 </head>
 <body>
-	<div class="container">
-		<h2 data-i18n="2fa.verificationRequired"></h2>
-		<p data-i18n="2fa.enterCodePrompt"></p>
-		<form id="2faForm">
-			<div class="form-group">
-				<input type="text" id="tokenInput" name="token" data-i18n-placeholder="2fa.sixDigitCode" maxlength="6"
-					required pattern="[0-9]{6}" title="6-digit code" autocomplete="off">
-			</div>
-			<button type="submit" class="btn" data-i18n="2fa.verify"></button>
-		</form>
-		<div class="section" style="margin-top: 20px;">
-			<h3 data-i18n="2fa.recoveryOptions"></h3>
-			<p data-i18n="2fa.useBackupCode"></p>
-			<button class="btn btn-secondary" onclick="showBackupCodeInput()" data-i18n="2fa.useBackupCodeBtn">
-			</button>
-		</div>
-		<div id="backupCodeSection" class="section" style="display: none;">
-			<h3 data-i18n="2fa.enterBackupCode"></h3>
-			<form id="backupCodeForm">
-				<div class="form-group">
-					<input type="text" id="backupCode" name="backupCode" data-i18n-placeholder="2fa.backupCodePlaceholder" maxlength="9" required
-						pattern="[0-9]{5}-[0-9]{3}" title="Formato: 12345-678" autocomplete="off">
-				</div>
-				<button type="submit" class="btn" data-i18n="2fa.verifyBackupCode">
-				</button>
-				<button type="button" class="btn btn-secondary" onclick="hideBackupCodeInput()"
-					data-i18n="common.cancel">
-				</button>
-			</form>
-		</div>
-		<div id="message" style="margin-top: 20px;"></div>
-	</div>
-	<script src="/js/language-manager.js"></script>
-	<script>
-		let currentUserId = null;
-		async function getUserId() {
-			if (currentUserId) return currentUserId;
-			try {
-				const response = await fetch('/auth/pending-2fa-user', {
-					credentials: 'include'
-				});
-				if (response.ok) {
-					const data = await response.json();
-					currentUserId = data.userId;
-					return currentUserId;
-				} else {
-					console.error('Error fetching pending user:', response.status);
-					const storedUserId = sessionStorage.getItem('pending2FAUserId') ||
-						localStorage.getItem('pending2FAUserId');
-					if (storedUserId) {
-						currentUserId = storedUserId;
-						return currentUserId;
-					}
-				}
-			} catch (error) {
-				console.error('Error obteniendo user ID pendiente:', error);
-				const storedUserId = sessionStorage.getItem('pending2FAUserId') ||
-					localStorage.getItem('pending2FAUserId');
-				if (storedUserId) {
-					currentUserId = storedUserId;
-					return currentUserId;
-				}
-			}
-			return null;
-		}
-		function showBackupCodeInput() {
-			document.getElementById('backupCodeSection').style.display = 'block';
-			document.getElementById('backupCode').focus();
-		}
-		function hideBackupCodeInput() {
-			document.getElementById('backupCodeSection').style.display = 'none';
-			document.getElementById('backupCode').value = '';
-		}
-		function showMessage(message, type) {
-			const messageDiv = document.getElementById('message');
-			messageDiv.innerHTML = `<div class="message ${type}">${message}</div>`;
-			if (type === 'success') {
-				setTimeout(() => {
-					messageDiv.innerHTML = '';
-				}, 5000);
-			}
-		}
-		async function verify2FAToken(isBackupCode = false) {
-			const userId = await getUserId();
-			if (!userId) {
-				showMessage(
-					window.languageManager.getTranslation('messages.userNotFound'),
-					'error'
-				);
-				setTimeout(() => {
-					window.location.href = '/';
-				}, 2000);
-				return;
-			}
-			let token;
-			if (isBackupCode) {
-				token = document.getElementById('backupCode').value.trim();
-			} else {
-				token = document.getElementById('tokenInput').value.trim();
-			}
-			if (!token) {
-				showMessage(window.languageManager.getTranslation('messages.enterCode'), 'error');
-				return;
-			}
-			if (isBackupCode) {
-				if (!/^\d{5}-\d{3}$/.test(token)) {
-					showMessage(window.languageManager.getTranslation('messages.invalidBackupFormat'), 'error');
-					return;
-				}
-			} else {
-				if (!/^\d{6}$/.test(token)) {
-					showMessage(window.languageManager.getTranslation('messages.sixDigitsRequired'), 'error');
-					return;
-				}
-			}
-			try {
-				showMessage(window.languageManager.getTranslation('messages.verifyingCode'), 'success');
-				const response = await fetch('/2fa/verify-login', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					credentials: 'include',
-					body: JSON.stringify({
-						token,
-						userId,
-						isBackupCode: isBackupCode
-					})
-				});
-				const result = await response.json();
-				if (result.success) {
-					let message = window.languageManager.getTranslation('2fa.verificationSuccess');
-					if (result.usedBackupCode) {
-						message = window.languageManager.getTranslation('2fa.backupCodeSuccess', {
-							remaining: result.remainingBackupCodes || window.languageManager.getTranslation('common.several')
-						});
-					}
-					showMessage(message, 'success');
-					sessionStorage.removeItem('pending2FAUserId');
-					localStorage.removeItem('pending2FAUserId');
-					setTimeout(() => {
-						window.location.href = '/auth/profile';
-					}, 1500);
-				} else {
-					showMessage(window.languageManager.getTranslation('messages.invalidToken'), 'error');
-					if (isBackupCode) {
-						document.getElementById('backupCode').value = '';
-					} else {
-						document.getElementById('tokenInput').value = '';
-						document.getElementById('tokenInput').focus();
-					}
-				}
-			} catch (error) {
-				console.error('Network error:', error);
-				showMessage(
-					window.languageManager.getTranslation('messages.connectionError'),
-					'error'
-				);
-			}
-		}
-		document.addEventListener('DOMContentLoaded', async function () {
-			await getUserId();
-			if (currentUserId) {
-				sessionStorage.setItem('pending2FAUserId', currentUserId);
-			}
-			if (window.languageManager && window.languageManager.renderLanguageSelector) {
-				window.languageManager.renderLanguageSelector('.container');
-			}
-			document.getElementById('2faForm').addEventListener('submit', async (e) => {
-				e.preventDefault();
-				await verify2FAToken(false);
-			});
-			document.getElementById('backupCodeForm').addEventListener('submit', async (e) => {
-				e.preventDefault();
-				await verify2FAToken(true);
-			});
-			document.getElementById('backupCode').addEventListener('input', (e) => {
-				let value = e.target.value.replace(/[^0-9]/g, '');
-				if (value.length > 5) {
-					value = value.substr(0, 5) + '-' + value.substr(5, 3);
-				}
-				e.target.value = value;
-			});
-			document.getElementById('tokenInput').focus();
-		});
-	</script>
+    <div class="container">
+        <h2 data-i18n="2fa.verificationRequired"></h2>
+        <p data-i18n="2fa.enterCodePrompt"></p>
+        <form id="2faForm">
+            <div class="form-group">
+                <input type="text" id="tokenInput" name="token" data-i18n-placeholder="2fa.sixDigitCode" maxlength="6" required pattern="[0-9]{6}" title="6-digit code" autocomplete="off">
+            </div>
+            <button type="submit" class="btn" data-i18n="2fa.verify"></button>
+        </form>
+        <div class="section" style="margin-top: 20px;">
+            <h3 data-i18n="2fa.recoveryOptions"></h3>
+            <p data-i18n="2fa.useBackupCode"></p>
+            <button class="btn btn-secondary" onclick="showBackupCodeInput()" data-i18n="2fa.useBackupCodeBtn"></button>
+        </div>
+        <div id="backupCodeSection" class="section" style="display: none;">
+            <h3 data-i18n="2fa.enterBackupCode"></h3>
+            <form id="backupCodeForm">
+                <div class="form-group">
+					<input type="text" id="backupCode" name="backupCode" data-i18n-placeholder="2fa.backupCodePlaceholder" maxlength="9" required title="Formato: ABCDE-FGH" autocomplete="off">
+                </div>
+                <button type="submit" class="btn" data-i18n="2fa.verifyBackupCode"></button>
+                <button type="button" class="btn btn-secondary" onclick="hideBackupCodeInput()" data-i18n="common.cancel"></button>
+            </form>
+        </div>
+        <div id="message" style="margin-top: 20px;"></div>
+    </div>
+
+    <script src="/js/language-manager.js"></script>
+    <script type="module">
+        import { showBackupCodeInput, hideBackupCodeInput, showMessage, verify2FAToken } from '/js/2fa-core.js';
+
+        window.showBackupCodeInput = showBackupCodeInput;
+        window.hideBackupCodeInput = hideBackupCodeInput;
+        window.showMessage = showMessage;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (window.languageManager && window.languageManager.renderLanguageSelector) {
+                window.languageManager.renderLanguageSelector('.container');
+            }
+
+            document.getElementById('2faForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await verify2FAToken(false);
+            });
+
+            document.getElementById('backupCodeForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await verify2FAToken(true);
+            });
+
+            document.getElementById('backupCode').addEventListener('input', (e) => {
+                let value = e.target.value.replace(/[^0-9]/g, '');
+                if (value.length > 5) {
+                    value = value.substr(0, 5) + '-' + value.substr(5, 3);
+                }
+                e.target.value = value;
+            });
+
+            document.getElementById('tokenInput').focus();
+        });
+    </script>
 </body>
 </html>

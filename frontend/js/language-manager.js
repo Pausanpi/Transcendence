@@ -15,9 +15,7 @@ class LanguageManager {
 	}
 
 	renderLanguageSelector(containerSelector = null) {
-		if (document.getElementById('languageSelect')) {
-			return;
-		}
+		if (document.getElementById('languageSelect')) return;
 
 		const selectorHTML = `
             <div class="language-selector">
@@ -54,20 +52,18 @@ class LanguageManager {
 
 	async loadCurrentLanguage() {
 		try {
-			const response = await fetch('/i18n/available-languages');
-			const data = await response.json();
 			const savedLang = localStorage.getItem('preferredLanguage');
-			if (savedLang && data.languages.includes(savedLang)) {
+			if (savedLang && (savedLang === 'en' || savedLang === 'es')) {
 				this.currentLanguage = savedLang;
 			} else {
-				this.currentLanguage = data.current || 'en';
+				const browserLang = navigator.language.split('-')[0];
+				this.currentLanguage = (browserLang === 'es') ? 'es' : 'en';
 				localStorage.setItem('preferredLanguage', this.currentLanguage);
 			}
 			await this.syncWithServer();
 		} catch (error) {
 			console.error('Error loading current language:', error);
-			const savedLang = localStorage.getItem('preferredLanguage');
-			this.currentLanguage = savedLang || 'en';
+			this.currentLanguage = localStorage.getItem('preferredLanguage') || 'en';
 		}
 
 		const select = document.getElementById('languageSelect');
@@ -78,14 +74,11 @@ class LanguageManager {
 
 	async syncWithServer() {
 		try {
-			const response = await fetch('/i18n/change-language', {
+			await fetch('/i18n/change-language', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ language: this.currentLanguage })
 			});
-			if (!response.ok) {
-				throw new Error('Failed to sync with server');
-			}
 		} catch (error) {
 			console.warn('Could not sync language with server:', error);
 		}
@@ -93,16 +86,37 @@ class LanguageManager {
 
 	async loadTranslations() {
 		try {
-			const response = await fetch(`/i18n/translations?t=${Date.now()}`);
+			const response = await fetch(`/i18n/translations?t=${Date.now()}`, {
+				credentials: 'include'
+			});
 			if (!response.ok) throw new Error('Failed to load translations');
 			this.translations = await response.json();
+			console.log('Translations loaded successfully:', Object.keys(this.translations));
 		} catch (error) {
 			console.error('Error loading translations:', error);
-			setTimeout(() => this.loadTranslations(), 1000);
+			await this.loadFallbackTranslations();
+		}
+	}
+
+	async loadFallbackTranslations() {
+		try {
+			const response = await fetch(`/locales/${this.currentLanguage}.json?t=${Date.now()}`);
+			if (response.ok) {
+				this.translations = await response.json();
+				console.log('Fallback translations loaded');
+			}
+		} catch (error) {
+			console.error('Error loading fallback translations:', error);
+			this.translations = {};
 		}
 	}
 
 	applyTranslations() {
+		if (!this.translations || Object.keys(this.translations).length === 0) {
+			console.warn('No translations available to apply');
+			return;
+		}
+
 		document.querySelectorAll('[data-i18n]').forEach(element => {
 			const key = element.getAttribute('data-i18n');
 			const value = this.getTranslation(key);
@@ -125,38 +139,23 @@ class LanguageManager {
 
 		document.body.classList.remove('i18n-loading');
 		document.body.classList.add('i18n-loaded');
+
+		window.dispatchEvent(new CustomEvent('translationsApplied'));
 	}
 
-	showTranslatedMessage(messageKey, type, containerId = 'message', params = {}) {
-		const messageDiv = document.getElementById(containerId);
-		const messageText = this.getTranslation(messageKey, params);
-		messageDiv.innerHTML = `<div class="message ${type}">${messageText}</div>`;
-		if (type === 'success') {
-			setTimeout(() => {
-				messageDiv.innerHTML = '';
-			}, 5000);
-		}
-	}
-
-	getTranslation(key, params = {}) {
-		const keys = key.split('.');
-		let value = this.translations;
-
-		for (const k of keys) {
-			value = value?.[k];
-			if (value === undefined) break;
-		}
-
-		if (value === undefined) {
-			console.warn(`Translation not found: ${key}`);
+	getTranslation(key) {
+		if (!this.translations || typeof this.translations !== 'object') {
 			return key;
 		}
-
-		if (typeof value === 'string' && params) {
-			return value.replace(/\{\{(\w+)\}\}/g, (match, param) => params[param] !== undefined ? params[param] : match);
+		const parts = key.split('.');
+		let current = this.translations;
+		for (const part of parts) {
+			if (!current || typeof current !== 'object' || current[part] === undefined) {
+				return key;
+			}
+			current = current[part];
 		}
-
-		return value;
+		return current;
 	}
 
 	async changeLanguage(lang) {
@@ -167,23 +166,27 @@ class LanguageManager {
 			const response = await fetch('/i18n/change-language', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ language: lang })
+				body: JSON.stringify({ language: lang }),
+				credentials: 'include'
 			});
 
 			const result = await response.json();
 			if (result.success) {
 				await this.loadTranslations();
 				this.applyTranslations();
+
 				const languageSelect = document.getElementById('languageSelect');
 				if (languageSelect) {
 					languageSelect.value = lang;
 				}
+
+				if (typeof window.applyTranslationsToProfile === 'function') {
+					window.applyTranslationsToProfile();
+				}
+
 				return true;
 			} else {
-				console.error('Error changing language:', result.error);
-				this.currentLanguage = 'en';
-				localStorage.setItem('preferredLanguage', 'en');
-				return false;
+				throw new Error(result.error);
 			}
 		} catch (error) {
 			console.error('Error changing language:', error);
@@ -193,9 +196,12 @@ class LanguageManager {
 		}
 	}
 
-	async refreshTranslations() {
-		await this.loadTranslations();
-		this.applyTranslations();
+	getCurrentLanguage() {
+		return this.currentLanguage;
+	}
+
+	isReady() {
+		return this.initialized && this.translations && Object.keys(this.translations).length > 0;
 	}
 }
 

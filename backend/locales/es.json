@@ -13,7 +13,9 @@
 		"internalError": "Error interno del servidor",
 		"enabled": "Habilitado",
 		"disabled": "Deshabilitado",
-		"several": "varios"
+		"several": "varios",
+		"unsupportedLanguage": "Idioma no soportado",
+		"languageChanged": "Idioma cambiado correctamente"
 	},
 	"auth": {
 		"title": "Autenticación",
@@ -33,6 +35,7 @@
 		"accountLocked": "Cuenta temporalmente bloqueada",
 		"invalidAuthFormat": "Formato de autorización inválido",
 		"invalidToken": "Token inválido o expirado",
+		"authenticationRequired": "Autenticación requerida",
 		"playGame": "Jugar Ahora",
 		"securityList": [
 			"Web Application Firewall (ModSecurity)",
@@ -43,6 +46,11 @@
 		]
 	},
 	"profile": {
+		"adminPanel": "Panel de Administración",
+		"manageUsers": "Gestionar Usuarios",
+		"openGrafana": "Abrir Grafana",
+		"openVault": "Abrir Vault",
+		"adminOnly": "Se requiere acceso de administrador",
 		"notAvailable": "No disponible",
 		"title": "Perfil de Usuario",
 		"user": "Usuario",
@@ -67,17 +75,21 @@
 		"privacyData": "Privacidad y Datos"
 	},
 	"2fa": {
-		    "disableTitle": "Desactivar autenticación en dos pasos",
-    "enterCodeToDisable": "Introduce tu código de 6 dígitos para desactivar el 2FA:",
-    "disableButton": "Desactivar 2FA",
-    "codePlaceholder": "Introduce el código de 6 dígitos",
+		"disabledSuccess": "2FA deshabilitado correctamente",
+		"invalidSetup": "Sesión de configuración inválida",
+		"tokenSecretRequired": "Token y secreto son requeridos",
+		"2fa": "Habilitado",
+		"disableTitle": "Desactivar autenticación en dos pasos",
+		"enterCodeToDisable": "Introduce tu código de 6 dígitos para desactivar el 2FA:",
+		"disableButton": "Desactivar 2FA",
+		"codePlaceholder": "Introduce el código de 6 dígitos",
 		"alreadyEnabled": "2FA ya está habilitado",
 		"tokenRequired": "Token requerido",
 		"tokenUserIdRequired": "Token e ID de usuario requeridos",
 		"notEnabled": "2FA no está habilitado para este usuario",
 		"scanQRMessage": "Escanea el código QR con tu aplicación de autenticación",
 		"refreshQR": "Renovar QR",
-		"backupCodePlaceholder": "XXXXX-XXX",
+		"backupCodePlaceholder": "12345-678",
 		"backupCodeSuccess": "✓ Verificación exitosa con código de backup. Te quedan {{remaining}} códigos.",
 		"qrRefreshed": "Código QR actualizado",
 		"backupCodesAlert": "Códigos de backup",
@@ -116,6 +128,7 @@
 		"setupExpired": "Configuración de 2FA expirada o no iniciada"
 	},
 	"gdpr": {
+		"exportError": "Error exportando datos",
 		"exportInProgress": "Exportando datos...",
 		"anonymizingData": "Anonimizando datos...",
 		"deletingAccount": "Eliminando cuenta...",
@@ -175,7 +188,6 @@
 		"deleteButton": "ELIMINAR MI CUENTA PERMANENTEMENTE"
 	},
 	"messages": {
-
 		"connectionError": "Error de conexión",
 		"invalidCredentials": "Email o contraseña inválidos",
 		"userNotFound": "Usuario no encontrado",
@@ -212,5 +224,31 @@
 		"passwordSpecialChar": "La contraseña debe contener al menos un carácter especial",
 		"invalidRequest": "Datos de solicitud inválidos",
 		"invalidInput": "Datos de entrada inválidos"
+	},
+	"admin": {
+		"title": "Administración de Usuarios",
+		"subtitle": "Gestionar usuarios y accesos del sistema",
+		"usersList": "Lista de Usuarios",
+		"externalTools": "Herramientas Externas",
+		"userId": "ID de Usuario",
+		"username": "Nombre de Usuario",
+		"email": "Email",
+		"status": "Estado",
+		"2faStatus": "Estado 2FA",
+		"createdAt": "Creado En",
+		"actions": "Acciones",
+		"active": "Activo",
+		"inactive": "Inactivo",
+		"enabled": "Habilitado",
+		"disabled": "Deshabilitado",
+		"loadingUsers": "Cargando usuarios...",
+		"noUsers": "No se encontraron usuarios",
+		"errorLoading": "Error al cargar usuarios",
+		"refresh": "Actualizar",
+		"backToProfile": "Volver al Perfil",
+		"grafanaTooltip": "Abrir Panel de Grafana",
+		"vaultTooltip": "Abrir HashiCorp Vault",
+		"accessDenied": "Acceso denegado",
+		"adminRightsRequired": "Se requieren derechos de administrador"
 	}
 }

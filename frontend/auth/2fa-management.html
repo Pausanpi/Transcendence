@@ -1,349 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title data-i18n="2fa.managementTitle"></title>
-	<link rel="stylesheet" href="/css/common.css">
-	<link rel="stylesheet" href="/css/2fa.css">
-	<link rel="icon" href="/icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="2fa.managementTitle">2FA Management</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="icon" href="/icon.png">
 </head>
 <body>
-	<div class="container">
-		<h1 data-i18n="2fa.managementTitle"></h1>
-		<div class="section">
-			<h2 data-i18n="2fa.currentStatus"></h2>
-			<p data-i18n="2fa.2fa">2FA: <strong id="2faStatus">.</strong></p>
-		</div>
-		<div id="setupSection" class="section" style="display: none;">
-			<h2 data-i18n="2fa.enable2FA"></h2>
-			<p data-i18n="2fa.protectAccount"></p>
-			<button class="btn" onclick="setup2FA()" data-i18n="2fa.setup2FA"></button>
+    <div class="container">
+        <div class="header">
+            <h1 data-i18n="2fa.managementTitle">Two-Factor Authentication Management</h1>
+            <a href="/auth/profile" class="btn btn-secondary" data-i18n="common.back">← Back to Profile</a>
+        </div>
+        <div class="card">
 
-<h3 data-i18n="2fa.disableTitle">Disable Two-Factor Authentication</h3>
 
-<div id="disable2faBox">
-    <p data-i18n="2fa.enterCodeToDisable">
-        Enter your current 6-digit code to disable 2FA:
-    </p>
-
-    <input
-        type="text"
-        id="disable2faToken"
-        maxlength="6"
-        data-i18n-placeholder="2fa.codePlaceholder"
-        placeholder="Enter 6-digit code"
-    />
-
-    <button id="disable2faBtn" class="btn btn-danger" data-i18n="2fa.disableButton">
-        Disable 2FA
-    </button>
-
-    <div id="disable2faMessage"></div>
+<div id="currentStatus" class="status-info">
+    <span class="status-label" data-i18n="profile.2fa">2FA</span>
+    <span id="statusValue" class="status-value">Loading...</span>
 </div>
 
-<script>
-document.getElementById("disable2faBtn").addEventListener("click", async () => {
-    const token = document.getElementById("disable2faToken").value.trim();
+            <div id="enableSection" class="section" style="display: none;">
+                <h3 data-i18n="2fa.enable2FA">Enable Two-Factor Authentication</h3>
+                <p data-i18n="2fa.protectAccount">Protect your account with two-factor authentication for enhanced security.</p>
+                <button id="enable2FABtn" class="btn btn-primary" data-i18n="2fa.setup2FA">Setup 2FA</button>
+            </div>
+            <div id="disableSection" class="section" style="display: none;">
+                <h3 data-i18n="2fa.manage2FA">Manage Two-Factor Authentication</h3>
+                <p data-i18n="2fa.accountProtected">Your account is protected with 2FA.</p>
+                <button id="disable2FABtn" class="btn btn-danger" data-i18n="2fa.disable2FA">Disable 2FA</button>
+                <div style="margin-top: 15px;">
+                    <button id="generateBackupCodesBtn" class="btn btn-secondary" data-i18n="2fa.generateBackupCodes">Generate New Backup Codes</button>
+                </div>
 
-    if (token.length !== 6) {
-        window.languageManager.showTranslatedMessage(
-            "messages.sixDigitsRequired",
-            "error",
-            "disable2faMessage"
-        );
-        return;
-    }
 
-    try {
-        const response = await fetch("/2fa/disable", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token })
-        });
+            </div>
+        </div>
 
-        const result = await response.json();
+<div class="security-info">
+    <h3 data-i18n="auth.securityFeatures"></h3>
+<ul>
+    <li data-i18n="auth.securityList.0"></li>
+    <li data-i18n="auth.securityList.1"></li>
+    <li data-i18n="auth.securityList.2"></li>
+    <li data-i18n="auth.securityList.3"></li>
+    <li data-i18n="auth.securityList.4"></li>
+</ul>
+</div>
+    </div>
+    <div id="setupModal" class="modal">
+        <div class="modal-content">
+            <h3 data-i18n="2fa.setupTitle">2FA Setup</h3>
 
-        if (response.ok && result.success) {
-            window.languageManager.showTranslatedMessage(
-                "messages.2FADisabled",
-                "success",
-                "disable2faMessage"
-            );
+<div id="qrCodeContainer" class="qr-code-container">
+    <p data-i18n="2fa.scanQR"></p>
+    <img id="qrCodeImage" src="" alt="QR Code" style="display: none;">
+    <p><strong data-i18n="2fa.secret"></strong> <span id="secretText"></span></p>
+    <button id="refreshQRBtn" class="btn btn-secondary" data-i18n="2fa.refreshQR"></button>
+</div>
 
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            window.languageManager.showTranslatedMessage(
-                result.error || "messages.invalid2FAToken",
-                "error",
-                "disable2faMessage"
-            );
+
+            <div class="form-group">
+                <label for="verificationCode" data-i18n="2fa.enterCode">Then enter the generated code:</label>
+                <input type="text" id="verificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
+                       data-i18n-placeholder="2fa.codePlaceholder">
+            </div>
+            <div class="modal-actions">
+                <button id="verifyCodeBtn" class="btn btn-primary" data-i18n="2fa.verifyActivate">Verify and Activate</button>
+                <button id="cancelSetupBtn" class="btn btn-outline" data-i18n="common.cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="disableModal" class="modal">
+        <div class="modal-content">
+            <h3 data-i18n="2fa.disableTitle">Disable Two-Factor Authentication</h3>
+            <p data-i18n="2fa.enterCodeToDisable">Enter your 6-digit code to disable 2FA:</p>
+            <div class="form-group">
+                <label for="disableVerificationCode" data-i18n="2fa.sixDigitCode">6-digit code:</label>
+                <input type="text" id="disableVerificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
+                       data-i18n-placeholder="2fa.codePlaceholder">
+            </div>
+            <div class="modal-actions">
+                <button id="confirmDisableBtn" class="btn btn-danger" data-i18n="2fa.disableButton">Disable 2FA</button>
+                <button id="cancelDisableBtn" class="btn btn-outline" data-i18n="common.cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="backupCodesModal" class="modal">
+        <div class="modal-content">
+            <h3 data-i18n="2fa.backupCodesAlert">Backup Codes</h3>
+            <p data-i18n="2fa.newBackupCodes">Save these backup codes in a secure place. Each code can be used only once.</p>
+            <div id="backupCodesList" class="backup-codes-list"></div>
+            <div class="modal-actions">
+                <button id="copyAllCodesBtn" class="btn btn-secondary">📋 Copy All Codes</button>
+                <button id="downloadCodesBtn" class="btn btn-secondary">💾 Download Codes</button>
+                <button id="closeBackupCodesBtn" class="btn btn-primary" data-i18n="common.confirm">I've Saved These Codes</button>
+            </div>
+        </div>
+    </div>
+
+
+  <script src="/js/language-manager.js"></script>
+
+<script type="module">
+    import { TwoFAManager } from '/js/2fa-management-core.js';
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Inicializar language manager primero
+        if (window.languageManager) {
+            await window.languageManager.init();
         }
 
-    } catch (error) {
-        console.error("Disable 2FA error:", error);
-        window.languageManager.showTranslatedMessage(
-            "common.internalError",
-            "error",
-            "disable2faMessage"
-        );
-    }
-});
+        // Inicializar 2FA manager
+        window.twoFAManager = new TwoFAManager();
+
+        // Forzar actualización de UI después de un breve delay
+        setTimeout(() => {
+            if (window.twoFAManager && window.twoFAManager.updateUI) {
+                window.twoFAManager.updateUI();
+            }
+        }, 500);
+    });
 </script>
-
-
-		</div>
-		<div id="manageSection" class="section" style="display: none;">
-			<h2 data-i18n="2fa.manage2FA"></h2>
-			<p data-i18n="2fa.accountProtected"></p>
-			<button class="btn btn-danger" onclick="disable2FA()" data-i18n="2fa.disable2FA"></button>
-			<button class="btn btn-secondary" onclick="generateBackupCodes()"
-				data-i18n="2fa.generateBackupCodes"></button>
-		</div>
-		<div class="section">
-			<a href="/auth/profile" class="btn btn-secondary" data-i18n="common.back"></a>
-		</div>
-		<div id="message" style="margin-top: 20px;"></div>
-		<div id="setupArea"></div>
-	</div>
-	<script src="/js/language-manager.js"></script>
-	<script>
-		let qrRefreshInterval = null;
-		let countdownInterval = null;
-		async function load2FAStatus() {
-			try {
-				const response = await fetch('/2fa/status', { credentials: 'include' });
-				const result = await response.json();
-				update2FAStatus(result);
-			} catch (error) {
-				update2FAStatus({ twoFactorEnabled: false });
-				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-			}
-		}
-		function update2FAStatus(result) {
-			const statusElement = document.getElementById('2faStatus');
-			const manageSection = document.getElementById('manageSection');
-			const setupSection = document.getElementById('setupSection');
-			statusElement.textContent =
-				result.twoFactorEnabled
-					? window.languageManager.getTranslation('common.enabled')
-					: window.languageManager.getTranslation('common.disabled');
-			if (result.twoFactorEnabled) {
-				manageSection.style.display = 'block';
-				setupSection.style.display = 'none';
-			} else {
-				manageSection.style.display = 'none';
-				setupSection.style.display = 'block';
-			}
-		}
-		async function getAuthToken() {
-			try {
-				const response = await fetch('/auth/profile-data', { credentials: 'include' });
-				const userData = await response.json();
-				return userData.jwtToken || null;
-			} catch {
-				return null;
-			}
-		}
-		async function setup2FA() {
-			try {
-				const jwtToken = await getAuthToken();
-				if (!jwtToken) return showMessage(window.languageManager.getTranslation("messages.authError"), "error");
-				const response = await fetch('/2fa/setup', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					credentials: 'include',
-					body: JSON.stringify({})
-				});
-				const result = await response.json();
-				if (result.success) {
-					displayQRSetup(result);
-					startQRRefreshTimer(result.expiresIn);
-				} else {
-					showMessage(result.error, 'error');
-				}
-			} catch {
-				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-			}
-		}
-		function displayQRSetup(result) {
-			document.getElementById('setupArea').innerHTML = `
-                <div class="section">
-                    <h3 data-i18n="2fa.setupTitle"></h3>
-                    <p data-i18n="2fa.scanQR"></p>
-                    <div style="position: relative; display: inline-block;">
-                        <img src="${result.qrCode}" class="qr-code" id="currentQR">
-                        <div id="countdown"
-                             style="position: absolute; top: 100%; left: 50%;
-                                    transform: translate(-50%, -50%);
-                                    background: rgba(0,0,0,0.8); color:white;
-                                    padding:10px; border-radius:5px; font-size:18px;
-                                    font-weight:bold;"></div>
-                    </div>
-                    <p><strong data-i18n="2fa.secret"></strong></p>
-                    <div class="secret-code">${result.secret}</div>
-                    <p data-i18n="2fa.enterCode"></p>
-                    <input type="text" id="verifyToken"
-                           placeholder="${window.languageManager.getTranslation('2fa.sixDigitCode')}"
-                           maxlength="6" style="padding:10px; margin:10px 0; width:200px;">
-                    <button class="btn" onclick="verify2FA()" data-i18n="2fa.verifyActivate">
-                    </button>
-                    <button class="btn btn-secondary" onclick="refreshQRCode()"
-                            data-i18n="2fa.refreshQR">
-                    </button>
-                </div>
-            `;
-			window.languageManager.applyTranslations();
-			startCountdown(result.expiresIn);
-		}
-		function startCountdown(expiresIn) {
-			const countdownElement = document.getElementById('countdown');
-			if (!countdownElement) return;
-			if (countdownInterval) clearInterval(countdownInterval);
-			const start = Date.now();
-			countdownInterval = setInterval(() => {
-				const elapsed = Date.now() - start;
-				const remaining = expiresIn - elapsed;
-				if (remaining <= 0) {
-					countdownElement.textContent = '0';
-					clearInterval(countdownInterval);
-					showMessage(window.languageManager.getTranslation('2fa.qrExpired'), 'error');
-					return;
-				}
-				const seconds = Math.floor(remaining / 1000);
-				countdownElement.textContent = seconds;
-				if (seconds < 10) {
-					countdownElement.style.color = '#dc3545';
-				} else {
-					countdownElement.style.color = 'white';
-				}
-			}, 1000);
-		}
-		function startQRRefreshTimer(expiresIn) {
-			if (qrRefreshInterval) clearInterval(qrRefreshInterval);
-			qrRefreshInterval = setInterval(refreshQRCode, expiresIn);
-		}
-		async function refreshQRCode() {
-			try {
-				const jwtToken = await getAuthToken();
-				if (!jwtToken) return;
-				const response = await fetch('/2fa/refresh-qr', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					credentials: 'include',
-					body: JSON.stringify({})
-				});
-				const result = await response.json();
-				if (!result.success) {
-					showMessage(result.error, 'error');
-					return;
-				}
-				document.getElementById('currentQR').src = result.qrCode;
-				document.querySelector('.secret-code').textContent = result.secret;
-				startCountdown(result.expiresIn);
-				showMessage(window.languageManager.getTranslation("2fa.qrRefreshed"), "success");
-			} catch {
-				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-			}
-		}
-		async function verify2FA() {
-			try {
-				const jwtToken = await getAuthToken();
-				if (!jwtToken) return showMessage(window.languageManager.getTranslation("messages.authError"), "error");
-				const token = document.getElementById('verifyToken').value;
-				if (!token || !/^\d{6}$/.test(token)) {
-					showMessage(window.languageManager.getTranslation("messages.sixDigitsRequired"), "error");
-					return;
-				}
-				const response = await fetch('/2fa/verify', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					credentials: 'include',
-					body: JSON.stringify({ token })
-				});
-				const result = await response.json();
-				if (result.success) {
-					showMessage(window.languageManager.getTranslation("messages.2FASetupSuccess"), 'success');
-					if (result.backupCodes) {
-						alert(window.languageManager.getTranslation('2fa.backupCodesAlert') + ': ' + result.backupCodes.join(', '));
-					}
-					setTimeout(() => window.location.reload(), 3000);
-				} else {
-					showMessage(result.error, 'error');
-				}
-			} catch (error) {
-				showMessage(window.languageManager.getTranslation("messages.connectionError"), 'error');
-			}
-		}
-		async function disable2FA() {
-			const enterCodeText = window.languageManager.getTranslation('2fa.enterCurrentCode');
-			const token = prompt(enterCodeText);
-			if (!token) return;
-			if (!/^\d{6}$/.test(token)) {
-				showMessage(window.languageManager.getTranslation("messages.sixDigitsRequired"), 'error');
-				return;
-			}
-			try {
-				const jwtToken = await getAuthToken();
-				const response = await fetch('/2fa/disable', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					credentials: 'include',
-					body: JSON.stringify({ token })
-				});
-				const result = await response.json();
-				if (result.success) {
-					showMessage(window.languageManager.getTranslation('messages.2FADisabled'), 'success');
-					setTimeout(() => window.location.reload(), 2000);
-				} else {
-					showMessage(result.error || window.languageManager.getTranslation('2fa.invalidCurrentCode'), 'error');
-				}
-			} catch (error) {
-				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-			}
-		}
-		async function generateBackupCodes() {
-			try {
-				const jwtToken = await getAuthToken();
-				const response = await fetch('/2fa/generate-backup-codes', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${jwtToken}`
-					},
-					credentials: 'include'
-				});
-				const result = await response.json();
-				if (result.success) {
-					showMessage(window.languageManager.getTranslation('messages.backupCodesGenerated'), 'success');
-					alert(window.languageManager.getTranslation('2fa.newBackupCodes') + ': ' + result.backupCodes.join(', '));
-				} else {
-					showMessage(result.error, 'error');
-				}
-			} catch {
-				showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-			}
-		}
-		function showMessage(message, type) {
-			document.getElementById('message').innerHTML =
-				`<div class="message ${type}">${message}</div>`;
-		}
-		document.addEventListener('DOMContentLoaded', load2FAStatus);
-		if (window.languageManager && window.languageManager.renderLanguageSelector) {
-			window.languageManager.renderLanguageSelector('.container');
-		}
-	</script>
 </body>
 </html>

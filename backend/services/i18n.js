@@ -11,16 +11,7 @@ class I18nService {
 		this.currentLanguage = this.defaultLanguage;
 		this.loadLocales();
 	}
-	render() {
-		return `
-		<div class="language-selector">
-			<select id="languageSelect">
-				<option value="en">🇺🇸 English</option>
-				<option value="es">🇪🇸 Español</option>
-			</select>
-		</div>
-	`;
-	}
+
 	loadLocales() {
 		const localesPath = path.join(__dirname, '../locales');
 		try {
@@ -33,10 +24,12 @@ class I18nService {
 					this.locales[language] = JSON.parse(content);
 				}
 			});
+			console.log('Loaded languages:', Object.keys(this.locales));
 		} catch (error) {
 			console.error('Error loading languages:', error);
 		}
 	}
+
 	setLanguage(lang) {
 		if (this.locales[lang]) {
 			this.currentLanguage = lang;
@@ -44,31 +37,42 @@ class I18nService {
 		}
 		return false;
 	}
+
 	getLanguage() {
 		return this.currentLanguage;
 	}
+
 	t(key, params = {}) {
 		const keys = key.split('.');
 		let value = this.locales[this.currentLanguage];
+
 		for (const k of keys) {
 			value = value?.[k];
-			if (value === undefined) {
-				value = this.locales[this.defaultLanguage];
-				for (const k2 of keys) {
-					value = value?.[k2];
-				}
-				break;
+			if (value === undefined) break;
+		}
+
+		if (value === undefined) {
+			value = this.locales[this.defaultLanguage];
+			for (const k of keys) {
+				value = value?.[k];
+				if (value === undefined) break;
 			}
 		}
+
 		if (value === undefined) {
-			console.warn(`Text not found: ${key}`);
+			console.warn(`Translation not found: ${key}`);
 			return key;
 		}
+
 		if (typeof value === 'string' && params) {
-			return value.replace(/\{\{(\w+)\}\}/g, (match, param) => params[param] || match);
+			return value.replace(/\{\{(\w+)\}\}/g, (match, param) =>
+				params[param] !== undefined ? params[param] : match
+			);
 		}
+
 		return value;
 	}
+
 	getAvailableLanguages() {
 		return Object.keys(this.locales);
 	}

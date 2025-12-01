@@ -1,150 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title data-i18n="auth.title"></title>
-	<link rel="stylesheet" href="/css/common.css">
-	<link rel="stylesheet" href="/css/auth.css">
-	<link rel="icon" href="/icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="auth.title"></title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="icon" href="/icon.png">
 </head>
 <body class="i18n-loading">
-	<div class="container auth-container">
-		<span class="security-badge" data-i18n="common.securityBadge"></span>
-		<h1 data-i18n="auth.title"></h1>
-		<p class="subtitle" data-i18n="auth.subtitle"></p>
-		<div class="auth-tabs">
-			<button class="auth-tab active" onclick="showTab('login')" data-i18n="auth.login"></button>
-			<button class="auth-tab" onclick="showTab('register')" data-i18n="auth.register"></button>
-		</div>
-		<div id="login-form" class="auth-form active">
-			<form id="loginForm">
-				<div class="form-group">
-					<label for="loginEmail" data-i18n="auth.email"></label>
-					<input type="email" id="loginEmail" name="email" required data-i18n-placeholder="auth.email">
-				</div>
-				<div class="form-group">
-					<label for="loginPassword" data-i18n="auth.password"></label>
-					<input type="password" id="loginPassword" name="password" required
-						data-i18n-placeholder="auth.password">
-				</div>
-				<button type="submit" class="btn" data-i18n="auth.login"></button>
-			</form>
-		</div>
-		<div id="message"></div>
-		<div id="register-form" class="auth-form">
-			<form id="registerForm">
-				<div class="form-group">
-					<label for="registerUsername" data-i18n="auth.username"></label>
-					<input type="text" id="registerUsername" name="username" required
-						data-i18n-placeholder="auth.username">
-				</div>
-				<div class="form-group">
-					<label for="registerEmail" data-i18n="auth.email"></label>
-					<input type="email" id="registerEmail" name="email" required data-i18n-placeholder="auth.email">
-				</div>
-				<div class="form-group">
-					<label for="registerPassword" data-i18n="auth.password"></label>
-					<input type="password" id="registerPassword" name="password" required
-						data-i18n-placeholder="auth.password">
-				</div>
-				<button type="submit" class="btn" data-i18n="auth.register"></button>
-			</form>
-		</div>
-		<div class="divider">
-			<span data-i18n="auth.continueWith"></span>
-		</div>
-		<a href="/auth/github" class="github-btn">
-			<svg width="20" height="20" style="margin-right: 8px;" viewBox="0 0 16 16" fill="currentColor">
-				<path
-					d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-			</svg>
-			<span data-i18n="auth.github"></span>
-		</a>
-		<div class="divider-text">
-			<span data-i18n="auth.orPlayGame"></span>
-		</div>
-		<div style="text-align: center;">
-			<a href="/game/index.html" class="game-link">
-				<span style="font-size: 1.2em;">🎮</span>
-				<span data-i18n="auth.playGame"></span>
-			</a>
-		</div>
-	</div>
-	<script src="/js/language-manager.js"></script>
-	<script>
-		function showTab(tabName) {
-			document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-			document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-			document.querySelector(`.auth-tab[onclick="showTab('${tabName}')"]`).classList.add('active');
-			document.getElementById(`${tabName}-form`).classList.add('active');
-		}
+    <div class="container auth-container">
+        <span class="security-badge" data-i18n="common.securityBadge"></span>
+        <h1 data-i18n="auth.title"></h1>
+        <p class="subtitle" data-i18n="auth.subtitle"></p>
 
-		document.getElementById('loginForm').addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const formData = new FormData(e.target);
-			await authenticateUser('/auth/login', formData);
-		});
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="showTab('login')" data-i18n="auth.login"></button>
+            <button class="auth-tab" onclick="showTab('register')" data-i18n="auth.register"></button>
+        </div>
 
-		document.getElementById('registerForm').addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const formData = new FormData(e.target);
-			await authenticateUser('/auth/register', formData);
-		});
+        <div id="login-form" class="auth-form active">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail" data-i18n="auth.email"></label>
+                    <input type="email" id="loginEmail" name="email" required data-i18n-placeholder="auth.email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" data-i18n="auth.password"></label>
+                    <input type="password" id="loginPassword" name="password" required data-i18n-placeholder="auth.password">
+                </div>
+                <button type="submit" class="btn" data-i18n="auth.login"></button>
+            </form>
+        </div>
 
-async function authenticateUser(url, formData) {
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(Object.fromEntries(formData))
+        <div id="register-form" class="auth-form">
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername" data-i18n="auth.username"></label>
+                    <input type="text" id="registerUsername" name="username" required data-i18n-placeholder="auth.username">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail" data-i18n="auth.email"></label>
+                    <input type="email" id="registerEmail" name="email" required data-i18n-placeholder="auth.email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword" data-i18n="auth.password"></label>
+                    <input type="password" id="registerPassword" name="password" required data-i18n-placeholder="auth.password">
+                </div>
+                <button type="submit" class="btn" data-i18n="auth.register"></button>
+            </form>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="divider">
+            <span data-i18n="auth.continueWith"></span>
+        </div>
+
+        <a href="/auth/github" class="github-btn">
+            <svg width="20" height="20" style="margin-right: 8px;" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span data-i18n="auth.github"></span>
+        </a>
+
+        <div class="divider-text">
+            <span data-i18n="auth.orPlayGame"></span>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/game/index.html" class="game-link">
+                <span style="font-size: 1.2em;">🎮</span>
+                <span data-i18n="auth.playGame"></span>
+            </a>
+        </div>
+    </div>
+
+    <script src="/js/language-manager.js"></script>
+    <script type="module">
+        import { authenticateUser, showMessage, showTab } from '/js/auth-core.js';
+
+        window.showTab = showTab;
+        window.showMessage = showMessage;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await authenticateUser('/auth/login', formData);
         });
 
-        const result = await response.json();
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await authenticateUser('/auth/register', formData);
+        });
 
-        if (!response.ok) {
-            let errorMessage = result.error || 'messages.connectionError';
-
-            if (typeof errorMessage === 'string' && !errorMessage.includes('.')) {
-                errorMessage = 'messages.connectionError';
-            }
-
-            showMessage(errorMessage, 'error');
-            return;
+        if (window.languageManager && window.languageManager.renderLanguageSelector) {
+            window.languageManager.renderLanguageSelector('.container');
         }
-
-        if (result.requires2FA) {
-            window.location.href = '/auth/2fa-required';
-            return;
-        }
-
-        if (result.success) {
-            window.location.href = '/auth/profile';
-        } else {
-            showMessage(result.error, 'error');
-        }
-    } catch (error) {
-        console.error('Request failed:', error);
-        showMessage('messages.connectionError', 'error');
-    }
-}
-		function showMessage(message, type) {
-			const messageDiv = document.getElementById('message');
-			let messageText = message;
-
-			if (window.languageManager && typeof message === 'string') {
-				const translated = window.languageManager.getTranslation(message);
-				if (translated !== message) {
-					messageText = translated;
-				}
-			}
-
-			messageDiv.innerHTML = `<div class="message ${type}">${messageText}</div>`;
-		}
-
-		if (window.languageManager && window.languageManager.renderLanguageSelector) {
-			window.languageManager.renderLanguageSelector('.container');
-		}
-	</script>
+    </script>
 </body>
 </html>

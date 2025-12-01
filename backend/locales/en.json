@@ -13,7 +13,9 @@
 		"internalError": "Internal server error",
 		"enabled": "Enabled",
 		"disabled": "Disabled",
-		"several": "several"
+		"several": "several",
+		"unsupportedLanguage": "Unsupported language",
+		"languageChanged": "Language changed successfully"
 	},
 	"auth": {
 		"title": "Authentication",
@@ -32,7 +34,9 @@
 		"creationError": "Error creating user",
 		"accountLocked": "Account temporarily locked",
 		"invalidAuthFormat": "Invalid authorization format",
+		"authenticationRequired": "Authentication required",
 		"invalidToken": "Invalid or expired token",
+		"securityFeatures": "Security Features",
 		"securityList": [
 			"Web Application Firewall (ModSecurity)",
 			"OWASP Core Rule Set (CRS)",
@@ -42,6 +46,11 @@
 		]
 	},
 	"profile": {
+		"adminPanel": "Administration Panel",
+		"manageUsers": "Manage Users",
+		"openGrafana": "Open Grafana",
+		"openVault": "Open Vault",
+		"adminOnly": "Administrator access required",
 		"notAvailable": "Not available",
 		"title": "User Profile",
 		"user": "User",
@@ -65,17 +74,21 @@
 		"privacyData": "Privacy and Data"
 	},
 	"2fa": {
-		    "disableTitle": "Disable Two-Factor Authentication",
-    "enterCodeToDisable": "Enter your 6-digit code to disable 2FA:",
-    "disableButton": "Disable 2FA",
-    "codePlaceholder": "Enter the 6-digit code",
+		"disabledSuccess": "2FA disabled successfully",
+		"invalidSetup": "Invalid setup session",
+		"tokenSecretRequired": "Token and secret are required",
+		"2fa": "Enabled",
+		"disableTitle": "Disable Two-Factor Authentication",
+		"enterCodeToDisable": "Enter your 6-digit code to disable 2FA:",
+		"disableButton": "Disable 2FA",
+		"codePlaceholder": "Enter the 6-digit code",
 		"alreadyEnabled": "2FA is already enabled",
 		"tokenRequired": "Token required",
 		"tokenUserIdRequired": "Token and user ID required",
 		"notEnabled": "2FA is not enabled for this user",
 		"scanQRMessage": "Scan the QR code with your authentication app",
 		"refreshQR": "Refresh QR",
-		"backupCodePlaceholder": "XXXXX-XXX",
+		"backupCodePlaceholder": "12345-678",
 		"backupCodeSuccess": "✓ Verification successful with backup code. You have {{remaining}} codes remaining.",
 		"qrRefreshed": "QR code refreshed",
 		"backupCodesAlert": "Backup codes",
@@ -111,9 +124,12 @@
 		"invalidBackupFormat": "Invalid backup code format",
 		"verifyingCode": "Verifying code...",
 		"qrExpired": "QR code has expired. Please generate a new one.",
-		"setupExpired": "2FA setup expired or not started"
+		"setupExpired": "2FA setup expired or not started",
+		"enabled": "Enable",
+		"disabled": "Disable"
 	},
 	"gdpr": {
+		"exportError": "Error exporting data",
 		"compliance": "GDPR Compliance",
 		"title": "Data Protection and Privacy",
 		"subtitle": "Exercise your data protection rights under GDPR",
@@ -209,5 +225,31 @@
 		"weakPassword": "Weak password",
 		"invalidRequest": "Invalid request data",
 		"invalidInput": "Invalid input data"
+	},
+	"admin": {
+		"title": "User Administration",
+		"subtitle": "Manage system users and access",
+		"usersList": "Users List",
+		"externalTools": "External Tools",
+		"userId": "User ID",
+		"username": "Username",
+		"email": "Email",
+		"status": "Status",
+		"2faStatus": "2FA Status",
+		"createdAt": "Created At",
+		"actions": "Actions",
+		"active": "Active",
+		"inactive": "Inactive",
+		"enabled": "Enabled",
+		"disabled": "Disabled",
+		"loadingUsers": "Loading users...",
+		"noUsers": "No users found",
+		"errorLoading": "Error loading users",
+		"refresh": "Refresh",
+		"backToProfile": "Back to Profile",
+		"grafanaTooltip": "Open Grafana Dashboard",
+		"vaultTooltip": "Open HashiCorp Vault",
+		"accessDenied": "Access denied",
+		"adminRightsRequired": "Administrator rights required"
 	}
 }

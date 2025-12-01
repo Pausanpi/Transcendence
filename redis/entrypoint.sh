@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+exec redis-server \
+    --appendonly yes \
+    --save 900 1 \
+    --save 300 10 \
+    --save 60 10000 \
+    --bind 0.0.0.0 \
+    --port 6379

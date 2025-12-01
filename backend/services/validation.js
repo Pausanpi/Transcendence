@@ -39,36 +39,6 @@ class ValidationService {
 		return { isValid: true };
 	}
 
-	validateInputLength(input, fieldName, min = 1, max = 255) {
-		if (!input || typeof input !== 'string') {
-			return { isValid: false, error: `${fieldName} is required` };
-		}
-		if (input.length < min) {
-			return { isValid: false, error: `${fieldName} must be at least ${min} characters` };
-		}
-		if (input.length > max) {
-			return { isValid: false, error: `${fieldName} must be less than ${max} characters` };
-		}
-		return { isValid: true };
-	}
-	sanitizeHtml(input) {
-		if (typeof input !== 'string') return input;
-		return input
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#x27;')
-			.replace(/\//g, '&#x2F;');
-	}
-	preventSqlInjection(input) {
-		if (typeof input !== 'string') return input;
-		return input
-			.replace(/'/g, "''")
-			.replace(/;/g, '')
-			.replace(/--/g, '')
-			.replace(/\|\|/g, '')
-			.replace(/&&/g, '');
-	}
 	validate2FAToken(token) {
 		if (!token || typeof token !== 'string') {
 			return { isValid: false, error: '2FA token is required' };
@@ -79,18 +49,15 @@ class ValidationService {
 		}
 		return { isValid: true };
 	}
-	validateUrl(url) {
-		try {
-			if (!url) return { isValid: true };
-			const parsedUrl = new URL(url);
-			const allowedProtocols = ['http:', 'https:'];
-			if (!allowedProtocols.includes(parsedUrl.protocol)) {
-				return { isValid: false, error: 'Invalid URL protocol' };
-			}
-			return { isValid: true };
-		} catch (error) {
-			return { isValid: false, error: 'Invalid URL format' };
-		}
+
+	sanitizeHtml(input) {
+		if (typeof input !== 'string') return input;
+		return input
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#x27;')
+			.replace(/\//g, '&#x2F;');
 	}
 }
 
