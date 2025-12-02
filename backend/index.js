@@ -1,28 +1,27 @@
-import Fastify from "fastify";
-import { openDB, initDB } from "./db/sqlite.js";
-import usersRoutes from "./routes/users.js";
+import Fastify from 'fastify';
 
 const fastify = Fastify({ logger: true });
 
-const db = openDB();
-initDB(db);
-fastify.decorate('db', db);
+// Health check
+fastify.get('/status', async () => ({ status: 'ok', service: 'backend' }));
 
-fastify.register(usersRoutes, { prefix: "/api/users" });
+// Placeholder - will add tournaments, matchmaking, etc. later
+fastify.get('/info', async () => ({ 
+  service: 'backend',
+  version: '1.0.0',
+  features: [
+    'TODO: Match results storage',
+    'TODO: Tournament management',
+    'TODO: Matchmaking',
+    'TODO: Player stats'
+  ]
+}));
 
-fastify.get("/api/", async () => {
-  return { hello: "world" };
+// Start server
+fastify.listen({ port: 9000, host: '0.0.0.0' }, (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log('Backend service running on port 9000');
 });
-
-
-
-//fastify.get("/users", async (request, reply) => {
-//  fastify.db.all("SELECT * FROM users", (err, rows) => {
- //   if (err) return reply.send({ error: err.message });
-  //  reply.send(rows);
-//  });
-//});
-
-
-
-await fastify.listen({ host: "0.0.0.0", port: 9000 });

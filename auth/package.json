@@ -1,0 +1,20 @@
+{
+  "name": "auth-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "@fastify/cookie": "^9.2.0",
+    "@fastify/cors": "^8.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "sql.js": "^1.9.0",
+    "axios": "^1.6.0",
+    "speakeasy": "^2.0.0",
+    "qrcode": "^1.5.3"
+  }
+}

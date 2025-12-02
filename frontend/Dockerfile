@@ -1,8 +1,10 @@
-FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
-COPY . .
-COPY . /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+FROM alpine:3
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Optional: install simple tools (not needed but harmless)
+RUN apk add --no-cache bash
+
+# Copy static HTML/JS/CSS into the container
+COPY . /app
+
+# This container does not serve anything — nginx will read the files
+CMD ["sleep", "infinity"]

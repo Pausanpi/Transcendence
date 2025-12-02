@@ -1,72 +1,594 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Minimal Frontend</title>
-  </head>
-  <body>
-    <h1>Hello from the Frontendddd</h1>
-    <p id="backend">Checking backend...</p>
-    <h2>Database tables:</h2>
-    <pre id="tables">Loading...</pre>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transcendence - Service Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e; 
+      color: #eee; 
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 { text-align: center; margin-bottom: 30px; color: #00d4ff; }
+    h2 { color: #00d4ff; margin: 20px 0 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+    h3 { color: #888; margin: 15px 0 8px; }
+    
+    .container { max-width: 1200px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    
+    .card {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    .status-card { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .status-ok { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+    .status-error { background: #ff4757; box-shadow: 0 0 10px #ff4757; }
+    .status-loading { background: #ffa502; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    
+    input, button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      font-size: 14px;
+    }
+    input {
+      background: #0f0f23;
+      color: #eee;
+      border: 1px solid #333;
+      width: 200px;
+    }
+    input:focus { outline: none; border-color: #00d4ff; }
+    
+    button {
+      background: #00d4ff;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    button:hover { background: #00a8cc; transform: translateY(-1px); }
+    button.danger { background: #ff4757; color: #fff; }
+    button.secondary { background: #333; color: #fff; }
+    
+    pre {
+      background: #0f0f23;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .result { 
+      margin-top: 10px; 
+      padding: 10px; 
+      background: #0f0f23; 
+      border-radius: 5px;
+      word-break: break-all;
+    }
+    .result.success { border-left: 3px solid #00ff88; }
+    .result.error { border-left: 3px solid #ff4757; }
+    
+    .token-display {
+      background: #0f0f23;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      word-break: break-all;
+      max-height: 60px;
+      overflow: hidden;
+    }
+    
+    .section { margin-bottom: 30px; }
+    .form-group { margin: 10px 0; }
+    .form-row { display: flex; flex-wrap: wrap; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Transcendence Dashboard</h1>
 
-    <!-- New section to add a user -->
-    <h2>Add User</h2>
-    <input id="newUser" placeholder="Username" />
-    <input id="newPass" type="password" placeholder="Password" />
-    <button id="addBtn">Add User</button>
-    <p id="addStatus"></p>
+    <!-- ============ SERVICE STATUS ============ -->
+    <div class="section">
+      <h2>📊 Service Status</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="status-card">
+            <div class="status-dot status-loading" id="gatewayDot"></div>
+            <span>Gateway</span>
+            <span id="gatewayStatus">Checking...</span>
+          </div>
+          <div class="status-card">
+            <div class="status-dot status-loading" id="authDot"></div>
+            <span>Auth</span>
+            <span id="authStatus">Checking...</span>
+          </div>
+          <div class="status-card">
+            <div class="status-dot status-loading" id="usersDot"></div>
+            <span>Users</span>
+            <span id="usersStatus">Checking...</span>
+          </div>
+          <div class="status-card">
+            <div class="status-dot status-loading" id="backendDot"></div>
+            <span>Backend</span>
+            <span id="backendStatus">Checking...</span>
+          </div>
+          <div class="status-card">
+            <div class="status-dot status-loading" id="vaultDot"></div>
+            <span>Vault</span>
+            <span id="vaultStatus">Checking...</span>
+          </div>
+          <button onclick="checkAllServices()">🔄 Refresh All</button>
+        </div>
+      </div>
+    </div>
 
-    <script>
-      async function loadBackend() {
-        try {
-          const res = await fetch("/api/");
-          const data = await res.json();
-          document.getElementById("backend").textContent =
-            "Backend says: " + JSON.stringify(data);
-        } catch (e) {
-          document.getElementById("backend").textContent =
-            "Failed to reach backend.";
-        }
+    <!-- ============ AUTH SECTION ============ -->
+    <div class="section">
+      <h2>🔐 Authentication</h2>
+      <div class="grid">
+        <!-- Register -->
+        <div class="card">
+          <h3>Register</h3>
+          <div class="form-group">
+            <input id="regUsername" placeholder="Username" />
+            <input id="regEmail" placeholder="Email" type="email" />
+            <input id="regPassword" placeholder="Password" type="password" />
+          </div>
+          <button onclick="register()">Register</button>
+          <div id="registerResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Login -->
+        <div class="card">
+          <h3>Login</h3>
+          <div class="form-group">
+            <input id="loginEmail" placeholder="Email" type="email" />
+            <input id="loginPassword" placeholder="Password" type="password" />
+          </div>
+          <button onclick="login()">Login</button>
+          <button class="danger" onclick="logout()">Logout</button>
+          <div id="loginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Current Token -->
+        <div class="card">
+          <h3>Current Session</h3>
+          <div id="sessionInfo">Not logged in</div>
+          <div class="token-display" id="tokenDisplay" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 2FA SECTION ============ -->
+    <div class="section">
+      <h2>🔒 Two-Factor Authentication</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Setup 2FA</h3>
+          <button onclick="setup2FA()">Generate QR Code</button>
+          <div id="qrResult" class="result" style="display:none;"></div>
+          <img id="qrImage" style="display:none; margin-top:10px; background:#fff; padding:10px;" />
+        </div>
+
+        <div class="card">
+          <h3>Verify 2FA</h3>
+          <input id="totpCode" placeholder="6-digit code" maxlength="6" />
+          <button onclick="verify2FA()">Verify</button>
+          <div id="verifyResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Disable 2FA</h3>
+          <input id="disableCode" placeholder="6-digit code" maxlength="6" />
+          <button class="danger" onclick="disable2FA()">Disable</button>
+          <div id="disableResult" class="result" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ USERS SECTION ============ -->
+    <div class="section">
+      <h2>👤 User Management</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>My Profile</h3>
+          <button onclick="getProfile()">Get Profile</button>
+          <pre id="profileResult">Click to load...</pre>
+        </div>
+
+        <div class="card">
+          <h3>Update Profile</h3>
+          <input id="displayName" placeholder="Display Name" />
+          <input id="avatar" placeholder="Avatar URL" />
+          <button onclick="updateProfile()">Update</button>
+          <div id="updateResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+          <h3>All Users</h3>
+          <button onclick="listUsers()">Load Users</button>
+          <pre id="usersList">Click to load...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ GDPR SECTION ============ -->
+    <div class="section">
+      <h2>🛡️ GDPR</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Export My Data</h3>
+          <button onclick="exportData()">Export</button>
+          <pre id="exportResult">Click to export...</pre>
+        </div>
+
+        <div class="card">
+          <h3>Consent Settings</h3>
+          <button onclick="getConsent()">Get Current</button>
+          <div class="form-group">
+            <label><input type="checkbox" id="consentAnalytics" /> Analytics</label>
+            <label><input type="checkbox" id="consentMarketing" /> Marketing</label>
+          </div>
+          <button onclick="updateConsent()">Update Consent</button>
+          <div id="consentResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+          <h3>⚠️ Danger Zone</h3>
+          <input id="confirmPassword" placeholder="Confirm Password" type="password" />
+          <button class="danger" onclick="anonymizeAccount()">Anonymize</button>
+          <button class="danger" onclick="deleteAccount()">Delete Account</button>
+          <div id="dangerResult" class="result" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ BACKEND SECTION ============ -->
+    <div class="section">
+      <h2>🎮 Backend (Placeholder)</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Service Info</h3>
+          <button onclick="getBackendInfo()">Get Info</button>
+          <pre id="backendInfo">Click to load...</pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API = '';
+    let currentToken = localStorage.getItem('token');
+
+    // ============ HELPERS ============
+    function getHeaders(auth = true) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth && currentToken) {
+        headers['Authorization'] = `Bearer ${currentToken}`;
       }
+      return headers;
+    }
 
-      async function loadTables() {
+    function showResult(elementId, data, isError = false) {
+      const el = document.getElementById(elementId);
+      el.style.display = 'block';
+      el.className = `result ${isError ? 'error' : 'success'}`;
+      el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+
+    function updateSessionDisplay() {
+      const sessionEl = document.getElementById('sessionInfo');
+      const tokenEl = document.getElementById('tokenDisplay');
+      
+      if (currentToken) {
         try {
-          const res = await fetch("/api/users");
-          const data = await res.json();
-          document.getElementById("tables").textContent = JSON.stringify(data, null, 2);
-        } catch (e) {
-          document.getElementById("tables").textContent =
-            "Failed to reach /tables → " + e;
+          const payload = JSON.parse(atob(currentToken.split('.')[1]));
+          sessionEl.innerHTML = `✅ Logged in as <strong>${payload.username}</strong> (${payload.email})`;
+          tokenEl.style.display = 'block';
+          tokenEl.textContent = currentToken;
+        } catch {
+          sessionEl.textContent = '✅ Logged in';
         }
+      } else {
+        sessionEl.textContent = '❌ Not logged in';
+        tokenEl.style.display = 'none';
       }
+    }
 
-      // Button handler for adding a user
-      document.getElementById("addBtn").onclick = async () => {
-        const username = document.getElementById("newUser").value;
-        const password = document.getElementById("newPass").value;
-        try {
-          const res = await fetch("/api/users/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-          });
-          const data = await res.json();
-          document.getElementById("addStatus").textContent =
-            data.message || JSON.stringify(data);
-          loadTables(); // refresh users list
-        } catch (err) {
-          document.getElementById("addStatus").textContent =
-            "Failed to add user: " + err;
+    // ============ SERVICE CHECKS ============
+    async function checkService(url, dotId, statusId) {
+      const dot = document.getElementById(dotId);
+      const status = document.getElementById(statusId);
+      
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        dot.className = 'status-dot status-ok';
+        status.textContent = data.status || 'OK';
+      } catch (e) {
+        dot.className = 'status-dot status-error';
+        status.textContent = 'DOWN';
+      }
+    }
+
+    async function checkAllServices() {
+      document.querySelectorAll('.status-dot').forEach(d => d.className = 'status-dot status-loading');
+      
+      await checkService('/health', 'gatewayDot', 'gatewayStatus');
+      await checkService('/api/auth/status', 'authDot', 'authStatus');
+      await checkService('/api/users/status', 'usersDot', 'usersStatus');
+      await checkService('/api/backend/status', 'backendDot', 'backendStatus');
+      await checkService('/api/auth/vault-status', 'vaultDot', 'vaultStatus');
+    }
+
+    // ============ AUTH ============
+    async function register() {
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: getHeaders(false),
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        
+        if (data.token) {
+          currentToken = data.token;
+          localStorage.setItem('token', currentToken);
+          updateSessionDisplay();
         }
-      };
+        
+        showResult('registerResult', data, !res.ok);
+      } catch (e) {
+        showResult('registerResult', e.message, true);
+      }
+    }
 
-      // Run both on load
-      loadBackend();
-      loadTables();
+    async function login() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
 
-      // Optional: auto-refresh every 5 seconds to simulate "real-time"
-      setInterval(loadTables, 5000);
-    </script>
-  </body>
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: getHeaders(false),
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        
+        if (data.token) {
+          currentToken = data.token;
+          localStorage.setItem('token', currentToken);
+          updateSessionDisplay();
+        }
+        
+        showResult('loginResult', data, !res.ok);
+      } catch (e) {
+        showResult('loginResult', e.message, true);
+      }
+    }
+
+    function logout() {
+      currentToken = null;
+      localStorage.removeItem('token');
+      updateSessionDisplay();
+      showResult('loginResult', 'Logged out successfully');
+    }
+
+    // ============ 2FA ============
+    async function setup2FA() {
+      try {
+        const res = await fetch('/api/auth/2fa/setup', {
+          method: 'POST',
+          headers: getHeaders()
+        });
+        const data = await res.json();
+        
+        showResult('qrResult', data, !res.ok);
+        
+        if (data.qrCode) {
+          document.getElementById('qrImage').src = data.qrCode;
+          document.getElementById('qrImage').style.display = 'block';
+        }
+      } catch (e) {
+        showResult('qrResult', e.message, true);
+      }
+    }
+
+    async function verify2FA() {
+      const code = document.getElementById('totpCode').value;
+
+      try {
+        const res = await fetch('/api/auth/2fa/verify', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        
+        if (data.token) {
+          currentToken = data.token;
+          localStorage.setItem('token', currentToken);
+          updateSessionDisplay();
+        }
+        
+        showResult('verifyResult', data, !res.ok);
+      } catch (e) {
+        showResult('verifyResult', e.message, true);
+      }
+    }
+
+    async function disable2FA() {
+      const code = document.getElementById('disableCode').value;
+
+      try {
+        const res = await fetch('/api/auth/2fa/disable', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        showResult('disableResult', data, !res.ok);
+      } catch (e) {
+        showResult('disableResult', e.message, true);
+      }
+    }
+
+    // ============ USERS ============
+    async function getProfile() {
+      try {
+        const res = await fetch('/api/users/profile', { headers: getHeaders() });
+        const data = await res.json();
+        document.getElementById('profileResult').textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById('profileResult').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function updateProfile() {
+      const displayName = document.getElementById('displayName').value;
+      const avatar = document.getElementById('avatar').value;
+
+      try {
+        const res = await fetch('/api/users/profile', {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify({ displayName, avatar })
+        });
+        const data = await res.json();
+        showResult('updateResult', data, !res.ok);
+      } catch (e) {
+        showResult('updateResult', e.message, true);
+      }
+    }
+
+    async function listUsers() {
+      try {
+        const res = await fetch('/api/users/list', { headers: getHeaders() });
+        const data = await res.json();
+        document.getElementById('usersList').textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById('usersList').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    // ============ GDPR ============
+    async function exportData() {
+      try {
+        const res = await fetch('/api/users/gdpr/export', { headers: getHeaders() });
+        const data = await res.json();
+        document.getElementById('exportResult').textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById('exportResult').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function getConsent() {
+      try {
+        const res = await fetch('/api/users/gdpr/consent', { headers: getHeaders() });
+        const data = await res.json();
+        
+        if (data.analytics !== undefined) {
+          document.getElementById('consentAnalytics').checked = data.analytics;
+        }
+        if (data.marketing !== undefined) {
+          document.getElementById('consentMarketing').checked = data.marketing;
+        }
+        
+        showResult('consentResult', data);
+      } catch (e) {
+        showResult('consentResult', e.message, true);
+      }
+    }
+
+    async function updateConsent() {
+      const analytics = document.getElementById('consentAnalytics').checked;
+      const marketing = document.getElementById('consentMarketing').checked;
+
+      try {
+        const res = await fetch('/api/users/gdpr/consent', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ analytics, marketing })
+        });
+        const data = await res.json();
+        showResult('consentResult', data, !res.ok);
+      } catch (e) {
+        showResult('consentResult', e.message, true);
+      }
+    }
+
+    async function anonymizeAccount() {
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      if (!confirm('Are you sure? This cannot be undone!')) return;
+
+      try {
+        const res = await fetch('/api/users/gdpr/anonymize', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({ confirmPassword })
+        });
+        const data = await res.json();
+        showResult('dangerResult', data, !res.ok);
+      } catch (e) {
+        showResult('dangerResult', e.message, true);
+      }
+    }
+
+    async function deleteAccount() {
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      if (!confirm('Are you sure? This will PERMANENTLY delete your account!')) return;
+
+      try {
+        const res = await fetch('/api/users/gdpr/delete', {
+          method: 'DELETE',
+          headers: getHeaders(),
+          body: JSON.stringify({ confirmPassword })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          logout();
+        }
+        
+        showResult('dangerResult', data, !res.ok);
+      } catch (e) {
+        showResult('dangerResult', e.message, true);
+      }
+    }
+
+    // ============ BACKEND ============
+    async function getBackendInfo() {
+      try {
+        const res = await fetch('/api/backend/info');
+        const data = await res.json();
+        document.getElementById('backendInfo').textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById('backendInfo').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    // ============ INIT ============
+    updateSessionDisplay();
+    checkAllServices();
+  </script>
+</body>
 </html>
