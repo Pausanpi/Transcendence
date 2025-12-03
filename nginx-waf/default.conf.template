@@ -10,19 +10,23 @@ server {
     ssl_certificate     /etc/nginx/ssl/server.crt;
     ssl_certificate_key /etc/nginx/ssl/server.key;
 
-    # Serve frontend
+    # Proxy frontend to frontend container
     location / {
-        root /usr/share/nginx/html;
-        index index.html;
-        try_files $uri /index.html;
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 
-    # Proxy all /api requests to the gateway
+    # Proxy API to gateway
     location /api/ {
         proxy_pass http://gateway:8080/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-  		access_log /var/log/nginx/api_access.log;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://gateway:8080/health;
     }
 }

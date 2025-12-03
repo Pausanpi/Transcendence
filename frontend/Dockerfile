@@ -1,26 +1,13 @@
 FROM node:20-alpine AS builder
-
-# Instalar TypeScript
-RUN npm install -g typescript
-
-# Copiar archivos TypeScript y configuración
 WORKDIR /build
-COPY *.ts ./
+RUN npm install -g typescript
 COPY tsconfig.json ./
-
-# Compilar TypeScript
+COPY src ./src
 RUN tsc
 
-# Etapa final
-FROM alpine:3
-
-# Optional: install simple tools (not needed but harmless)
-RUN apk add --no-cache bash
-
-# Copiar archivos compilados y HTML
-WORKDIR /app
-COPY index.html ./
-COPY --from=builder /build/dist ./dist
-
-# This container does not serve anything — nginx will read the files
-CMD ["sleep", "infinity"]
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/
+COPY styles.css /usr/share/nginx/html/
+COPY --from=builder /build/dist /usr/share/nginx/html/dist
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,7 +1,10 @@
-FROM node:23-alpine
+FROM node:20-alpine
 
-RUN apk add --no-cache bash
-RUN apk add --no-cache sqlite
-RUN apk add --no-cache curl
+RUN apk add --no-cache \
+    bash \
+    sqlite \
+    curl
+
 
 WORKDIR /app
+RUN mkdir -p /app/data && chmod 777 /app/data

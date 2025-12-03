@@ -1,48 +1,39 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Arcade Pong & Tic-Tac-Toe</title>
+  <title>Transcendence</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+<body class="bg-gray-900 text-white min-h-screen">
 
-  <!-- Menú -->
-  <div id="menu" class="text-center space-y-8">
-    <h1 class="text-7xl font-extrabold text-yellow-400 drop-shadow-lg">ARCADE</h1>
-    <div class="space-y-4">
-      <button id="btnPlayer" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🏓 Pong - Jugador vs Jugador</button>
-      <button id="btnIA" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">🤖 Pong - Jugador vs IA</button>
-      <button id="btnTic" class="w-full px-10 py-4 bg-white text-black font-bold rounded-xl shadow-lg hover:bg-gray-200 transition transform hover:scale-105">❌⭕ Tres en Raya - 2 Jugadores</button>
-    </div>
-  </div>
-
-  <!-- Modal de Dificultad -->
-  <div id="difficultyModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl text-center space-y-6">
-      <h2 class="text-4xl font-bold text-yellow-400">Selecciona Dificultad</h2>
-      <div class="space-y-3">
-        <button id="btnEasy" class="w-full px-8 py-3 bg-green-500 text-white font-bold rounded-xl shadow-lg hover:bg-green-600 transition transform hover:scale-105">😊 Fácil</button>
-        <button id="btnMedium" class="w-full px-8 py-3 bg-yellow-500 text-white font-bold rounded-xl shadow-lg hover:bg-yellow-600 transition transform hover:scale-105">🤔 Medio</button>
-        <button id="btnHard" class="w-full px-8 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition transform hover:scale-105">😈 Difícil</button>
-        <button id="btnCancelDifficulty" class="w-full px-8 py-3 bg-gray-600 text-white font-bold rounded-xl shadow-lg hover:bg-gray-700 transition">Cancelar</button>
+  <!-- Navbar -->
+  <nav id="navbar" class="bg-gray-800 p-4 hidden">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-yellow-400 cursor-pointer" data-nav="home">🎮 Transcendence</h1>
+      <div class="flex gap-2">
+        <button class="nav-btn" data-nav="home">Home</button>
+        <button class="nav-btn" data-nav="games">Games</button>
+        <button class="nav-btn" data-nav="dashboard">Dashboard</button>
+        <button class="nav-btn" data-nav="profile">Profile</button>
+        <button id="authBtn" class="nav-btn bg-blue-600 hover:bg-blue-700">Login</button>
       </div>
     </div>
+  </nav>
+
+  <!-- App Container -->
+  <div id="app" class="max-w-6xl mx-auto p-4"></div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden"></div>
+
+  <!-- Countdown -->
+  <div id="countdown" class="countdown hidden">
+    <span id="countdownText"></span>
   </div>
 
-  <!-- Contador -->
-  <div id="countdown" class="fixed inset-0 flex items-center justify-center text-9xl font-extrabold text-yellow-300 hidden">
-    <span id="countdownText" class="animate-pulse"></span>
-  </div>
-
-  <!-- Canvas -->
-  <div id="gameContainer" class="hidden flex items-center justify-center">
-    <canvas id="gameCanvas" width="600" height="600" class="border-4 border-gray-700 rounded-2xl shadow-2xl bg-black"></canvas>
-  </div>
-
-  <script src="dist/utils.js"></script>
-  <script src="dist/game.js"></script>
-  <script src="dist/tic-tac-toe.js"></script>
+  <script type="module" src="dist/main.js"></script>
 </body>
 </html>

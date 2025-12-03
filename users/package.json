@@ -1,5 +1,5 @@
 {
-  "name": "backend-service",
+  "name": "users-service",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
@@ -7,6 +7,9 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "fastify": "^4.24.0"
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0",
+    "sql.js": "^1.9.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }
