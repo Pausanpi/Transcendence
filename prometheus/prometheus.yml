@@ -8,16 +8,16 @@ scrape_configs:
       - targets: ['localhost:9090']
     scrape_interval: 15s
 
-  - job_name: 'web-app'
+  - job_name: 'gateway'
     static_configs:
-      - targets: ['web-app:8443']
+      - targets: ['gateway:8443']
     metrics_path: /metrics
     scrape_interval: 30s
     scheme: http
 
   - job_name: 'application-metrics'
     static_configs:
-      - targets: ['web-app:8443']
+      - targets: ['gateway:8443']
     metrics_path: /actuator/prometheus
     scrape_interval: 30s
 

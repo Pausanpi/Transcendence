@@ -1,4 +1,31 @@
 
+test:
+	@echo "Testing services..."
+	@curl -f http://localhost:3000/health && echo "Backend: OK" || echo "Backend: FAIL"
+	@curl -f http://localhost:3001/health && echo "Auth: OK" || echo "Auth: FAIL"
+	@curl -f http://localhost:3002/health && echo "I18n: OK" || echo "I18n: FAIL"
+	@curl -f http://localhost:3003/health && echo "Database: OK" || echo "Database: FAIL"
+
+Pensandolo mejor, realmente el acceso a la base de datos no necesita de una autenticación especial ya que forma parte del backend y no es accesible directamente por el usuario. Es decir, siempre que las consultas estén bien hechas y límitadas, no sé podrá acceder directamente a la BD a traves del fronend.
+O dicho de otro modo. El acceso a la BD se hace desde los demás microservicios que ya se
+suponen legitimos y que haran consultas legitimas con sus "where" para no exponer / manipular datos que no corresponda a un usuario concreto, si se llega a tener acceso directo al microservicio:puerto es porque ya se tiene acceso a toda la red de la app. Ahí ya entra en juego la seguridad del servidor/docker y que no esten expuestos puertos que no deberían.
+
+endpoints para todas las operaciones CRUD  REST API
+
+El microservicio gateway actua como proxy de los demas servicios
+nginx-proxy-> gateway-proxy-> microservicios
+
+
+
+Puertos expuestos en docker-compose para desarrollo. QUITAR LUEGO
+
+DE MOMENTO se usan como volumenes no se incluyen en las imagenes tema desarrollo
+      - ./backend:/app/backend
+      - ./frontend:/app/
+
+
+---
+
 > IMPORTANTE:
 - La web se levanta en https://localhost:8443 por cuestiones del campus
 - En el navegador, al usar certificados autofirmado debes aceptar los riesgos
@@ -12,7 +39,7 @@
 - Dockerfile por cada servicio / carpeta
 - Un solo docker-compose refactorizado. Cada contenedor tiene su healthcheck
 - Añadido .gitignore
-- Añadido web de administracion temporal (borrar) https://localhost:8443/admin/users.html
+- Añadido web de administracion temporal (borrar) https://localhost:8443/users/users.html
 
 ## MAKE
 
@@ -71,7 +98,7 @@ Ejemplo de uso de los middleware de autenticación y checkeo de admin por ruta:
 fastify.get('/users', {
 	preHandler: [authenticateJWT, requireAdmin]
 }, async (request, reply) => {
-	return reply.sendFile('admin/users.html');
+	return reply.sendFile('users/users.html');
 });
 
 ```
@@ -112,7 +139,7 @@ La clave del 2fa es el SECRET. Ejemplo: OBHG2SKNGBGHO4TBHZHW6KDBMMXEWM32GZKGGM3I
 
 Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan los códigos de autenticación. En condiciones normales no se muestra por ningún lado... son las app de autenticación (google aut...etc) las encargadas de guardalas mediante el escaneo del código QR. Pero como no van, pongo algunas alternativas para generar códigos.
 
-1 - Hay un botón en el perfil que dirige a https://localhost:8443/admin/decode.html, ahí metes el SECRET que aparece al habilitarlo
+1 - Hay un botón en el perfil que dirige a https://localhost:8443/users/decode.html, ahí metes el SECRET que aparece al habilitarlo
 
 2 - https://qrcoderaptor.com/es/
 
@@ -143,7 +170,7 @@ Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan
 
 ### Grafana (En construcción)
 
-https://localhost:8445/login User/Password:admin/admin -> Skip
+https://localhost:8445/login User/Password:users/admin -> Skip
 
 https://localhost:8445/dashboards
 ![alt text](_assets/grafa1.png)
@@ -187,7 +214,8 @@ https://localhost:8445/api/health
 - [ ] Mejor uso de vault
 - [ ] TODO - Parece no sincronizarse con app android
 - [ ]
+- [ ] + Frances?
 
 ## Sugerencias
-- [ ] + Frances
 - [ ] Mirar Oauth con telegram y 42
+- [ ] Página error custom

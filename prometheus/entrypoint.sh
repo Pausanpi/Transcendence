@@ -60,7 +60,6 @@ start_prometheus() {
         exit 1
     fi
 
-
     exec /bin/prometheus \
         --config.file=/etc/prometheus/prometheus.yml \
         --storage.tsdb.path=/prometheus \
@@ -74,12 +73,9 @@ start_prometheus() {
         --storage.tsdb.wal-compression &
 }
 
-
 start_prometheus
 PROMETHEUS_PID=$!
-
 sleep 5
-
 start_log_processor
 LOG_PROCESSOR_PID=$!
 
@@ -91,5 +87,4 @@ cleanup() {
 }
 
 trap cleanup SIGTERM SIGINT
-
 wait $PROMETHEUS_PID $LOG_PROCESSOR_PID

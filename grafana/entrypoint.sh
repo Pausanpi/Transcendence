@@ -11,7 +11,7 @@ export GF_SERVER_PROTOCOL=https
 export GF_SERVER_CERT_FILE=/etc/grafana/ssl/certificate.pem
 export GF_SERVER_CERT_KEY=/etc/grafana/ssl/private-key.pem
 export GF_SERVER_DOMAIN=localhost
-export GF_SERVER_ROOT_URL=https://localhost:3001/
+export GF_SERVER_ROOT_URL=https://localhost:3302/
 export GF_SECURITY_ALLOW_EMBEDDING=true
 export GF_SECURITY_COOKIE_SECURE=true
 export GF_SECURITY_COOKIE_SAMESITE=none
@@ -20,9 +20,9 @@ export GF_USERS_ALLOW_SIGN_UP=false
 cat > /etc/grafana/grafana.ini << EOF
 [server]
 protocol = https
-http_port = 3000
+http_port = 3301
 domain = localhost
-root_url = https://localhost:3001/
+root_url = https://localhost:3302/
 cert_file = /etc/grafana/ssl/certificate.pem
 cert_key = /etc/grafana/ssl/private-key.pem
 enable_gzip = true
@@ -45,6 +45,5 @@ type = sqlite3
 mode = console
 level = info
 EOF
-
 
 exec /run.sh "$@"

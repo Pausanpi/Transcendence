@@ -52,7 +52,7 @@ export function update2FAButton(is2FAEnabled) {
 }
 
 export function updateAdminPanelVisibility(userData) {
-	const adminPanel = document.querySelector('[href="/admin/users"]');
+	const adminPanel = document.querySelector('[href="/users/users"]');
 	if (adminPanel) {
 		adminPanel.style.display = 'inline-block';
 	}

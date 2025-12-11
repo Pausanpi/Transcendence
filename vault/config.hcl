@@ -15,5 +15,4 @@ listener "tcp" {
 api_addr = "https://0.0.0.0:8200"
 cluster_addr = "https://0.0.0.0:8201"
 
-# Configuración para desarrollo
 log_level = "info"

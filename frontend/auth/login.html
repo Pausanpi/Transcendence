@@ -76,7 +76,11 @@
         </div>
     </div>
 
-    <script src="/js/language-manager.js"></script>
+    <script src="/js/language-manager.js">
+        if (window.languageManager && window.languageManager.renderLanguageSelector) {
+            window.languageManager.renderLanguageSelector('.container');
+        }
+	</script>
     <script type="module">
         import { authenticateUser, showMessage, showTab } from '/js/auth-core.js';
 
@@ -95,9 +99,6 @@
             await authenticateUser('/auth/register', formData);
         });
 
-        if (window.languageManager && window.languageManager.renderLanguageSelector) {
-            window.languageManager.renderLanguageSelector('.container');
-        }
     </script>
 </body>
 </html>

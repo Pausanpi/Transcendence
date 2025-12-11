@@ -1,14 +1,18 @@
 const btnTic = document.getElementById('btnTic');
 btnTic.addEventListener('click', startTicTacToe);
+
 function hideMenu() {
   document.getElementById('menu').classList.add('hidden');
 }
+
 function showCanvas() {
   document.getElementById('gameContainer').classList.remove('hidden');
 }
+
 function hideCanvas() {
   document.getElementById('gameContainer').classList.add('hidden');
 }
+
 function startTicTacToe() {
   hideMenu();
   showCanvas();

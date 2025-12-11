@@ -36,7 +36,7 @@
       "type": "stat",
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
       "targets": [
-        { "expr": "up{job=\"web-app\"}", "refId": "A" }
+        { "expr": "up{job=\"gateway\"}", "refId": "A" }
       ],
       "fieldConfig": {
         "defaults": {

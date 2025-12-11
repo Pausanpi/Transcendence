@@ -42,7 +42,7 @@ export class TwoFAManager {
 
 			if (response.ok) {
 				const userData = await response.json();
-				console.log('Profile data loaded:', userData); // Debug
+				console.log('Profile data loaded:', userData);
 				this.status = Boolean(userData.twoFactorEnabled);
 				this.updateUI();
 			} else {

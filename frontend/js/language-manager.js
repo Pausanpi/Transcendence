@@ -72,35 +72,36 @@ class LanguageManager {
 		}
 	}
 
-	async syncWithServer() {
-		try {
-			await fetch('/i18n/change-language', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ language: this.currentLanguage })
-			});
-		} catch (error) {
-			console.warn('Could not sync language with server:', error);
-		}
-	}
+async syncWithServer() {
+    try {
+        await fetch('/i18n/change-language', {
+            method: 'POST',
+			credentials: 'include', 
+            headers: { 
+                'Content-Type': 'application/json',
+               
+            },
+            body: JSON.stringify({ language: this.currentLanguage })
+        });
+    } catch (error) {
+        console.warn('Could not sync language with server:', error);
+    }
+}
 
-	async loadTranslations() {
-		try {
-			const response = await fetch(`/i18n/translations?t=${Date.now()}`, {
-				credentials: 'include'
-			});
-			if (!response.ok) throw new Error('Failed to load translations');
-			this.translations = await response.json();
-			console.log('Translations loaded successfully:', Object.keys(this.translations));
-		} catch (error) {
-			console.error('Error loading translations:', error);
-			await this.loadFallbackTranslations();
-		}
-	}
+async loadTranslations() {
+    try {
+
+        this.translations = await response.json();
+        console.log('Translations loaded successfully:', Object.keys(this.translations));
+    } catch (error) {
+        console.error('Error loading translations:', error);
+        await this.loadFallbackTranslations();
+    }
+}
 
 	async loadFallbackTranslations() {
 		try {
-			const response = await fetch(`/locales/${this.currentLanguage}.json?t=${Date.now()}`);
+			const response = await fetch(`/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
 			if (response.ok) {
 				this.translations = await response.json();
 				console.log('Fallback translations loaded');

@@ -6,34 +6,43 @@ const btnIA = document.getElementById('btnIA');
 const countdownEl = document.getElementById('countdown');
 const countdownText = document.getElementById('countdownText');
 const gameContainer = document.getElementById('gameContainer');
+
 let isAIMode = false;
 let gameStarted = false;
 const WINNING_SCORE = 5;
 let score1 = 0;
 let score2 = 0;
+
 const paddle1 = { x: 10, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
 const paddle2 = { x: canvas.width - 20, y: canvas.height / 2 - 50, width: 10, height: 100, speed: 5 };
 const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speedX: 5, speedY: 5 };
+
 btnPlayer.addEventListener('click', () => startGame(false));
 btnIA.addEventListener('click', () => startGame(true));
+
 function hideMenu() {
   menu.classList.add('hidden');
 }
+
 function showCanvas() {
   gameContainer.classList.remove('hidden');
 }
+
 function hideCanvas() {
   gameContainer.classList.add('hidden');
 }
+
 function startGame(aiMode) {
   isAIMode = aiMode;
   hideMenu();
   showCanvas();
   resetGame();
+  // Limpiar el canvas
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   startCountdown();
 }
+
 function resetGame() {
   score1 = 0;
   score2 = 0;
@@ -42,6 +51,7 @@ function resetGame() {
   resetBall();
   gameStarted = false;
 }
+
 function startCountdown() {
   let count = 3;
   countdownEl.classList.remove('hidden');
@@ -59,9 +69,11 @@ function startCountdown() {
     }
   }, 1000);
 }
+
 const keys = {};
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
+
 function updatePaddles() {
   if (keys['w'] && paddle1.y > 0) paddle1.y -= paddle1.speed;
   if (keys['s'] && paddle1.y < canvas.height - paddle1.height) paddle1.y += paddle1.speed;
@@ -72,6 +84,7 @@ function updatePaddles() {
     if (keys['ArrowDown'] && paddle2.y < canvas.height - paddle2.height) paddle2.y += paddle2.speed;
   }
 }
+
 function predictBallPosition() {
   let tempX = ball.x;
   let tempY = ball.y;
@@ -95,6 +108,7 @@ function predictBallPosition() {
 
   return tempY;
 }
+
 function updateAI() {
   const predictedY = predictBallPosition();
   const paddleCenter = paddle2.y + paddle2.height / 2;
@@ -106,6 +120,7 @@ function updateAI() {
   if (paddle2.y < 0) paddle2.y = 0;
   if (paddle2.y > canvas.height - paddle2.height) paddle2.y = canvas.height - paddle2.height;
 }
+
 function updateBall() {
   ball.x += ball.speedX;
   ball.y += ball.speedY;
@@ -145,16 +160,19 @@ function updateBall() {
     resetBall();
   }
 }
+
 function resetBall() {
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 2;
   ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
   ball.speedY = (Math.random() > 0.5 ? 1 : -1) * 5;
 }
+
 function checkWinner() {
   if (score1 >= WINNING_SCORE) showWinner('Jugador 1');
   else if (score2 >= WINNING_SCORE) showWinner(isAIMode ? 'IA' : 'Jugador 2');
 }
+
 function showWinner(winner) {
   gameStarted = false;
   hideCanvas();
@@ -167,6 +185,7 @@ function showWinner(winner) {
     menu.classList.remove('hidden');
   }, 3001);
 }
+
 function draw() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -196,6 +215,7 @@ function draw() {
   ctx.fillStyle = '#666';
   ctx.fillText(`Primera a ${WINNING_SCORE}`, canvas.width / 2 - 80, canvas.height - 20);
 }
+
 function gameLoop() {
   if (!gameStarted) return;
   updatePaddles();

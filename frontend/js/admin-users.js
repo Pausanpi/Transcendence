@@ -16,7 +16,8 @@ class AdminUsersManager {
 		tableElement.style.display = 'none';
 
 		try {
-			const response = await fetch('/admin/users/list', {
+			const response = await fetch('/users/users/list', {
+				credentials: 'include', 
 				headers: { 'Authorization': `Bearer ${this.getToken()}` }
 			});
 

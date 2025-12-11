@@ -1,5 +1,4 @@
 FROM hashicorp/vault:latest
-ENV TZ=Europe/Madrid
 USER root
 
 RUN apk add --no-cache bash curl jq

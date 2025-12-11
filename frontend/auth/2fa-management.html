@@ -1,128 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="2fa.managementTitle">2FA Management</title>
-    <link rel="stylesheet" href="/css/common.css">
-    <link rel="stylesheet" href="/css/auth.css">
-    <link rel="icon" href="/icon.png">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title data-i18n="2fa.managementTitle"></title>
+	<link rel="stylesheet" href="/css/common.css">
+	<link rel="stylesheet" href="/css/auth.css">
+	<link rel="icon" href="/icon.png">
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 data-i18n="2fa.managementTitle">Two-Factor Authentication Management</h1>
-            <a href="/auth/profile" class="btn btn-secondary" data-i18n="common.back">← Back to Profile</a>
-        </div>
-        <div class="card">
+	<div class="container">
+		<div class="header">
+			<h1 data-i18n="2fa.managementTitle"></h1>
+			<a href="/auth/profile" class="btn btn-secondary" data-i18n="common.back"></a>
+		</div>
+		<div class="card">
 
 
-<div id="currentStatus" class="status-info">
-    <span class="status-label" data-i18n="profile.2fa">2FA</span>
-    <span id="statusValue" class="status-value">Loading...</span>
-</div>
+			<div id="currentStatus" class="status-info">
+				<span class="status-label" data-i18n="profile.2fa"></span>
+				<span id="statusValue" class="status-value"></span>
+			</div>
 
-            <div id="enableSection" class="section" style="display: none;">
-                <h3 data-i18n="2fa.enable2FA">Enable Two-Factor Authentication</h3>
-                <p data-i18n="2fa.protectAccount">Protect your account with two-factor authentication for enhanced security.</p>
-                <button id="enable2FABtn" class="btn btn-primary" data-i18n="2fa.setup2FA">Setup 2FA</button>
-            </div>
-            <div id="disableSection" class="section" style="display: none;">
-                <h3 data-i18n="2fa.manage2FA">Manage Two-Factor Authentication</h3>
-                <p data-i18n="2fa.accountProtected">Your account is protected with 2FA.</p>
-                <button id="disable2FABtn" class="btn btn-danger" data-i18n="2fa.disable2FA">Disable 2FA</button>
-                <div style="margin-top: 15px;">
-                    <button id="generateBackupCodesBtn" class="btn btn-secondary" data-i18n="2fa.generateBackupCodes">Generate New Backup Codes</button>
-                </div>
+			<div id="enableSection" class="section" style="display: none;">
+				<h3 data-i18n="2fa.enable2FA"></h3>
+				<p data-i18n="2fa.protectAccount"></p>
+				<button id="enable2FABtn" class="btn btn-primary" data-i18n="2fa.setup2FA"></button>
+			</div>
+			<div id="disableSection" class="section" style="display: none;">
+				<h3 data-i18n="2fa.manage2FA"></h3>
+				<p data-i18n="2fa.accountProtected"></p>
+				<button id="disable2FABtn" class="btn btn-danger" data-i18n="2fa.disable2FA"></button>
+				<div style="margin-top: 15px;">
+					<button id="generateBackupCodesBtn" class="btn btn-secondary"
+						data-i18n="2fa.generateBackupCodes"></button>
+				</div>
+			</div>
+		</div>
 
+		<div class="security-info">
+			<h3 data-i18n="auth.securityFeatures"></h3>
+			<ul>
+				<li data-i18n="auth.securityList.0"></li>
+				<li data-i18n="auth.securityList.1"></li>
+				<li data-i18n="auth.securityList.2"></li>
+				<li data-i18n="auth.securityList.3"></li>
+				<li data-i18n="auth.securityList.4"></li>
+			</ul>
+		</div>
+	</div>
+	<div id="setupModal" class="modal">
+		<div class="modal-content">
+			<h3 data-i18n="2fa.setupTitle"></h3>
 
-            </div>
-        </div>
+			<div id="qrCodeContainer" class="qr-code-container">
+				<p data-i18n="2fa.scanQR"></p>
+				<img id="qrCodeImage" src="" alt="QR Code" style="display: none;">
+				<p><strong data-i18n="2fa.secret"></strong> <span id="secretText"></span></p>
+				<button id="refreshQRBtn" class="btn btn-secondary" data-i18n="2fa.refreshQR"></button>
+			</div>
+			<div class="form-group">
+				<label for="verificationCode" data-i18n="2fa.enterCode"></label>
+				<input type="text" id="verificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
+					data-i18n-placeholder="2fa.codePlaceholder">
+			</div>
+			<div class="modal-actions">
+				<button id="verifyCodeBtn" class="btn btn-primary" data-i18n="2fa.verifyActivate"></button>
+				<button id="cancelSetupBtn" class="btn btn-outline" data-i18n="common.cancel"></button>
+			</div>
+		</div>
+	</div>
+	<div id="disableModal" class="modal">
+		<div class="modal-content">
+			<h3 data-i18n="2fa.disableTitle"></h3>
+			<p data-i18n="2fa.enterCodeToDisable"></p>
+			<div class="form-group">
+				<label for="disableVerificationCode" data-i18n="2fa.sixDigitCode"></label>
+				<input type="text" id="disableVerificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
+					data-i18n-placeholder="2fa.codePlaceholder">
+			</div>
+			<div class="modal-actions">
+				<button id="confirmDisableBtn" class="btn btn-danger" data-i18n="2fa.disableButton"></button>
+				<button id="cancelDisableBtn" class="btn btn-outline" data-i18n="common.cancel"></button>
+			</div>
+		</div>
+	</div>
+	<div id="backupCodesModal" class="modal">
+		<div class="modal-content">
+			<h3 data-i18n="2fa.backupCodesAlert"></h3>
+			<p data-i18n="2fa.newBackupCodes"></p>
+			<div id="backupCodesList" class="backup-codes-list"></div>
+			<div class="modal-actions">
+				<button id="copyAllCodesBtn" class="btn btn-secondary"></button>
+				<button id="downloadCodesBtn" class="btn btn-secondary"></button>
+				<button id="closeBackupCodesBtn" class="btn btn-primary" data-i18n="common.confirm"></button>
+			</div>
+		</div>
+	</div>
 
-<div class="security-info">
-    <h3 data-i18n="auth.securityFeatures"></h3>
-<ul>
-    <li data-i18n="auth.securityList.0"></li>
-    <li data-i18n="auth.securityList.1"></li>
-    <li data-i18n="auth.securityList.2"></li>
-    <li data-i18n="auth.securityList.3"></li>
-    <li data-i18n="auth.securityList.4"></li>
-</ul>
-</div>
-    </div>
-    <div id="setupModal" class="modal">
-        <div class="modal-content">
-            <h3 data-i18n="2fa.setupTitle">2FA Setup</h3>
+	<script src="/js/language-manager.js"></script>
+	<script type="module">
+		import { TwoFAManager } from '/js/2fa-management-core.js';
 
-<div id="qrCodeContainer" class="qr-code-container">
-    <p data-i18n="2fa.scanQR"></p>
-    <img id="qrCodeImage" src="" alt="QR Code" style="display: none;">
-    <p><strong data-i18n="2fa.secret"></strong> <span id="secretText"></span></p>
-    <button id="refreshQRBtn" class="btn btn-secondary" data-i18n="2fa.refreshQR"></button>
-</div>
+		document.addEventListener('DOMContentLoaded', async function () {
+			if (window.languageManager) {
+				await window.languageManager.init();
+			}
 
+			window.twoFAManager = new TwoFAManager();
 
-            <div class="form-group">
-                <label for="verificationCode" data-i18n="2fa.enterCode">Then enter the generated code:</label>
-                <input type="text" id="verificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
-                       data-i18n-placeholder="2fa.codePlaceholder">
-            </div>
-            <div class="modal-actions">
-                <button id="verifyCodeBtn" class="btn btn-primary" data-i18n="2fa.verifyActivate">Verify and Activate</button>
-                <button id="cancelSetupBtn" class="btn btn-outline" data-i18n="common.cancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <div id="disableModal" class="modal">
-        <div class="modal-content">
-            <h3 data-i18n="2fa.disableTitle">Disable Two-Factor Authentication</h3>
-            <p data-i18n="2fa.enterCodeToDisable">Enter your 6-digit code to disable 2FA:</p>
-            <div class="form-group">
-                <label for="disableVerificationCode" data-i18n="2fa.sixDigitCode">6-digit code:</label>
-                <input type="text" id="disableVerificationCode" maxlength="6" placeholder="000000" pattern="[0-9]{6}"
-                       data-i18n-placeholder="2fa.codePlaceholder">
-            </div>
-            <div class="modal-actions">
-                <button id="confirmDisableBtn" class="btn btn-danger" data-i18n="2fa.disableButton">Disable 2FA</button>
-                <button id="cancelDisableBtn" class="btn btn-outline" data-i18n="common.cancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <div id="backupCodesModal" class="modal">
-        <div class="modal-content">
-            <h3 data-i18n="2fa.backupCodesAlert">Backup Codes</h3>
-            <p data-i18n="2fa.newBackupCodes">Save these backup codes in a secure place. Each code can be used only once.</p>
-            <div id="backupCodesList" class="backup-codes-list"></div>
-            <div class="modal-actions">
-                <button id="copyAllCodesBtn" class="btn btn-secondary">📋 Copy All Codes</button>
-                <button id="downloadCodesBtn" class="btn btn-secondary">💾 Download Codes</button>
-                <button id="closeBackupCodesBtn" class="btn btn-primary" data-i18n="common.confirm">I've Saved These Codes</button>
-            </div>
-        </div>
-    </div>
-
-
-  <script src="/js/language-manager.js"></script>
-
-<script type="module">
-    import { TwoFAManager } from '/js/2fa-management-core.js';
-
-    document.addEventListener('DOMContentLoaded', async function() {
-        // Inicializar language manager primero
-        if (window.languageManager) {
-            await window.languageManager.init();
-        }
-
-        // Inicializar 2FA manager
-        window.twoFAManager = new TwoFAManager();
-
-        // Forzar actualización de UI después de un breve delay
-        setTimeout(() => {
-            if (window.twoFAManager && window.twoFAManager.updateUI) {
-                window.twoFAManager.updateUI();
-            }
-        }, 500);
-    });
-</script>
+			setTimeout(() => {
+				if (window.twoFAManager && window.twoFAManager.updateUI) {
+					window.twoFAManager.updateUI();
+				}
+			}, 500);
+		});
+	</script>
 </body>
+
 </html>
