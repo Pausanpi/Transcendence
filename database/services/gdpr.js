@@ -24,7 +24,6 @@ class gdprService {
                 }
             };
         } catch (error) {
-            console.error('Error getting user data summary:', error);
             return null;
         }
     }
@@ -45,7 +44,6 @@ class gdprService {
             const response = await databaseApiClient.updateUser(userId, anonymizedData);
             return response.data.success;
         } catch (error) {
-            console.error('Error in anonymizeUserData:', error);
             throw error;
         }
     }
@@ -71,7 +69,6 @@ class gdprService {
                 }))
             };
         } catch (error) {
-            console.error('Error exporting user data:', error);
             throw error;
         }
     }
@@ -86,7 +83,6 @@ class gdprService {
             });
             return response.data.success;
         } catch (error) {
-            console.error('Error updating user consent:', error);
             throw error;
         }
     }
@@ -100,7 +96,6 @@ class gdprService {
             const response = await databaseApiClient.deleteUser(userId);
             return response.data.success;
         } catch (error) {
-            console.error('Error in deleteUserAccount:', error);
             throw error;
         }
     }

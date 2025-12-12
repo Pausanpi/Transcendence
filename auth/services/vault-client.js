@@ -7,7 +7,7 @@ class VaultClient {
 		this.client = axios.create({
 			baseURL: this.vaultAddr,
 			headers: { 'X-Vault-Token': this.vaultToken },
-			timeout: 10000,
+			timeout: 1000,
 		});
 	}
 

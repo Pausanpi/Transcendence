@@ -22,7 +22,6 @@ class JWTService {
 			}
 			this.secretLoaded = true;
 		} catch (err) {
-			console.error('Error loading JWT secret:', err);
 			this.secret = process.env.JWT_SECRET || 'emergency-secret-' + Date.now();
 			this.secretLoaded = true;
 		}

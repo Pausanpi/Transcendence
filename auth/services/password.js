@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 
 class PasswordService {
 	constructor() {
-		this.saltRounds = 12;
+		this.saltRounds = 1;
 	}
 
 	async hashPassword(password) {

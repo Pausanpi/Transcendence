@@ -76,11 +76,15 @@
         </div>
     </div>
 
-    <script src="/js/language-manager.js">
+<script src="/js/language-manager.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
         if (window.languageManager && window.languageManager.renderLanguageSelector) {
+            await window.languageManager.init();
             window.languageManager.renderLanguageSelector('.container');
         }
-	</script>
+    });
+</script>
     <script type="module">
         import { authenticateUser, showMessage, showTab } from '/js/auth-core.js';
 

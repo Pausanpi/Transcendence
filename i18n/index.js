@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import i18nRoutes from './routes/i18n.js';
+import healthRoutes from './routes/health.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +11,7 @@ dotenv.config();
 
 async function startI18nService() {
     const fastify = Fastify({
-        serviceName: 'i18n-service',     
+        serviceName: 'i18n-service',
         logger: {
             level: process.env.LOG_LEVEL || 'info'
         },
@@ -37,49 +38,12 @@ async function startI18nService() {
                 locales[language] = JSON.parse(content);
             }
         });
-        console.log('🌐 Loaded languages:', Object.keys(locales));
+        Object.defineProperty(global, '__I18N_LOCALES__', { value: locales, configurable: true });
     } catch (error) {
-        console.error('Error loading locales:', error);
     }
 
     await fastify.register(i18nRoutes, { prefix: '/i18n' });
-
-    fastify.get('/locales/:language.json', async (request, reply) => {
-        const { language } = request.params;
-        if (!locales[language]) {
-            return reply.status(404).send({
-                error: 'Language not found',
-                available: Object.keys(locales)
-            });
-        }
-        return locales[language];
-    });
-
-    fastify.get('/health', async () => {
-        return {
-            service: 'i18n-service',
-            status: 'OK',
-			url: process.env.I18N_SERVICE_PORT,
-            timestamp: new Date().toISOString(),
-            languages: Object.keys(locales),
-            loaded: Object.keys(locales).length > 0,
-			endpoints: [
-				'/locales/:language.json',
-				'/languages'
-			]
-        };
-    });
-
-    fastify.get('/languages', async () => {
-        return {
-            success: true,
-            languages: Object.keys(locales).map(lang => ({
-                code: lang,
-                name: lang === 'en' ? 'English' : 'Español',
-                native: lang === 'en' ? 'English' : 'Español'
-            }))
-        };
-    });
+    await fastify.register(healthRoutes);
 
     const port = process.env.I18N_SERVICE_PORT || 3002;
     await fastify.listen({
@@ -87,10 +51,9 @@ async function startI18nService() {
         host: '0.0.0.0'
     });
 
-    console.log(`🌐 I18n Service running on port ${port}`);
+
 }
 
 startI18nService().catch(error => {
-    console.error('Failed to start I18n Service:', error);
     process.exit(1);
 });

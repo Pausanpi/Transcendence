@@ -18,20 +18,28 @@ logs:
 ps:
 	@docker compose ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 destroy:
-	docker stop $$(docker ps -aq) || true
-	docker rm $$(docker ps -aq) || true
-	docker rmi -f $$(docker images -aq) || true
-	docker volume prune -f
-	docker network prune -f
-	docker system prune -a -f --volumes
+	@docker stop $$(docker ps -aq) || true
+	@docker rm $$(docker ps -aq) || true
+	@docker rmi -f $$(docker images -aq) || true
+	@docker volume prune -f
+	@docker network prune -f
+	@docker system prune -a -f --volumes
+	@docker compose down -v --rmi local
 
 health:
 	ps aux | grep -E "(3000|3001|3002|3003|3004|8443)"
+	@echo "\n --- GATEWAY ---\n"
 	curl http://localhost:3000/health
+	@echo "\n --- AUTH ---\n"
 	curl http://localhost:3001/health
+	curl http://localhost:3001/ready
+	@echo "\n --- I18N ---\n"
 	curl http://localhost:3002/health
+	@echo "\n --- DATABASE ---\n"
 	curl http://localhost:3003/health
+	@echo "\n --- USERS ---\n"
 	curl http://localhost:3004/health
+	@echo "\n --- OTHERS ---\n"
 	curl -k https://localhost:8443/health
 
 tails:

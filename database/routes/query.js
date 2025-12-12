@@ -13,14 +13,15 @@ export default async function queryRoutes(fastify, options) {
             if (!user) {
                 return reply.status(404).send({
                     error: 'User not found',
+					success: false,
                     code: 'USER_NOT_FOUND'
                 });
             }
             return { success: true, user };
         } catch (error) {
-            console.error('Error getting user:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -36,14 +37,15 @@ export default async function queryRoutes(fastify, options) {
             if (!user) {
                 return reply.status(404).send({
                     error: 'User not found',
+					success: false,
                     code: 'USER_NOT_FOUND'
                 });
             }
             return { success: true, user };
         } catch (error) {
-            console.error('Error getting user by email:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -62,9 +64,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true, userId: id };
         } catch (error) {
-            console.error('Error creating user:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -78,6 +80,7 @@ export default async function queryRoutes(fastify, options) {
         if (fields.length === 0) {
             return reply.status(400).send({
                 error: 'No fields to update',
+				success: false,
                 code: 'NO_UPDATES'
             });
         }
@@ -93,9 +96,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true };
         } catch (error) {
-            console.error('Error updating user:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -107,9 +110,9 @@ export default async function queryRoutes(fastify, options) {
             await db.run('DELETE FROM users WHERE id = ?', [id]);
             return { success: true };
         } catch (error) {
-            console.error('Error deleting user:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -120,9 +123,9 @@ export default async function queryRoutes(fastify, options) {
             const users = await db.all('SELECT * FROM users ORDER BY created_at DESC');
             return { success: true, users };
         } catch (error) {
-            console.error('Error getting all users:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -146,9 +149,9 @@ export default async function queryRoutes(fastify, options) {
             }
             return { success: true };
         } catch (error) {
-            console.error('Error updating login attempts:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -165,9 +168,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true };
         } catch (error) {
-            console.error('Error creating session:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -179,9 +182,9 @@ export default async function queryRoutes(fastify, options) {
             await db.run('DELETE FROM user_sessions WHERE user_id = ?', [userId]);
             return { success: true };
         } catch (error) {
-            console.error('Error deleting user sessions:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -196,9 +199,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true, sessions };
         } catch (error) {
-            console.error('Error getting user sessions:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -210,6 +213,7 @@ export default async function queryRoutes(fastify, options) {
         if (!user_id || !codes || !Array.isArray(codes)) {
             return reply.status(400).send({
                 error: 'Invalid request data',
+				success: false,
                 code: 'INVALID_REQUEST'
             });
         }
@@ -225,9 +229,9 @@ export default async function queryRoutes(fastify, options) {
             }
             return { success: true };
         } catch (error) {
-            console.error('Error saving backup codes:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -242,9 +246,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true, codes };
         } catch (error) {
-            console.error('Error getting backup codes:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -259,9 +263,9 @@ export default async function queryRoutes(fastify, options) {
             );
             return { success: true };
         } catch (error) {
-            console.error('Error marking code as used:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR'
             });
         }
@@ -273,6 +277,7 @@ export default async function queryRoutes(fastify, options) {
         if (!sql || typeof sql !== 'string') {
             return reply.status(400).send({
                 error: 'SQL query required',
+				success: false,
                 code: 'SQL_REQUIRED'
             });
         }
@@ -284,6 +289,7 @@ export default async function queryRoutes(fastify, options) {
         if (!isSafe) {
             return reply.status(400).send({
                 error: 'Unsafe SQL query type',
+				success: false,
                 code: 'UNSAFE_SQL',
                 allowed: allowedPrefixes
             });
@@ -310,9 +316,9 @@ export default async function queryRoutes(fastify, options) {
                 timestamp: new Date().toISOString()
             };
         } catch (error) {
-            console.error('Database query error:', error);
             return reply.status(500).send({
                 error: 'Database error',
+                	success: false,
                 code: 'DB_ERROR',
                 message: error.message
             });
@@ -345,6 +351,7 @@ export default async function queryRoutes(fastify, options) {
                 service: 'database-service',
                 status: 'ERROR',
                 database: 'disconnected',
+				success: false,
                 error: error.message,
                 timestamp: new Date().toISOString()
             };

@@ -32,7 +32,6 @@ export default async function gdprRoutes(fastify, options) {
                 data: userData
             };
         } catch (error) {
-            console.error('Error obteniendo user data:', error);
             return reply.status(500).send({
                 error: 'common.internalError',
                 code: 'DATA_RETRIEVAL_ERROR'
@@ -67,7 +66,6 @@ export default async function gdprRoutes(fastify, options) {
                 message: 'messages.dataAnonymized'
             };
         } catch (error) {
-            console.error('Error anonimizando datos:', error);
             return reply.status(500).send({
                 error: 'gdpr.anonymizationError',
                 code: 'ANONYMIZATION_ERROR'
@@ -93,7 +91,6 @@ export default async function gdprRoutes(fastify, options) {
                 generatedAt: new Date().toISOString()
             };
         } catch (error) {
-            console.error('Error exportando datos:', error);
             return reply.status(500).send({
                 error: 'gdpr.exportError',
                 code: 'EXPORT_ERROR'
@@ -138,7 +135,6 @@ export default async function gdprRoutes(fastify, options) {
                 message: 'messages.accountDeleted'
             };
         } catch (error) {
-            console.error('Error eliminando cuenta:', error);
             return reply.status(500).send({
                 error: 'gdpr.deletionError',
                 code: 'DELETION_ERROR'
@@ -170,7 +166,6 @@ export default async function gdprRoutes(fastify, options) {
                 message: 'messages.preferencesUpdated'
             };
         } catch (error) {
-            console.error('Error actualizando consentimiento:', error);
             return reply.status(500).send({
                 error: 'gdpr.consentUpdateError',
                 code: 'CONSENT_UPDATE_ERROR'
@@ -199,7 +194,6 @@ export default async function gdprRoutes(fastify, options) {
                 consent
             };
         } catch (error) {
-            console.error('Error obteniendo consentimiento:', error);
             return reply.status(500).send({
                 error: 'common.internalError',
                 code: 'CONSENT_RETRIEVAL_ERROR'

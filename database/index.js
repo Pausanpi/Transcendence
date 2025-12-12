@@ -16,21 +16,9 @@ async function startDatabaseService() {
 	await fastify.register(queryRoutes);
 
     fastify.addHook('onRequest', async (request, reply) => {
-        if (request.method === 'GET' && request.url.startsWith('/health')) {
-            return;
-        }
-
+        if (request.method === 'GET' && request.url.startsWith('/health')) return;
         const serviceToken = request.headers['x-service-token'];
         const validToken = process.env.SERVICE_TOKEN;
-
-		/*
-        if (serviceToken !== validToken) {
-            return reply.status(401).send({
-                error: 'Unauthorized',
-                code: 'SERVICE_TOKEN_REQUIRED'
-            });
-        } */
-
     });
 
 
@@ -41,10 +29,8 @@ async function startDatabaseService() {
         host: '0.0.0.0'
     });
 
-    console.log(`🗄️  Database Service running on port ${port}`);
-}
 
+}
 startDatabaseService().catch(error => {
-    console.error('Failed to start Database Service:', error);
     process.exit(1);
 });

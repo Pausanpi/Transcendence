@@ -122,13 +122,7 @@ export default async function authRoutes(fastify, options) {
   fastify.get('/profile', {
     preHandler: async (request, reply) => {
 
-      console.log('🔍 Profile access check:', {
-        isAuthenticated: request.isAuthenticated?.(),
-        userId: request.session.get('userId'),
-        user: request.session.get('user'),
-        jwtToken: request.session.get('jwtToken'),
-        cookies: request.headers.cookie
-      });
+
 
       if (!request.isAuthenticated || !request.isAuthenticated()) {
         return reply.redirect('/');
@@ -168,88 +162,137 @@ export default async function authRoutes(fastify, options) {
   /***********************
    *       LOGIN
    ***********************/
-  fastify.post('/login', { preHandler: validateLogin }, async (request, reply) => {
+fastify.post('/login', { preHandler: validateLogin }, async (request, reply) => {
     const { email, password } = request.body;
 
-    console.log('Login attempt for email:', email);
 
-    const user = await findUserByEmail(email);
-    if (!user) {
-      console.log('User not found:', email);
-      return reply.status(401).send({ success: false, error: 'messages.invalidCredentials' });
+    try {
+        const user = await findUserByEmail(email);
+        if (!user) {
+            return reply.status(401).send({
+                success: false,
+                error: 'messages.invalidCredentials'
+            });
+        }
+
+
+        if (user.isAccountLocked()) {
+            return reply.status(423).send({
+                success: false,
+                error: 'auth.accountLocked'
+            });
+        }
+
+        const isValidPassword = await user.verifyPassword(password);
+        if (!isValidPassword) {
+            await incrementLoginAttempts(user.id);
+            return reply.status(401).send({
+                success: false,
+                error: 'messages.invalidCredentials'
+            });
+        }
+
+        await resetLoginAttempts(user.id);
+
+
+
+        if (user.two_factor_enabled) {
+
+
+            request.session.delete('userId');
+            request.session.delete('user');
+            request.session.delete('twoFactorVerified');
+
+            request.session.set('pending2FAUserId', user.id);
+
+
+
+            return reply.send({
+                success: true,
+                requires2FA: true,
+                userId: user.id,
+                username: user.username,
+                message: '2FA verification required'
+            });
+        }
+
+
+
+        request.session.delete('pending2FAUserId');
+
+        request.session.set('userId', user.id);
+        request.session.set('user', {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar || 'default-avatar.png'
+        });
+        request.session.set('twoFactorVerified', false);
+
+        const jwtToken = await jwtService.generateToken({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            twoFactorEnabled: false
+        });
+
+        request.session.set('jwtToken', jwtToken);
+
+
+
+
+               const safeUser = {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar || 'default-avatar.png',
+                twoFactorEnabled: false
+            };
+
+
+
+            const authCookie = `auth_jwt=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+
+            try {
+                const existingCookies = reply.getHeader('Set-Cookie') || [];
+                const newCookies = Array.isArray(existingCookies)
+                    ? [...existingCookies, authCookie]
+                    : [String(existingCookies), authCookie];
+
+                reply.header('Set-Cookie', newCookies);
+
+            } catch (e) {
+              reply.header('Set-Cookie', authCookie);
+            }
+
+            reply.header('x-user-id', user.id);
+            reply.header('x-user', JSON.stringify(safeUser));
+
+            return reply.send({
+                success: true,
+                requires2FA: false,
+                token: jwtToken,
+                user: safeUser
+            });
+
+        return reply.send({
+            success: true,
+            requires2FA: false,
+            token: jwtToken,
+            user: user.toSafeJSON()
+        });
+
+    } catch (error) {
+        return reply.status(500).send({
+            success: false,
+            error: 'common.internalError'
+        });
     }
 
-    console.log('User found:', user.id, user.username);
 
-    if (user.isAccountLocked()) {
-      console.log('Account locked:', user.id);
-      return reply.status(423).send({ success: false, error: 'auth.accountLocked' });
-    }
 
-    const isValidPassword = await user.verifyPassword(password);
-    if (!isValidPassword) {
-      console.log('Invalid password for user:', user.id);
-      await incrementLoginAttempts(user.id);
-      return reply.status(401).send({ success: false, error: 'messages.invalidCredentials' });
-    }
 
-    await resetLoginAttempts(user.id);
-
-    console.log('Session BEFORE login:', {
-      userId: request.session.get('userId'),
-      pending2FA: request.session.get('pending2FAUserId'),
-      twoFactorVerified: request.session.get('twoFactorVerified')
-    });
-
-    // 2FA FIRST
-    if (user.two_factor_enabled) {
-      console.log('2FA required for user:', user.id);
-
-      request.session.set('pending2FAUserId', user.id);
-      request.session.delete('twoFactorVerified');
-
-      return reply.send({
-        success: true,
-        requires2FA: true,
-        userId: user.id,
-        username: user.username
-      });
-    }
-
-    // NORMAL LOGIN
-    console.log('Successful login without 2FA:', user.id);
-
-    request.session.set('userId', user.id);
-    request.session.set('user', {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      avatar: user.avatar || 'default-avatar.png'
-    });
-    request.session.set('twoFactorVerified', false);
-
-    const jwtToken = await jwtService.generateToken({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      twoFactorEnabled: false
-    });
-
-    request.session.set('jwtToken', jwtToken);
-
-    console.log('Session AFTER login:', {
-      userId: request.session.get('userId'),
-      user: request.session.get('user'),
-      jwtTokenSet: !!request.session.get('jwtToken')
-    });
-
-    return reply.send({
-      success: true,
-      requires2FA: false,
-      token: jwtToken,
-      user: user.toSafeJSON()
-    });
-  });
+});
 
 
   /***********************
@@ -279,18 +322,29 @@ export default async function authRoutes(fastify, options) {
       return reply.status(500).send({ success: false, error: 'auth.creationError' });
     }
 
-    const jwtToken = await jwtService.generateToken({
-      id: savedUser.id,
-      username: savedUser.username,
-      email: savedUser.email,
-      twoFactorEnabled: false
-    });
 
-    return reply.send({
-      success: true,
-      token: jwtToken,
-      user: savedUser.toSafeJSON()
-    });
+const jwtToken = await jwtService.generateToken({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    twoFactorEnabled: false
+});
+
+
+reply.setCookie('auth_jwt', jwtToken, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60
+});
+
+return reply.send({
+    success: true,
+    requires2FA: false,
+    token: jwtToken,
+    user: user.toSafeJSON()
+});
   });
 
 

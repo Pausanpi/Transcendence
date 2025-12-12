@@ -54,7 +54,6 @@ export default async function adminRoutes(fastify, options) {
 			}));
 			return { success: true, users: safeUsers };
 		} catch (error) {
-			console.error('Error loading users:', error);
 			return reply.status(500).send({
 				error: 'admin.errorLoading',
 				code: 'USERS_LOAD_ERROR'

@@ -6,13 +6,11 @@ class HttpClient {
 			baseURL,
 			timeout: options.timeout || 5000,
 			withCredentials: true,
-			headers: {
+			headers: Object.assign({
 				'Content-Type': 'application/json',
-				'x-service-token': process.env.SERVICE_TOKEN || 'dev-service-token',
-				...options.headers
-			}
+				'x-service-token': process.env.SERVICE_TOKEN || 'dev-service-token'
+			}, options.headers || {})
 		});
-
 		this.client.interceptors.request.use(
 			config => {
 				console.log(`[HTTP Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
@@ -23,9 +21,21 @@ class HttpClient {
 				return Promise.reject(error);
 			}
 		);
-
 		this.client.interceptors.response.use(
-			response => response,
+			response => {
+				const contentType = response.headers['content-type'] || '';
+				if (contentType.includes('application/json')) {
+					return response;
+				} else {
+					return Object.assign({}, response, {
+						data: {
+							success: false,
+							error: 'Invalid response format',
+							raw: response.data
+						}
+					});
+				}
+			},
 			error => {
 				console.error('[HTTP Response Error]', {
 					url: error.config?.url,
@@ -33,23 +43,25 @@ class HttpClient {
 					status: error.response?.status,
 					message: error.message
 				});
+				if (error.response) {
+					error.response.data = error.response.data || {
+						success: false,
+						error: 'Network error'
+					};
+				}
 				return Promise.reject(error);
 			}
 		);
 	}
-
 	async get(url, config = {}) {
 		return this.client.get(url, config);
 	}
-
 	async post(url, data = {}, config = {}) {
 		return this.client.post(url, data, config);
 	}
-
 	async put(url, data = {}, config = {}) {
 		return this.client.put(url, data, config);
 	}
-
 	async delete(url, config = {}) {
 		return this.client.delete(url, config);
 	}
@@ -58,15 +70,12 @@ class HttpClient {
 export const authClient = new HttpClient(
 	process.env.AUTH_SERVICE_URL || 'http://localhost:3001'
 );
-
 export const i18nClient = new HttpClient(
 	process.env.I18N_SERVICE_URL || 'http://localhost:3002'
 );
-
 export const databaseClient = new HttpClient(
 	process.env.DATABASE_SERVICE_URL || 'http://localhost:3003'
 );
-
 export const usersClient = new HttpClient(
 	process.env.USERS_SERVICE_URL || 'http://localhost:3004'
 );
@@ -76,71 +85,63 @@ export const databaseApiClient = {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.get(`/users/${id}`);
 	},
-
 	getUserByEmail: async (email) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.get(`/users/email/${encodeURIComponent(email)}`);
 	},
-
 	createUser: async (userData) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.post('/users', userData);
 	},
-
 	updateUser: async (id, updates) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.put(`/users/${id}`, updates);
 	},
-
 	deleteUser: async (id) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.delete(`/users/${id}`);
 	},
-
 	createSession: async (sessionData) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.post('/sessions', sessionData);
 	},
-
 	deleteUserSessions: async (userId) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.delete(`/sessions/user/${userId}`);
 	},
-
 	getUserSessions: async (userId) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.get(`/sessions/user/${userId}`);
 	},
-
 	saveBackupCodes: async (userId, codes) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.post('/backup-codes', { user_id: userId, codes });
 	},
-
 	getBackupCodes: async (userId) => {
 		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
 		return client.get(`/backup-codes/user/${userId}`);
 	},
 
-	markCodeAsUsed: async (codeId) => {
-		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-		return client.put(`/backup-codes/${codeId}/use`);
-	},
 
-	getAllUsers: async () => {
-		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-		return client.get('/users/all');
-	},
+   updateLoginAttempts: async (userId, increment) => {
+        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+        return client.put(`/users/${userId}/login-attempts`, { increment });
+    },
 
-	updateLoginAttempts: async (userId, increment) => {
-		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-		return client.put(`/users/${userId}/login-attempts`, { increment });
-	},
+    getAllUsers: async () => {
+        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+        return client.get('/users/all');
+    },
 
-	query: async (sql, params = [], type = 'all') => {
-		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-		return client.post('/query', { sql, params, type });
-	}
+    markCodeAsUsed: async (codeId) => {
+        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+        return client.put(`/backup-codes/${codeId}/use`);
+    },
+
+
+    query: async (sql, params = [], type = 'all') => {
+        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+        return client.post('/query', { sql, params, type });
+    },
+
 };
-
-export default HttpClient;

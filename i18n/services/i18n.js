@@ -24,9 +24,8 @@ class I18nService {
                     this.locales[language] = JSON.parse(content);
                 }
             });
-            console.log('Loaded languages:', Object.keys(this.locales));
+
         } catch (error) {
-            console.error('Error loading languages:', error);
         }
     }
 
@@ -59,7 +58,6 @@ class I18nService {
         }
 
         if (value === undefined) {
-            console.warn(`Translation not found: ${key}`);
             return key;
         }
 

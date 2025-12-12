@@ -1,6 +1,6 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import databaseApiClient from '../../shared/http-client.js';
+import { databaseApiClient } from '../../shared/http-client.js';
 import bcrypt from 'bcrypt';
 
 class TwoFactorService {
@@ -22,7 +22,6 @@ class TwoFactorService {
         try {
             return await QRCode.toDataURL(otpauthUrl);
         } catch (error) {
-            console.error('Error generating QR code:', error);
             throw new Error('QR code generation failed');
         }
     }
@@ -40,7 +39,6 @@ class TwoFactorService {
                 step: 30
             });
         } catch (error) {
-            console.error('Error verifying token:', error);
             return false;
         }
     }
@@ -66,7 +64,6 @@ class TwoFactorService {
             const response = await databaseApiClient.saveBackupCodes(userId, hashedCodes);
             return response.data.success;
         } catch (error) {
-            console.error('Error saving backup codes:', error);
             return false;
         }
     }
@@ -91,7 +88,6 @@ class TwoFactorService {
             }
             return false;
         } catch (error) {
-            console.error('Error verifying backup code:', error);
             return false;
         }
     }
@@ -104,7 +100,6 @@ class TwoFactorService {
             }
             return 0;
         } catch (error) {
-            console.error('Error getting remaining backup codes:', error);
             return 0;
         }
     }
@@ -114,7 +109,6 @@ class TwoFactorService {
             const response = await databaseApiClient.saveBackupCodes(userId, []);
             return response.data.success;
         } catch (error) {
-            console.error('Error clearing backup codes:', error);
             return false;
         }
     }

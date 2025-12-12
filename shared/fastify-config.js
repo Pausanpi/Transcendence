@@ -3,11 +3,11 @@ import crypto from 'crypto';
 
 export default async function createFastifyApp(options = {}) {
     const { serviceName = 'unknown', enableSessions = false, corsOrigin = false } = options;
-    
+
     const loggerConfig = {
         level: process.env.LOG_LEVEL || 'info'
     };
-    
+
     if (process.env.NODE_ENV === 'development') {
         try {
             await import('pino-pretty');
@@ -23,12 +23,12 @@ export default async function createFastifyApp(options = {}) {
             console.log('pino-pretty not available, using default logger');
         }
     }
-    
+
     const fastify = Fastify({
         logger: loggerConfig,
         trustProxy: true
     });
-    
+
     if (corsOrigin) {
         const fastifyCors = await import('@fastify/cors');
         await fastify.register(fastifyCors.default, {
@@ -36,17 +36,15 @@ export default async function createFastifyApp(options = {}) {
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token', 'Cookie'],
-            exposedHeaders: ['Set-Cookie']
+            exposedHeaders: ['Set-Cookie', 'Authorization']
         });
     }
-    
+
     if (serviceName === 'api-gateway' || serviceName === 'auth-service') {
         const fastifyFormbody = await import('@fastify/formbody');
         await fastify.register(fastifyFormbody.default);
     }
-    
-    // IMPORTANTE: Solo registrar @fastify/cookie si NO es auth-service
-    // porque fastifyPassport.default.secureSession() lo registrará automáticamente
+
     if (serviceName === 'api-gateway') {
         const fastifyCookie = await import('@fastify/cookie');
         await fastify.register(fastifyCookie.default, {
@@ -54,10 +52,10 @@ export default async function createFastifyApp(options = {}) {
             hook: 'onRequest'
         });
     }
-    
+
     if (enableSessions) {
         const fastifySecureSession = await import('@fastify/secure-session');
-        
+
         const sessionSecret = process.env.SESSION_SECRET;
         let sessionKey;
         if (sessionSecret && sessionSecret.length >= 64) {
@@ -68,23 +66,19 @@ export default async function createFastifyApp(options = {}) {
             console.log('Generated session key (hex):', sessionKey.toString('hex'));
             console.log('Set this as SESSION_SECRET environment variable for consistent sessions');
         }
-        
+
         await fastify.register(fastifySecureSession.default, {
             key: sessionKey,
             cookie: {
                 path: '/',
-                secure: 'false',
+                secure: false,
                 httpOnly: true,
                 sameSite: 'lax'
-               
             },
             cookieName: 'sessionId',
             sessionName: 'session'
-
         });
-        
-        // IMPORTANTE: Para auth-service, NO registrar Passport aquí
-        // Lo haremos manualmente en el archivo principal del auth-service
+
         if (serviceName === 'api-gateway') {
             const fastifyPassport = await import('@fastify/passport');
             await fastify.register(fastifyPassport.default.initialize());
@@ -92,7 +86,7 @@ export default async function createFastifyApp(options = {}) {
             console.log(`✅ Secure sessions initialized for ${serviceName}`);
         }
     }
-    
+
     fastify.addHook('onReady', async () => {
         if (!fastify.hasRequestDecorator('isAuthenticated')) {
             fastify.decorateRequest('isAuthenticated', function() {
@@ -102,7 +96,7 @@ export default async function createFastifyApp(options = {}) {
             });
         }
     });
-    
+
     if (serviceName === 'api-gateway') {
         fastify.addHook('onRequest', async (request, reply) => {
             const startTime = Date.now();
@@ -115,7 +109,7 @@ export default async function createFastifyApp(options = {}) {
             reply.header('X-Request-ID', request.id);
             request.startTime = startTime;
         });
-        
+
         fastify.addHook('onSend', async (request, reply, payload) => {
             if (request.startTime) {
                 const responseTime = Date.now() - request.startTime;
@@ -126,7 +120,7 @@ export default async function createFastifyApp(options = {}) {
             }
         });
     }
-    
+
     fastify.setErrorHandler(function (error, request, reply) {
         fastify.log.error({
             err: error,
@@ -149,7 +143,7 @@ export default async function createFastifyApp(options = {}) {
         }
         reply.status(statusCode).send(response);
     });
-    
+
     fastify.setNotFoundHandler(function (request, reply) {
         reply.status(404).send({
             error: 'Route not found',
@@ -157,6 +151,6 @@ export default async function createFastifyApp(options = {}) {
             code: 'ROUTE_NOT_FOUND'
         });
     });
-    
+
     return fastify;
 }

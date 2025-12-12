@@ -70,7 +70,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 		} catch (error) {
-			console.error('2FA verification error:', error);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
@@ -120,7 +119,6 @@ export default async function twoFactorRoutes(fastify) {
 				qrCode
 			};
 		} catch (err) {
-			console.error('2FA setup error:', err);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
@@ -189,7 +187,6 @@ export default async function twoFactorRoutes(fastify) {
 				backupCodes: backupCodes
 			};
 		} catch (err) {
-			console.error('2FA verification error:', err);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
@@ -253,7 +250,6 @@ export default async function twoFactorRoutes(fastify) {
 				message: 'messages.2faDisabled'
 			};
 		} catch (err) {
-			console.error('2FA disable error:', err);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
@@ -289,7 +285,6 @@ export default async function twoFactorRoutes(fastify) {
 				qrCode
 			};
 		} catch (err) {
-			console.error('QR refresh error:', err);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
@@ -325,7 +320,6 @@ export default async function twoFactorRoutes(fastify) {
 				codes: backupCodes
 			};
 		} catch (err) {
-			console.error('Backup codes generation error:', err);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'
