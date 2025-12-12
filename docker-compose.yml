@@ -56,8 +56,6 @@ x-healthchecks:
     timeout: 10s
     retries: 3
 
-
-
 services:
 
   gateway:
@@ -76,7 +74,7 @@ services:
       - AUTH_SERVICE_URL=http://auth:3001
       - I18N_SERVICE_URL=http://i18n:3002
       - DATABASE_SERVICE_URL=http://database:3003
-      - USERS_SERVICE_URL=http://users:3004    
+      - USERS_SERVICE_URL=http://users:3004
     volumes:
       - ./data:/app/data
       - ./frontend:/app/frontend
@@ -123,7 +121,7 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=development
-      - AUTH_SERVICE_PORT=3001    
+      - AUTH_SERVICE_PORT=3001
     volumes:
       - ./data:/app/data
       - ./auth:/app/auth
@@ -169,7 +167,6 @@ services:
       - ./users:/app/users
       - ./shared:/app/shared
     healthcheck: *users-healthcheck
-
 
   nginx-waf:
     image: nginx-waf

@@ -54,5 +54,4 @@ tails:
 	@echo "\n --- USERS ---\n"
 	docker logs users | tail -n 20
 
-
 .PHONY: all build up down fclean re logs ps clean destroy health tails

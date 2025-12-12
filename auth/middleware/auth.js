@@ -1,11 +1,11 @@
 import jwtService from '../services/jwt.js';
 import fastifyStatic from '@fastify/static';
 export async function authenticateJWT(request, reply) {
-    if (typeof request.isAuthenticated === 'function' && request.isAuthenticated()) {
-        return;
-    }
+	if (typeof request.isAuthenticated === 'function' && request.isAuthenticated()) {
+		return;
+	}
 
-    const authHeader = request.headers.authorization;
+	const authHeader = request.headers.authorization;
 
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
 		return reply.status(401).send({

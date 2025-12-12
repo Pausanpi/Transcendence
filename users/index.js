@@ -6,22 +6,22 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function startUserService() {
-    const fastify = await createFastifyApp({
-        serviceName: 'users-service',
-        enableSessions: true,
-        corsOrigin: process.env.CORS_ORIGIN || true
-    });
+	const fastify = await createFastifyApp({
+		serviceName: 'users-service',
+		enableSessions: true,
+		corsOrigin: process.env.CORS_ORIGIN || true
+	});
 
-    await fastify.register(adminRoutes, { prefix: '/users' });
-    await fastify.register(healthRoutes);
+	await fastify.register(adminRoutes, { prefix: '/users' });
+	await fastify.register(healthRoutes);
 
-    const port = process.env.USERS_SERVICE_PORT || 3004;
-    await fastify.listen({
-        port: port,
-        host: '0.0.0.0'
-    });
+	const port = process.env.USERS_SERVICE_PORT || 3004;
+	await fastify.listen({
+		port: port,
+		host: '0.0.0.0'
+	});
 
 }
 startUserService().catch(error => {
-    process.exit(1);
+	process.exit(1);
 });

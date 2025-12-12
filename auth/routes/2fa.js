@@ -44,10 +44,14 @@ export default async function twoFactorRoutes(fastify) {
 			} else {
 				isValid = twoFactorService.verifyToken(user.two_factor_secret, token);
 			}
-
 			if (isValid) {
 				request.session.twoFactorVerified = true;
 				request.session.pending2FAUserId = null;
+
+				if (request.session.get) {
+					request.session.set('twoFactorVerified', true);
+					request.session.delete('pending2FAUserId');
+				}
 
 				const jwtToken = await jwtService.generateToken({
 					id: user.id,
@@ -56,13 +60,16 @@ export default async function twoFactorRoutes(fastify) {
 					twoFactorEnabled: true
 				});
 
-				request.session.jwtToken = jwtToken;
+				if (request.session.set) {
+					request.session.set('jwtToken', jwtToken);
+				}
 
 				return {
 					success: true,
 					usedBackupCode,
 					remainingBackupCodes
 				};
+
 			} else {
 				return reply.status(400).send({
 					success: false,

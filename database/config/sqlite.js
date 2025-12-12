@@ -5,25 +5,24 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 class Database {
-    constructor() {
-        this.db = null;
-        this.init();
-    }
+	constructor() {
+		this.db = null;
+		this.init();
+	}
 
-    init() {
-        const dbPath = path.join(__dirname, '../../data/app.db');
-        this.db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                console.error('Error connecting to SQLite:', err.message);
-            } else {
-                console.log('Connected to SQLite database');
-                this.createTables();
-            }
-        });
-    }
+	init() {
+		const dbPath = path.join(__dirname, '../../data/app.db');
+		this.db = new sqlite3.Database(dbPath, (err) => {
+			if (err) {
+				console.error('Error connecting to SQLite:', err.message);
+			} else {
+				this.createTables();
+			}
+		});
+	}
 
-    createTables() {
-        const usersTable = `
+	createTables() {
+		const usersTable = `
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
                 username TEXT NOT NULL,
@@ -48,7 +47,7 @@ class Database {
             )
         `;
 
-        const sessionsTable = `
+		const sessionsTable = `
             CREATE TABLE IF NOT EXISTS user_sessions (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -59,7 +58,7 @@ class Database {
             )
         `;
 
-        const backupCodesTable = `
+		const backupCodesTable = `
             CREATE TABLE IF NOT EXISTS backup_codes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT NOT NULL,
@@ -70,72 +69,72 @@ class Database {
             )
         `;
 
-        this.run(usersTable).catch(err => {
-            console.error('Error creating users table:', err);
-        });
+		this.run(usersTable).catch(err => {
+			console.error('Error creating users table:', err);
+		});
 
-        this.run(sessionsTable).catch(err => {
-            console.error('Error creating sessions table:', err);
-        });
+		this.run(sessionsTable).catch(err => {
+			console.error('Error creating sessions table:', err);
+		});
 
-        this.run(backupCodesTable).catch(err => {
-            console.error('Error creating backup_codes table:', err);
-        });
-    }
+		this.run(backupCodesTable).catch(err => {
+			console.error('Error creating backup_codes table:', err);
+		});
+	}
 
-    run(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            this.db.run(sql, params, function (err) {
-                if (err) {
-                    console.error('SQL Error:', err);
-                    console.error('SQL Statement:', sql);
-                    console.error('Parameters:', params);
-                    reject(err);
-                } else {
-                    resolve({ id: this.lastID, changes: this.changes });
-                }
-            });
-        });
-    }
+	run(sql, params = []) {
+		return new Promise((resolve, reject) => {
+			this.db.run(sql, params, function (err) {
+				if (err) {
+					console.error('SQL Error:', err);
+					console.error('SQL Statement:', sql);
+					console.error('Parameters:', params);
+					reject(err);
+				} else {
+					resolve({ id: this.lastID, changes: this.changes });
+				}
+			});
+		});
+	}
 
-    get(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            this.db.get(sql, params, (err, row) => {
-                if (err) {
-                    console.error('SQL Error:', err);
-                    console.error('SQL Statement:', sql);
-                    console.error('Parameters:', params);
-                    reject(err);
-                } else {
-                    resolve(row);
-                }
-            });
-        });
-    }
+	get(sql, params = []) {
+		return new Promise((resolve, reject) => {
+			this.db.get(sql, params, (err, row) => {
+				if (err) {
+					console.error('SQL Error:', err);
+					console.error('SQL Statement:', sql);
+					console.error('Parameters:', params);
+					reject(err);
+				} else {
+					resolve(row);
+				}
+			});
+		});
+	}
 
-    all(sql, params = []) {
-        return new Promise((resolve, reject) => {
-            this.db.all(sql, params, (err, rows) => {
-                if (err) {
-                    console.error('SQL Error:', err);
-                    console.error('SQL Statement:', sql);
-                    console.error('Parameters:', params);
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
-    }
+	all(sql, params = []) {
+		return new Promise((resolve, reject) => {
+			this.db.all(sql, params, (err, rows) => {
+				if (err) {
+					console.error('SQL Error:', err);
+					console.error('SQL Statement:', sql);
+					console.error('Parameters:', params);
+					reject(err);
+				} else {
+					resolve(rows);
+				}
+			});
+		});
+	}
 
-    close() {
-        return new Promise((resolve, reject) => {
-            this.db.close((err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-    }
+	close() {
+		return new Promise((resolve, reject) => {
+			this.db.close((err) => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+	}
 }
 
 export default new Database();

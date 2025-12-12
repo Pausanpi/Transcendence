@@ -1,30 +1,196 @@
+# LO NUEVO
 
-test:
-	@echo "Testing services..."
-	@curl -f http://localhost:3000/health && echo "Backend: OK" || echo "Backend: FAIL"
-	@curl -f http://localhost:3001/health && echo "Auth: OK" || echo "Auth: FAIL"
-	@curl -f http://localhost:3002/health && echo "I18n: OK" || echo "I18n: FAIL"
-	@curl -f http://localhost:3003/health && echo "Database: OK" || echo "Database: FAIL"
+### Últimos cambios (acorde a la pasada reunión)
 
-Pensandolo mejor, realmente el acceso a la base de datos no necesita de una autenticación especial ya que forma parte del backend y no es accesible directamente por el usuario. Es decir, siempre que las consultas estén bien hechas y límitadas, no sé podrá acceder directamente a la BD a traves del fronend.
-O dicho de otro modo. El acceso a la BD se hace desde los demás microservicios que ya se
-suponen legitimos y que haran consultas legitimas con sus "where" para no exponer / manipular datos que no corresponda a un usuario concreto, si se llega a tener acceso directo al microservicio:puerto es porque ya se tiene acceso a toda la red de la app. Ahí ya entra en juego la seguridad del servidor/docker y que no esten expuestos puertos que no deberían.
+- Backend fragmentado en microservicios cada uno con su Dockerfile
+- Microservicios expuestos (temporalmente para desarrollo) en puertos distintos
+- Dockerfile base para intentar minimizar tiempo/espacio
+- Cada servicio tiene su propio endpoint "health", ver make health
+- Gateway actúa como reverse proxy
 
-endpoints para todas las operaciones CRUD  REST API
+- Hay archivos que rehubicar
+- Al fragmentar servicios se han ido a la porra cosas que tengo que revisar, 2fa, oauth ....
 
-El microservicio gateway actua como proxy de los demas servicios
-nginx-proxy-> gateway-proxy-> microservicios
+**Para no tener que andar creando usuarios si accedes a http://localhost:3003/users/all se deben ver todos los ya creados**
 
 
+### **Health Checks (ver desde el navegador o curl):**
+```bash
+# Verificar todos los servicios
+curl http://localhost:3000/health          # Gateway
+curl http://localhost:3001/health         # Auth
+curl http://localhost:3002/health         # I18n
+curl http://localhost:3003/health         # Database
+curl http://localhost:3004/health         # Users
+```
 
-Puertos expuestos en docker-compose para desarrollo. QUITAR LUEGO
 
-DE MOMENTO se usan como volumenes no se incluyen en las imagenes tema desarrollo
-      - ./backend:/app/backend
-      - ./frontend:/app/
+![alt text](_assets/run.png)
+
+
+## Índice de Servicios
+
+| Servicio | Puerto | Puerto Variable | Descripción |
+|----------|--------|-----------------|-------------|
+| Gateway | 3000 | `GATEWAY_PORT` | API Gateway principal |
+| Auth Service | 3001 | `AUTH_SERVICE_PORT` | Autenticación y gestión de usuarios |
+| I18n Service | 3002 | `I18N_SERVICE_PORT` | Internacionalización y traducciones |
+| Database Service | 3003 | `DATABASE_SERVICE_PORT` | Servicio de base de datos |
+| Users Service | 3004 | `USERS_SERVICE_PORT` | Gestión de usuarios y admin |
+
+
+### Rutas del Gateway
+
+#### Métodos GET
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Redirige a login o profile según autenticación |
+| `/health` | Estado del gateway |
+| `/auth/logout` | Cierra sesión y redirige |
+| `/auth/login` | Página de login |
+| `/auth/profile` | Página de perfil (requiere auth) |
+| `/auth/2fa-required` | Página para 2FA requerido |
+| `/2fa/management` | Gestión de 2FA (requiere auth) |
+| `/gdpr/management` | Gestión GDPR (requiere auth) |
+| `/users/users.html` | Panel admin usuarios (requiere auth) |
+| `/users/decode.html` | Generador TOTP |
+| `/ready` | Verifica estado de servicios |
+
+#### Métodos POST
+| Ruta | Proxy a | Descripción |
+|------|---------|-------------|
+| `/auth/login` | Auth Service | Proxies login a auth service |
+| `/gdpr/*` | Gateway mismo | Rutas GDPR locales |
+
+#### Proxy Routes (ALL methods)
+| Patrón | Upstream | Descripción |
+|--------|----------|-------------|
+| `/auth/*` | `AUTH_SERVICE_URL` | Proxy a auth service |
+| `/2fa/*` | `AUTH_SERVICE_URL` | Proxy a 2FA endpoints |
+| `/i18n/*` | `I18N_SERVICE_URL` | Proxy a i18n service |
+| `/database/*` | `DATABASE_SERVICE_URL` | Proxy a database service |
+| `/users/*` | `USERS_SERVICE_URL` | Proxy a users service |
+
+### Rutas de Autenticación
+
+#### Health (GET)
+| Ruta | Descripción |
+|------|-------------|
+| `/health` | Estado del servicio auth |
+| `/ready` | Verifica conexión a DB |
+
+#### Autenticación
+##### Métodos GET
+| Ruta | Descripción |
+|------|-------------|
+| `/auth/github` | Inicio OAuth GitHub |
+| `/auth/github/callback` | Callback OAuth GitHub |
+| `/auth/2fa-required` | Página 2FA requerido |
+| `/auth/pending-2fa-user` | Obtiene usuario pendiente 2FA |
+| `/auth/profile` | Página de perfil (requiere auth) |
+| `/auth/profile-data` | Datos del perfil |
+| `/auth/logout` | Cierra sesión |
+| `/auth/session-status` | Estado de sesión |
+
+##### Métodos POST
+| Ruta | Descripción |
+|------|-------------|
+| `/auth/login` | Login tradicional |
+| `/auth/register` | Registro de usuario |
+
+#### 2FA Routes
+##### Métodos GET
+| Ruta | Descripción |
+|------|-------------|
+| `/2fa/management` | Gestión 2FA |
+
+##### Métodos POST
+| Ruta | Descripción |
+|------|-------------|
+| `/2fa/verify-login` | Verifica token 2FA para login |
+| `/2fa/setup` | Configura 2FA |
+| `/2fa/verify` | Verifica código 2FA |
+| `/2fa/disable` | Desactiva 2FA |
+| `/2fa/refresh-qr` | Refresca QR code |
+| `/2fa/backup-codes/generate` | Genera códigos backup |
+
+
+### Rutas de Internacionalización
+
+#### Métodos GET
+| Ruta | Descripción |
+|------|-------------|
+| `/health` | Estado del servicio |
+| `/languages` | Lista idiomas disponibles |
+| `/locales/:language.json` | Obtiene traducciones por idioma |
+| `/i18n/translations` | Obtiene traducciones actuales |
+| `/i18n/available-languages` | Idiomas disponibles |
+| `/i18n/locales/:language.json` | Traducciones específicas |
+
+#### Métodos POST
+| Ruta | Descripción |
+|------|-------------|
+| `/i18n/change-language` | Cambia idioma de sesión |
+
+
+### Rutas de Base de Datos
+
+#### Health (GET)
+| Ruta | Descripción |
+|------|-------------|
+| `/health` | Estado del servicio DB |
+
+#### Usuarios
+##### Métodos GET
+| Ruta | Descripción |
+|------|-------------|
+| `/users/:id` | Obtiene usuario por ID |
+| `/users/email/:email` | Obtiene usuario por email |
+| `/users/all` | Obtiene todos los usuarios |
+| `/sessions/user/:userId` | Sesiones de usuario |
+| `/backup-codes/user/:userId` | Códigos backup del usuario |
+
+##### Métodos POST
+| Ruta | Descripción |
+|------|-------------|
+| `/users` | Crea nuevo usuario |
+| `/sessions` | Crea nueva sesión |
+| `/backup-codes` | Guarda códigos backup |
+| `/query` | Ejecuta query SQL personalizada |
+
+##### Métodos PUT
+| Ruta | Descripción |
+|------|-------------|
+| `/users/:id` | Actualiza usuario |
+| `/users/:id/login-attempts` | Actualiza intentos login |
+| `/backup-codes/:id/use` | Marca código como usado |
+
+##### Métodos DELETE
+| Ruta | Descripción |
+|------|-------------|
+| `/users/:id` | Elimina usuario |
+| `/sessions/user/:userId` | Elimina sesiones usuario |
+
+### Rutas de Usuarios
+
+#### Health (GET)
+| Ruta | Descripción |
+|------|-------------|
+| `/health` | Estado del servicio |
+
+#### Admin Users
+##### Métodos GET
+| Ruta | PreHandler | Descripción |
+|------|------------|-------------|
+| `/users/check-status` | `authenticateJWT` | Verifica si es admin |
+| `/users/users` | `authenticateJWT`, `requireAdmin` | Página admin usuarios |
+| `/users/users/list` | `authenticateJWT`, `requireAdmin` | Lista usuarios JSON |
+
 
 
 ---
+
+# LO DE ABAJO YA ESTABA (VIEJO)
 
 > IMPORTANTE:
 - La web se levanta en https://localhost:8443 por cuestiones del campus
@@ -167,7 +333,6 @@ Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan
 
 - Para deshabilitarlo, los pasos son los mismos: Le das al botón de deshabilitar, te pedirá un código TOTP, lo metes y se deshabilita.
 
-
 ### Grafana (En construcción)
 
 https://localhost:8445/login User/Password:users/admin -> Skip
@@ -190,7 +355,6 @@ en https://localhost:8445/a/grafana-metricsdrilldown-app/drilldown vienen muchas
 > Archivo de idiomas
 /backend/locales
 
-
 ### URLs de estado de servicios expuestos (todos usan HTTPS)
 No se puede incluir como subpath (8443)/grafana porque no lo permiten (O sí?)
 
@@ -202,7 +366,6 @@ https://localhost:8444/v1/sys/health
 
 > GRAFANA
 https://localhost:8445/api/health
-
 
 # TODO
 - [ ] Mostrar mejor los fallos en popup y en su idioma correcto

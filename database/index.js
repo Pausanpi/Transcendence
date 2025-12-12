@@ -15,22 +15,20 @@ async function startDatabaseService() {
 
 	await fastify.register(queryRoutes);
 
-    fastify.addHook('onRequest', async (request, reply) => {
-        if (request.method === 'GET' && request.url.startsWith('/health')) return;
-        const serviceToken = request.headers['x-service-token'];
-        const validToken = process.env.SERVICE_TOKEN;
-    });
+	fastify.addHook('onRequest', async (request, reply) => {
+		if (request.method === 'GET' && request.url.startsWith('/health')) return;
+		const serviceToken = request.headers['x-service-token'];
+		const validToken = process.env.SERVICE_TOKEN;
+	});
 
 
-
-    const port = process.env.DATABASE_SERVICE_PORT || 3003;
-    await fastify.listen({
-        port: port,
-        host: '0.0.0.0'
-    });
-
+	const port = process.env.DATABASE_SERVICE_PORT || 3003;
+	await fastify.listen({
+		port: port,
+		host: '0.0.0.0'
+	});
 
 }
 startDatabaseService().catch(error => {
-    process.exit(1);
+	process.exit(1);
 });

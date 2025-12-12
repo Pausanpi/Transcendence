@@ -72,51 +72,49 @@ class LanguageManager {
 		}
 	}
 
-async syncWithServer() {
-    try {
-        const response = await fetch('/i18n/change-language', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ language: this.currentLanguage })
-        });
+	async syncWithServer() {
+		try {
+			const response = await fetch('/i18n/change-language', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ language: this.currentLanguage })
+			});
 
-        if (!response.ok) {
-            throw new Error('Failed to sync language with server');
-        }
+			if (!response.ok) {
+				throw new Error('Failed to sync language with server');
+			}
 
-        await response.json();
-    } catch (error) {
-        console.warn('Could not sync language with server:', error);
-    }
-}
+			await response.json();
+		} catch (error) {
+			console.warn('Could not sync language with server:', error);
+		}
+	}
 
-async loadTranslations() {
-    try {
-        const response = await fetch(`/i18n/translations?t=${Date.now()}`, {
-            credentials: 'include'
-        });
+	async loadTranslations() {
+		try {
+			const response = await fetch(`/i18n/translations?t=${Date.now()}`, {
+				credentials: 'include'
+			});
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
 
-        this.translations = await response.json();
-        console.log('Translations loaded successfully:', Object.keys(this.translations));
-    } catch (error) {
-        console.error('Error loading translations:', error);
-        await this.loadFallbackTranslations();
-    }
-}
+			this.translations = await response.json();
+		} catch (error) {
+			console.error('Error loading translations:', error);
+			await this.loadFallbackTranslations();
+		}
+	}
 
 	async loadFallbackTranslations() {
 		try {
 			const response = await fetch(`/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
 			if (response.ok) {
 				this.translations = await response.json();
-				console.log('Fallback translations loaded');
 			}
 		} catch (error) {
 			console.error('Error loading fallback translations:', error);

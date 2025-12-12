@@ -17,7 +17,7 @@ class AdminUsersManager {
 
 		try {
 			const response = await fetch('/users/users/list', {
-				credentials: 'include', 
+				credentials: 'include',
 				headers: { 'Authorization': `Bearer ${this.getToken()}` }
 			});
 
@@ -44,7 +44,8 @@ class AdminUsersManager {
 	}
 
 	getToken() {
-		return localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken') || '';
+		const match = document.cookie.match(/auth_jwt=([^;]+)/);
+		return match ? match[1] : '';
 	}
 
 	renderUsersTable() {

@@ -3,19 +3,17 @@ import i18n from '../services/i18n.js';
 export default async function i18nRoutes(fastify, options) {
 
 
-
 	fastify.get('/translations', async (request, reply) => {
-    const language = request.query.language || i18n.getLanguage() || 'en';
-    const translations = i18n.locales[language];
-    if (!translations) {
-        return reply.status(404).send({
-            success: false,
-            error: 'Translations not found for language: ' + language
-        });
-    }
-    return translations;
-});
-
+		const language = request.query.language || i18n.getLanguage() || 'en';
+		const translations = i18n.locales[language];
+		if (!translations) {
+			return reply.status(404).send({
+				success: false,
+				error: 'Translations not found for language: ' + language
+			});
+		}
+		return translations;
+	});
 
 	fastify.post('/change-language', async (request, reply) => {
 		const { language } = request.body;

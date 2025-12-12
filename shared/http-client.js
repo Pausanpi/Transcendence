@@ -13,7 +13,6 @@ class HttpClient {
 		});
 		this.client.interceptors.request.use(
 			config => {
-				console.log(`[HTTP Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
 				return config;
 			},
 			error => {
@@ -122,26 +121,24 @@ export const databaseApiClient = {
 		return client.get(`/backup-codes/user/${userId}`);
 	},
 
+	updateLoginAttempts: async (userId, increment) => {
+		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+		return client.put(`/users/${userId}/login-attempts`, { increment });
+	},
 
-   updateLoginAttempts: async (userId, increment) => {
-        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-        return client.put(`/users/${userId}/login-attempts`, { increment });
-    },
+	getAllUsers: async () => {
+		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+		return client.get('/users/all');
+	},
 
-    getAllUsers: async () => {
-        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-        return client.get('/users/all');
-    },
+	markCodeAsUsed: async (codeId) => {
+		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+		return client.put(`/backup-codes/${codeId}/use`);
+	},
 
-    markCodeAsUsed: async (codeId) => {
-        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-        return client.put(`/backup-codes/${codeId}/use`);
-    },
-
-
-    query: async (sql, params = [], type = 'all') => {
-        const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
-        return client.post('/query', { sql, params, type });
-    },
+	query: async (sql, params = [], type = 'all') => {
+		const client = new HttpClient(process.env.DATABASE_SERVICE_URL || 'http://localhost:3003');
+		return client.post('/query', { sql, params, type });
+	},
 
 };
