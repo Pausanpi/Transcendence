@@ -20,14 +20,11 @@ export function renderDashboard() {
 }
 const services = [
     { name: 'Gateway', url: '/health' },
-    { name: 'Auth', url: '/api/auth/health' },
-	{ name: 'Database', url: '/api/database/health' },
-	{ name: 'I18n', url: '/api/i18n/health' },
-    { name: 'Users', url: '/api/users/health' },
-    { name: 'Grafana', url: ':8445/api/health' },
-    { name: 'Vault', url: ':8444/v1/sys/health' },
+    { name: 'Auth', url: '/api/auth/status' },
+    { name: 'Users', url: '/api/users/status' },
+    { name: 'Backend', url: '/api/backend/status' },
+    { name: 'Vault', url: '/api/auth/vault-status' },
 ];
-
 export async function checkServices() {
     const container = document.getElementById('services');
     if (!container)

@@ -30,6 +30,10 @@ function updateNav() {
         btn.classList.toggle('active', btn.getAttribute('data-nav') === currentPage);
     });
 }
+function renderRoute() {
+    // pintar HTML
+    window.languageManager.applyTranslations();
+}
 export function initRouter() {
     // Nav click handlers
     document.querySelectorAll('[data-nav]').forEach(el => {

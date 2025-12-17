@@ -20,7 +20,7 @@ export async function login() {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     try {
-        const data = await api('/api/auth/login', {
+        const data = await api('/auth/login', {
             method: 'POST',
             headers: getHeaders(false),
             body: JSON.stringify({ email, password })
@@ -41,7 +41,7 @@ export async function register() {
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     try {
-        const data = await api('/api/auth/register', {
+        const data = await api('/auth/register', {
             method: 'POST',
             headers: getHeaders(false),
             body: JSON.stringify({ username, email, password })

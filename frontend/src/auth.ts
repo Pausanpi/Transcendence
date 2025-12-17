@@ -23,7 +23,7 @@ export async function login(): Promise<void> {
   const password = (document.getElementById('loginPassword') as HTMLInputElement).value;
 
   try {
-    const data = await api<any>('/api/auth/login', {
+    const data = await api<any>('/auth/login', {
       method: 'POST',
       headers: getHeaders(false),
       body: JSON.stringify({ email, password })
@@ -46,7 +46,7 @@ export async function register(): Promise<void> {
   const password = (document.getElementById('regPassword') as HTMLInputElement).value;
 
   try {
-    const data = await api<any>('/api/auth/register', {
+    const data = await api<any>('/auth/register', {
       method: 'POST',
       headers: getHeaders(false),
       body: JSON.stringify({ username, email, password })

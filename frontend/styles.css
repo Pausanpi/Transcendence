@@ -103,3 +103,23 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+.github-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 12px;
+	background-color: #333;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	text-decoration: none;
+	font-size: 16px;
+	margin: 10px 0;
+	transition: background-color 0.3s ease;
+}
+
+.github-btn:hover {
+	background-color: #555;
+}

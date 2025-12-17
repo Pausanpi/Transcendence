@@ -26,7 +26,7 @@ curl http://localhost:3004/health         # Users
 
 
 ![alt text](_assets/run.png)
-
+npx tsc --watch
 ---
 
 # TODO

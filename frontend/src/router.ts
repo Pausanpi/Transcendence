@@ -37,6 +37,14 @@ function updateNav(): void {
   });
 }
 
+
+
+function renderRoute() {
+	// pintar HTML
+	window.languageManager.applyTranslations();
+}
+
+
 export function initRouter(): void {
   // Nav click handlers
   document.querySelectorAll('[data-nav]').forEach(el => {
@@ -45,6 +53,8 @@ export function initRouter(): void {
     });
   });
 
+
+  
   // Start at home
   navigate('home');
 }
