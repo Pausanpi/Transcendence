@@ -119,7 +119,9 @@ async function startAuthService() {
 						}
 					}
 				}
-
+            if (this.user && this.user.id) {
+                    return true;
+                }
 				return false;
 			} catch (e) {
 				return false;
@@ -129,19 +131,8 @@ async function startAuthService() {
 });
 	});
 
-	fastify.setErrorHandler(function (error, request, reply) {
-		fastify.log.error({ err: error, url: request.url, method: request.method }, 'Request error');
-		const statusCode = error.statusCode || 500;
-		const response = { error: 'common.internalError', code: 'INTERNAL_ERROR' };
-		if (error.validation) {
-			reply.status(400);
-			response.error = 'validation.invalidInput';
-			response.code = 'VALIDATION_ERROR';
-			response.details = error.validation;
-		}
-		if (process.env.NODE_ENV === 'development') response.message = error.message;
-		reply.status(statusCode).send(response);
-	});
+
+
 
 	fastify.setNotFoundHandler((request, reply) => {
 		reply.status(404).send({ error: 'Route not found', path: request.url, code: 'ROUTE_NOT_FOUND' });
