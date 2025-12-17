@@ -38,6 +38,7 @@ curl http://localhost:3004/health         # Users
 - [ ] 2fa con apps, Parece no sincronizarse con app android
 - [ ] Mejor uso de vault
 - [ ] + Frances?
+- [ ] Comprobar seguridad apis con podman
 
 ## Sugerencias
 - [ ] Mirar Oauth con telegram y 42oauth

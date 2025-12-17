@@ -158,14 +158,17 @@ class LanguageManager {
 		if (!this.translations || typeof this.translations !== 'object') {
 			return key;
 		}
+
 		const parts = key.split('.');
 		let current = this.translations;
+
 		for (const part of parts) {
 			if (!current || typeof current !== 'object' || current[part] === undefined) {
-				return key;
+				return parts[parts.length - 1];
 			}
 			current = current[part];
 		}
+
 		return current;
 	}
 

@@ -20,37 +20,42 @@ class HttpClient {
 				return Promise.reject(error);
 			}
 		);
-		this.client.interceptors.response.use(
-			response => {
-				const contentType = response.headers['content-type'] || '';
-				if (contentType.includes('application/json')) {
-					return response;
-				} else {
-					return Object.assign({}, response, {
-						data: {
-							success: false,
-							error: 'Invalid response format',
-							raw: response.data
-						}
-					});
+this.client.interceptors.response.use(
+	response => {
+		const contentType = response.headers['content-type'] || '';
+		if (contentType.includes('application/json')) {
+			return response;
+		} else {
+			return Object.assign({}, response, {
+				data: {
+					success: false,
+					error: 'Invalid response format',
+					raw: response.data
 				}
-			},
-			error => {
-				console.error('[HTTP Response Error]', {
-					url: error.config?.url,
-					method: error.config?.method,
-					status: error.response?.status,
-					message: error.message
-				});
-				if (error.response) {
-					error.response.data = error.response.data || {
-						success: false,
-						error: 'Network error'
-					};
-				}
-				return Promise.reject(error);
-			}
-		);
+			});
+		}
+	},
+	error => {
+		if (error.response && error.response.status === 404) {
+			return Promise.resolve(error.response);
+		}
+
+		console.error('[HTTP Response Error]', {
+			url: error.config?.url,
+			method: error.config?.method,
+			status: error.response?.status,
+			message: error.message
+		});
+
+		if (error.response) {
+			error.response.data = error.response.data || {
+				success: false,
+				error: 'Network error'
+			};
+		}
+		return Promise.reject(error);
+	}
+);
 	}
 	async get(url, config = {}) {
 		return this.client.get(url, config);

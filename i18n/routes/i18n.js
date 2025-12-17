@@ -2,7 +2,6 @@ import i18n from '../services/i18n.js';
 
 export default async function i18nRoutes(fastify, options) {
 
-
 	fastify.get('/translations', async (request, reply) => {
 		const language = request.query.language || i18n.getLanguage() || 'en';
 		const translations = i18n.locales[language];

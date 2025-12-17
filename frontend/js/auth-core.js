@@ -12,9 +12,17 @@ export async function authenticateUser(url, formData) {
 			if (response.status === 504) {
 				throw new Error('Gateway timeout. Please try again.');
 			}
-			const errorText = await response.text();
-			console.error('Error response:', errorText);
-			showMessage('messages.connectionError', 'error');
+
+			try {
+				const errorResult = await response.json();
+				if (errorResult.error) {
+					showMessage(errorResult.error, 'error');
+				} else {
+					showMessage('messages.connectionError', 'error');
+				}
+			} catch (parseError) {
+				showMessage('messages.connectionError', 'error');
+			}
 			return;
 		}
 

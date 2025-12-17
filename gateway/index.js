@@ -66,44 +66,40 @@ async function startGateway() {
 	} catch (e) {
 	}
 
-fastify.setErrorHandler(function (error, request, reply) {
-	fastify.log.error({
-		err: error,
-		url: request.url,
-		method: request.method,
-		headers: request.headers,
-		stack: error.stack
-	}, 'Gateway Error Handler');
+	fastify.setErrorHandler(function (error, request, reply) {
+		fastify.log.error({
+			err: error,
+			url: request.url,
+			method: request.method,
+			headers: request.headers,
+			stack: error.stack
+		}, 'Gateway Error Handler');
 
-	console.error('=== GATEWAY ERROR ===');
-	console.error('URL:', request.url);
-	console.error('Method:', request.method);
-	console.error('Error:', error.message);
-	console.error('Stack:', error.stack);
-	console.error('==================');
+		console.error('=== GATEWAY ERROR ===');
+		console.error('URL:', request.url);
+		console.error('Method:', request.method);
+		console.error('Error:', error.message);
+		console.error('Stack:', error.stack);
+		console.error('==================');
 
-	if (error.code === 'ECONNREFUSED') {
-		return reply.status(503).send({
-			error: 'Service unavailable',
-			message: 'Authentication service is not responding'
+		if (error.code === 'ECONNREFUSED') {
+			return reply.status(503).send({
+				error: 'Service unavailable',
+				message: 'Authentication service is not responding'
+			});
+		}
+		if (error.code === 'ETIMEDOUT') {
+			return reply.status(504).send({
+				error: 'Gateway timeout',
+				message: 'The authentication service took too long to respond'
+			});
+		}
+		reply.status(500).send({
+			error: 'Internal gateway error',
+			message: error.message,
+			details: process.env.NODE_ENV === 'development' ? error.stack : undefined
 		});
-	}
-	if (error.code === 'ETIMEDOUT') {
-		return reply.status(504).send({
-			error: 'Gateway timeout',
-			message: 'The authentication service took too long to respond'
-		});
-	}
-	reply.status(500).send({
-		error: 'Internal gateway error',
-		message: error.message,
-		details: process.env.NODE_ENV === 'development' ? error.stack : undefined
 	});
-});
-
-
-
-
 
 	fastify.addHook('onRequest', async (request, reply) => {
 		try {
@@ -282,10 +278,8 @@ fastify.setErrorHandler(function (error, request, reply) {
 
 	await fastify.register(gdprRoutes, { prefix: '/gdpr' });
 
-
 	const authUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/auth/*', async (request, reply) => proxyForward(request, reply, authUpstream, '/auth'));
-
 
 	const twoFaUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/2fa/*', async (request, reply) => proxyForward(request, reply, twoFaUpstream, '/2fa'));
@@ -298,10 +292,6 @@ fastify.setErrorHandler(function (error, request, reply) {
 
 	const usersUpstream = process.env.USERS_SERVICE_URL || 'http://localhost:3004';
 	fastify.all('/users/*', async (request, reply) => proxyForward(request, reply, usersUpstream, '/users'));
-
-
-
-
 
 	await fastify.register(fastifyStatic, {
 		root: path.join(__dirname, '../frontend'),
@@ -317,7 +307,6 @@ fastify.setErrorHandler(function (error, request, reply) {
 		port,
 		host: '0.0.0.0'
 	});
-
 }
 
 startGateway().catch(error => {

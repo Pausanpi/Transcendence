@@ -2,19 +2,16 @@ import jwtService from '../services/jwt.js';
 import fastifyStatic from '@fastify/static';
 
 export async function authenticateJWT(request, reply) {
-    // Si ya está autenticado (por sesión), continuar
     if (typeof request.isAuthenticated === 'function' && request.isAuthenticated()) {
         return;
     }
 
-    // Intentar obtener el token del header Authorization
     let token;
     const authHeader = request.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.substring(7).trim();
     }
 
-    // Si no hay token en el header, buscar en las cookies
     if (!token && request.headers.cookie) {
         const cookies = request.headers.cookie.split(';').map(c => c.trim());
         const authCookie = cookies.find(c => c.startsWith('auth_jwt='));
@@ -40,7 +37,6 @@ export async function authenticateJWT(request, reply) {
 
     request.user = decoded;
 
-    // También establecer en la sesión para consistencia
     if (request.session && typeof request.session.set === 'function') {
         request.session.set('userId', decoded.id);
     }

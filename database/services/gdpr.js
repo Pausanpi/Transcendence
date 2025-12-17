@@ -20,12 +20,12 @@ class GdprService {
 					accountCreated: user.created_at || new Date().toISOString(),
 					lastUpdated: user.updated_at || new Date().toISOString()
 				},
-consent: {
-    marketingEmails: user.consent_marketing === 1,
-    analytics: user.consent_analytics === 1,
-    dataProcessing: user.consent_data_processing === 1,
-    updatedAt: user.consent_updated_at
-}
+				consent: {
+					marketingEmails: user.consent_marketing === 1,
+					analytics: user.consent_analytics === 1,
+					dataProcessing: user.consent_data_processing === 1,
+					updatedAt: user.consent_updated_at
+				}
 			};
 		} catch (error) {
 			console.error('Error in getUserDataSummary:', error);

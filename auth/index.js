@@ -80,8 +80,6 @@ async function startAuthService() {
 
 	configurePassport(fastifyPassport.default);
 
-
-
 	fastify.addHook('onReady', async () => {
 		if (!fastify.hasRequestDecorator('logIn')) {
 			fastify.decorateRequest('logIn', function (user) {
@@ -98,41 +96,38 @@ async function startAuthService() {
 			});
 		}
 
-	fastify.addHook('onReady', async () => {
-	if (!fastify.hasRequestDecorator('isAuthenticated')) {
-		fastify.decorateRequest('isAuthenticated', function () {
-			try {
-				const hasUserId = !!(this.session && typeof this.session.get === 'function' && this.session.get('userId'));
-				if (hasUserId) return true;
+		fastify.addHook('onReady', async () => {
+			if (!fastify.hasRequestDecorator('isAuthenticated')) {
+				fastify.decorateRequest('isAuthenticated', function () {
+					try {
+						const hasUserId = !!(this.session && typeof this.session.get === 'function' && this.session.get('userId'));
+						if (hasUserId) return true;
 
-				const cookieHeader = this.headers?.cookie;
-				if (cookieHeader) {
-					const match = cookieHeader.split(';').find(c => c.trim().startsWith('auth_jwt='));
-					if (match) {
-						const token = match.split('=')[1];
-						if (token) {
-							const decoded = jwtService.decodeToken(token);
-							if (decoded?.id) {
-								this.user = decoded;
-								return true;
+						const cookieHeader = this.headers?.cookie;
+						if (cookieHeader) {
+							const match = cookieHeader.split(';').find(c => c.trim().startsWith('auth_jwt='));
+							if (match) {
+								const token = match.split('=')[1];
+								if (token) {
+									const decoded = jwtService.decodeToken(token);
+									if (decoded?.id) {
+										this.user = decoded;
+										return true;
+									}
+								}
 							}
 						}
+						if (this.user && this.user.id) {
+							return true;
+						}
+						return false;
+					} catch (e) {
+						return false;
 					}
-				}
-            if (this.user && this.user.id) {
-                    return true;
-                }
-				return false;
-			} catch (e) {
-				return false;
+				});
 			}
 		});
-	}
-});
 	});
-
-
-
 
 	fastify.setNotFoundHandler((request, reply) => {
 		reply.status(404).send({ error: 'Route not found', path: request.url, code: 'ROUTE_NOT_FOUND' });

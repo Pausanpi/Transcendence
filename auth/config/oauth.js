@@ -4,8 +4,6 @@ import { findUserById, findOrCreateOAuthUser } from '../../users/models/User.js'
 
 dotenv.config();
 
-
-
 export function configurePassport(passport) {
 	passport.registerUserSerializer(async (user) => {
 		return user?.id || user?.user?.id || null;

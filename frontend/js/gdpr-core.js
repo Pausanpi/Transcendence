@@ -136,30 +136,30 @@ export async function anonymizeUserData() {
 }
 
 export async function loadUserConsent() {
-    try {
-        const response = await fetch('/gdpr/user-consent', {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
+	try {
+		const response = await fetch('/gdpr/user-consent', {
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			}
+		});
 
-        if (!response.ok) return null;
+		if (!response.ok) return null;
 
-        const result = await response.json();
-        if (!result.success || !result.consent) return null;
+		const result = await response.json();
+		if (!result.success || !result.consent) return null;
 
-        document.getElementById('dataProcessing').checked = result.consent.dataProcessing === 1 || result.consent.dataProcessing === true;
-document.getElementById('marketingEmails').checked = result.consent.marketingEmails === 1 || result.consent.marketingEmails === true;
-document.getElementById('analytics').checked = result.consent.analytics === 1 || result.consent.analytics === true;
+		document.getElementById('dataProcessing').checked = result.consent.dataProcessing === 1 || result.consent.dataProcessing === true;
+		document.getElementById('marketingEmails').checked = result.consent.marketingEmails === 1 || result.consent.marketingEmails === true;
+		document.getElementById('analytics').checked = result.consent.analytics === 1 || result.consent.analytics === true;
 
 
-        return result.consent;
-    } catch (error) {
-        console.error('Error loading user consent:', error);
-        return null;
-    }
+		return result.consent;
+	} catch (error) {
+		console.error('Error loading user consent:', error);
+		return null;
+	}
 }
 
 

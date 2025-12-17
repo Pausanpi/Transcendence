@@ -324,7 +324,6 @@ export default async function queryRoutes(fastify, options) {
 		}
 	});
 
-
 	fastify.get('/health', async () => {
 		try {
 			await db.get('SELECT 1 as test');

@@ -21,18 +21,11 @@ async function startDatabaseService() {
 		const validToken = process.env.SERVICE_TOKEN;
 	});
 
-
-
-
 	const port = process.env.DATABASE_SERVICE_PORT || 3003;
 	await fastify.listen({
 		port: port,
 		host: '0.0.0.0'
 	});
-
-
-
-
 
 }
 startDatabaseService().catch(error => {

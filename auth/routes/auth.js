@@ -29,58 +29,58 @@ export default async function authRoutes(fastify, options) {
 
 
 	fastify.get('/github/callback',
-	{
-		preValidation: fastifyPassport.authenticate('github', {
-			failureRedirect: '/?error=auth_failed'
-		})
-	},
-	async (request, reply) => {
-		try {
-			if (!request.user) {
-				return reply.redirect('/?error=user_not_found');
+		{
+			preValidation: fastifyPassport.authenticate('github', {
+				failureRedirect: '/?error=auth_failed'
+			})
+		},
+		async (request, reply) => {
+			try {
+				if (!request.user) {
+					return reply.redirect('/?error=user_not_found');
+				}
+
+				const user = request.user;
+
+				request.session.set('userId', user.id);
+				request.session.set('user', {
+					id: user.id,
+					username: user.username,
+					email: user.email,
+					avatar: user.avatar || 'default-avatar.png'
+				});
+
+				if (user.two_factor_enabled === true) {
+					request.session.set('pending2FAUserId', user.id);
+					request.session.delete('twoFactorVerified');
+					return reply.redirect('/auth/2fa-required');
+				}
+
+				const jwtToken = await jwtService.generateToken({
+					id: user.id,
+					username: user.username,
+					email: user.email,
+					twoFactorEnabled: false
+				});
+
+				request.session.set('jwtToken', jwtToken);
+				request.session.delete('pending2FAUserId');
+
+				reply.setCookie('auth_jwt', jwtToken, {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'lax',
+					maxAge: 7 * 24 * 60 * 60
+				});
+
+				return reply.redirect('/auth/profile');
+			} catch (error) {
+				fastify.log.error('OAuth callback error:', error);
+				return reply.redirect('/?error=process_failed');
 			}
-
-			const user = request.user;
-
-			request.session.set('userId', user.id);
-			request.session.set('user', {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-				avatar: user.avatar || 'default-avatar.png'
-			});
-
-			if (user.two_factor_enabled === true) {
-				request.session.set('pending2FAUserId', user.id);
-				request.session.delete('twoFactorVerified');
-				return reply.redirect('/auth/2fa-required');
-			}
-
-			const jwtToken = await jwtService.generateToken({
-				id: user.id,
-				username: user.username,
-				email: user.email,
-				twoFactorEnabled: false
-			});
-
-			request.session.set('jwtToken', jwtToken);
-			request.session.delete('pending2FAUserId');
-
-			reply.setCookie('auth_jwt', jwtToken, {
-				path: '/',
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'lax',
-				maxAge: 7 * 24 * 60 * 60
-			});
-
-			return reply.redirect('/auth/profile');
-		} catch (error) {
-			fastify.log.error('OAuth callback error:', error);
-			return reply.redirect('/?error=process_failed');
 		}
-	}
-);
+	);
 
 	fastify.get('/2fa-required', async (request, reply) => {
 		if (!request.session.get('pending2FAUserId')) {
@@ -254,6 +254,27 @@ export default async function authRoutes(fastify, options) {
 	fastify.post('/register', { preHandler: validateRegistration }, async (request, reply) => {
 		const { username, email, password } = request.body;
 
+		if (request.session) {
+			try {
+				await request.session.delete();
+			} catch (e) {
+			}
+		}
+
+		reply.clearCookie('auth_jwt', {
+			path: '/',
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax'
+		});
+
+		reply.clearCookie('sessionId', {
+			path: '/',
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax'
+		});
+
 		const existingUser = await findUserByEmail(email);
 		if (existingUser) {
 			return reply.status(400).send({ success: false, error: 'auth.userExists' });
@@ -269,8 +290,8 @@ export default async function authRoutes(fastify, options) {
 			two_factor_enabled: false,
 			two_factor_secret: null,
 			consent_marketing: 0,
-    consent_analytics: 0,
-    consent_data_processing: 1
+			consent_analytics: 0,
+			consent_data_processing: 1
 		};
 
 		const savedUser = await saveUser(newUser);
@@ -278,12 +299,27 @@ export default async function authRoutes(fastify, options) {
 			return reply.status(500).send({ success: false, error: 'auth.creationError' });
 		}
 
+		if (request.session && typeof request.session.set === 'function') {
+			request.session.set('userId', savedUser.id);
+			request.session.set('user', {
+				id: savedUser.id,
+				username: savedUser.username,
+				email: savedUser.email,
+				avatar: savedUser.avatar || 'default-avatar.png'
+			});
+			request.session.set('twoFactorVerified', false);
+		}
+
 		const jwtToken = await jwtService.generateToken({
-			id: user.id,
-			username: user.username,
-			email: user.email,
+			id: savedUser.id,
+			username: savedUser.username,
+			email: savedUser.email,
 			twoFactorEnabled: false
 		});
+
+		if (request.session && typeof request.session.set === 'function') {
+			request.session.set('jwtToken', jwtToken);
+		}
 
 		reply.setCookie('auth_jwt', jwtToken, {
 			path: '/',
@@ -297,7 +333,7 @@ export default async function authRoutes(fastify, options) {
 			success: true,
 			requires2FA: false,
 			token: jwtToken,
-			user: user.toSafeJSON()
+			user: savedUser.toSafeJSON()
 		});
 	});
 

@@ -96,11 +96,17 @@ export async function updateUser(userId, updateData) {
 export async function findUserByEmail(email) {
 	try {
 		const response = await databaseApiClient.getUserByEmail(email);
+		if (response.status === 404) {
+			return null;
+		}
 		if (response.data.success && response.data.user) {
 			return new User(response.data.user);
 		}
 		return null;
 	} catch (error) {
+		if (error.response && error.response.status === 404) {
+			return null;
+		}
 		console.error('Error finding user by email:', error);
 		return null;
 	}
