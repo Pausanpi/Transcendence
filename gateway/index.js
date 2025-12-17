@@ -280,24 +280,58 @@ async function startGateway() {
 
 	const authUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/auth/*', async (request, reply) => proxyForward(request, reply, authUpstream, '/auth'));
+	fastify.all('/api/auth/*', async (request, reply) => {
+    const url = request.url.replace(/^\/api\/auth/, '');
+    const target = `${authUpstream}${url}`;
+		return proxyForward(request, reply, authUpstream, '/api/auth', true);
+	});
 
 	const twoFaUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/2fa/*', async (request, reply) => proxyForward(request, reply, twoFaUpstream, '/2fa'));
 
+
 	const i18nUpstream = process.env.I18N_SERVICE_URL || 'http://localhost:3002';
 	fastify.all('/i18n/*', async (request, reply) => proxyForward(request, reply, i18nUpstream, '/i18n'));
+	fastify.all('/api/i18n/*', async (request, reply) => {
+    const url = request.url.replace(/^\/api\/i18n/, '');
+    const target = `${i18nUpstream}${url}`;
+		return proxyForward(request, reply, i18nUpstream, '/api/i18n', true);
+	});
 
 	const databaseUpstream = process.env.DATABASE_SERVICE_URL || 'http://localhost:3003';
 	fastify.all('/database/*', async (request, reply) => proxyForward(request, reply, databaseUpstream, '/database', true));
+	fastify.all('/api/database/*', async (request, reply) => {
+    const url = request.url.replace(/^\/api\/database/, '');
+    const target = `${databaseUpstream}${url}`;
+		return proxyForward(request, reply, databaseUpstream, '/api/database', true);
+	});
 
 	const usersUpstream = process.env.USERS_SERVICE_URL || 'http://localhost:3004';
 	fastify.all('/users/*', async (request, reply) => proxyForward(request, reply, usersUpstream, '/users'));
+	fastify.all('/api/users/*', async (request, reply) => {
+    const url = request.url.replace(/^\/api\/users/, '');
+    const target = `${usersUpstream}${url}`;
+		return proxyForward(request, reply, usersUpstream, '/api/users', true);
+	});
 
+
+	// API routes
+
+
+
+	/*
 	await fastify.register(fastifyStatic, {
 		root: path.join(__dirname, '../frontend'),
 		prefix: '/',
 		wildcard: true,
 		index: false
+	});
+*/
+	await fastify.register(fastifyStatic, {
+		root: path.join(__dirname, '../frontend'),
+		prefix: '/',
+		wildcard: true,
+		index: ['index.html']
 	});
 
 	await fastify.register(gatewayRoutes);

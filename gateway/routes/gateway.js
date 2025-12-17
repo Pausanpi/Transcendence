@@ -70,6 +70,7 @@ export default async function gatewayRoutes(fastify, options) {
 		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
 		return reply.sendFile('auth/gdpr.html');
 	});
+	fastify.get('/game', async (request, reply) => reply.sendFile('index.html'));
 
 	fastify.get('/users/users.html', async (request, reply) => {
 		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
