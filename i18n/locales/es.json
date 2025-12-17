@@ -172,6 +172,7 @@
 		"deleteAccount": "Eliminar Mi Cuenta Permanentemente",
 		"anonymizeConfirmation": "Confirmar Anonimización",
 		"anonymizeConfirmText": "¿Estás seguro de que quieres anonimizar tus datos? Esta acción:",
+		"currentPreferences": "Preferencias Actuales",
 		"anonymizeDetails": [
 			"Eliminará tu email, nombre de usuario y avatar",
 			"Desactivará el 2FA",
@@ -206,7 +207,8 @@
 		"invalidToken": "Código inválido",
 		"timeSyncIssue": "Por favor verifica que la hora de tu autenticador esté sincronizada",
 		"2faDisabled": "2FA desactivado correctamente",
-		"backupCodesGenerated": "Códigos de backup generados"
+		"backupCodesGenerated": "Códigos de backup generados",
+		"gatewayTimeout": "El servicio está tardando demasiado. Por favor, intenta de nuevo más tarde."
 	},
 	"validation": {
 		"weakPassword": "Contraseña débil",

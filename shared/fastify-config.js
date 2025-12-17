@@ -68,9 +68,9 @@ export default async function createFastifyApp(options = {}) {
 			key: sessionKey,
 			cookie: {
 				path: '/',
-				secure: false,
+				secure: true,
 				httpOnly: true,
-				sameSite: 'lax'
+				sameSite: 'none'
 			},
 			cookieName: 'sessionId',
 			sessionName: 'session'

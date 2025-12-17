@@ -80,6 +80,8 @@ async function startAuthService() {
 
 	configurePassport(fastifyPassport.default);
 
+
+
 	fastify.addHook('onReady', async () => {
 		if (!fastify.hasRequestDecorator('logIn')) {
 			fastify.decorateRequest('logIn', function (user) {
@@ -91,56 +93,40 @@ async function startAuthService() {
 					avatar: user.avatar || 'default-avatar.png'
 				});
 				this.session.set('twoFactorVerified', false);
-				try {
-					if (this.session && typeof this.session.keys === 'function') {
-					}
-				} catch (e) {
-				}
+
 				return Promise.resolve();
 			});
 		}
 
-		if (!fastify.hasRequestDecorator('isAuthenticated')) {
-			fastify.decorateRequest('isAuthenticated', function () {
-				try {
-					try {
-						const headerUser = this.headers && (this.headers['x-user'] || this.headers['x-user-id']);
-						if (headerUser) {
-							if (this.headers['x-user']) {
-								try { this.user = JSON.parse(this.headers['x-user']); } catch (e) { this.user = { id: this.headers['x-user-id'] || null }; }
-							} else {
-								this.user = { id: this.headers['x-user-id'] };
-							}
-							return true;
-						}
-					} catch (e) { }
+	fastify.addHook('onReady', async () => {
+	if (!fastify.hasRequestDecorator('isAuthenticated')) {
+		fastify.decorateRequest('isAuthenticated', function () {
+			try {
+				const hasUserId = !!(this.session && typeof this.session.get === 'function' && this.session.get('userId'));
+				if (hasUserId) return true;
 
-					const hasUserId = !!(this.session && typeof this.session.get === 'function' && this.session.get('userId'));
-					if (hasUserId) return true;
-
-					try {
-						const cookieHeader = this.headers && this.headers.cookie;
-						if (cookieHeader && typeof cookieHeader === 'string') {
-							const match = cookieHeader.split(';').map(s => s.trim()).find(s => s.startsWith('auth_jwt='));
-							if (match) {
-								const idx = match.indexOf('=');
-								const token = idx === -1 ? '' : match.slice(idx + 1);
-								const decoded = jwtService.decodeToken(token);
-								if (decoded && decoded.id) {
-									this.user = decoded;
-									return true;
-								}
+				const cookieHeader = this.headers?.cookie;
+				if (cookieHeader) {
+					const match = cookieHeader.split(';').find(c => c.trim().startsWith('auth_jwt='));
+					if (match) {
+						const token = match.split('=')[1];
+						if (token) {
+							const decoded = jwtService.decodeToken(token);
+							if (decoded?.id) {
+								this.user = decoded;
+								return true;
 							}
 						}
-					} catch (e) {
 					}
-
-					return false;
-				} catch (e) {
-					return false;
 				}
-			});
-		}
+
+				return false;
+			} catch (e) {
+				return false;
+			}
+		});
+	}
+});
 	});
 
 	fastify.setErrorHandler(function (error, request, reply) {

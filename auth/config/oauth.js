@@ -1,8 +1,10 @@
-import GitHubStrategy from "passport-github2";
-import dotenv from "dotenv";
-import { findUserById } from '../../users/models/User.js';
+import GitHubStrategy from 'passport-github2';
+import dotenv from 'dotenv';
+import { findUserById, findOrCreateOAuthUser } from '../../users/models/User.js';
 
 dotenv.config();
+
+
 
 export function configurePassport(passport) {
 	passport.registerUserSerializer(async (user) => {
@@ -31,14 +33,20 @@ export function configurePassport(passport) {
 			},
 			async (accessToken, refreshToken, profile, done) => {
 				try {
-					const user = {
+					const oauthProfile = {
+						provider: 'github',
 						id: profile.id.toString(),
-						username: profile.username,
+						username: profile.username || profile.displayName || `github_${profile.id}`,
 						email: profile.emails?.[0]?.value || null,
 						avatar: profile.photos?.[0]?.value || null,
-						profileUrl: profile.profileUrl || `https://github.com/${profile.username}`,
-						twoFactorEnabled: false
+						profileUrl: profile.profileUrl || `https://github.com/${profile.username}`
 					};
+
+					const user = await findOrCreateOAuthUser(oauthProfile);
+					if (!user) {
+						return done(new Error('Could not find or create user'), null);
+					}
+
 					return done(null, user);
 				} catch (err) {
 					console.error('Passport strategy error:', err);

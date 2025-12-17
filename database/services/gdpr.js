@@ -1,29 +1,34 @@
-import databaseApiClient from '../../shared/http-client.js';
+import { databaseApiClient } from '../../shared/http-client.js';
 import { findUserById } from '../../users/models/User.js';
 
-class gdprService {
+class GdprService {
 	async getUserDataSummary(userId) {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-
 			const sessionsResponse = await databaseApiClient.getUserSessions(userId);
 			const sessions = sessionsResponse.data.success ? sessionsResponse.data.sessions : [];
-
 			return {
 				profileInfo: {
 					hasUsername: !!user.username,
 					hasEmail: !!user.email,
 					hasAvatar: !!user.avatar,
-					twoFactorEnabled: user.two_factor_enabled
+					twoFactorEnabled: Boolean(user.two_factor_enabled)
 				},
 				activity: {
 					sessionCount: sessions.length,
-					accountCreated: user.created_at,
-					lastUpdated: user.updated_at
-				}
+					accountCreated: user.created_at || new Date().toISOString(),
+					lastUpdated: user.updated_at || new Date().toISOString()
+				},
+consent: {
+    marketingEmails: user.consent_marketing === 1,
+    analytics: user.consent_analytics === 1,
+    dataProcessing: user.consent_data_processing === 1,
+    updatedAt: user.consent_updated_at
+}
 			};
 		} catch (error) {
+			console.error('Error in getUserDataSummary:', error);
 			return null;
 		}
 	}
@@ -31,7 +36,6 @@ class gdprService {
 	async anonymizeUserData(userId) {
 		try {
 			await databaseApiClient.deleteUserSessions(userId);
-
 			const anonymizedData = {
 				username: `anonymous_${this.generateRandomId()}`,
 				email: null,
@@ -40,10 +44,10 @@ class gdprService {
 				two_factor_enabled: 0,
 				two_factor_secret: null
 			};
-
 			const response = await databaseApiClient.updateUser(userId, anonymizedData);
 			return response.data.success;
 		} catch (error) {
+			console.error('Error in anonymizeUserData:', error);
 			throw error;
 		}
 	}
@@ -52,10 +56,8 @@ class gdprService {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-
 			const sessionsResponse = await databaseApiClient.getUserSessions(userId);
 			const sessions = sessionsResponse.data.success ? sessionsResponse.data.sessions : [];
-
 			return {
 				exportInfo: {
 					generatedAt: new Date().toISOString(),
@@ -69,6 +71,7 @@ class gdprService {
 				}))
 			};
 		} catch (error) {
+			console.error('Error in exportUserData:', error);
 			throw error;
 		}
 	}
@@ -83,6 +86,7 @@ class gdprService {
 			});
 			return response.data.success;
 		} catch (error) {
+			console.error('Error in updateUserConsent:', error);
 			throw error;
 		}
 	}
@@ -90,12 +94,11 @@ class gdprService {
 	async deleteUserAccount(userId) {
 		try {
 			await databaseApiClient.deleteUserSessions(userId);
-
 			await databaseApiClient.saveBackupCodes(userId, []);
-
 			const response = await databaseApiClient.deleteUser(userId);
 			return response.data.success;
 		} catch (error) {
+			console.error('Error in deleteUserAccount:', error);
 			throw error;
 		}
 	}
@@ -105,9 +108,12 @@ class gdprService {
 	}
 }
 
-export const anonymizeUserData = (userId) => gdprService.anonymizeUserData(userId);
-export const deleteUserAccount = (userId) => gdprService.deleteUserAccount(userId);
-export const updateUserConsent = (userId, consentData) => gdprService.updateUserConsent(userId, consentData);
-export const exportUserData = (userId) => gdprService.exportUserData(userId);
+const gdprServiceInstance = new GdprService();
 
-export default gdprService;
+export const anonymizeUserData = (userId) => gdprServiceInstance.anonymizeUserData(userId);
+export const deleteUserAccount = (userId) => gdprServiceInstance.deleteUserAccount(userId);
+export const updateUserConsent = (userId, consentData) => gdprServiceInstance.updateUserConsent(userId, consentData);
+export const exportUserData = (userId) => gdprServiceInstance.exportUserData(userId);
+export const getUserDataSummary = (userId) => gdprServiceInstance.getUserDataSummary(userId);
+
+export default gdprServiceInstance;

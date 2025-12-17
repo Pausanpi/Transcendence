@@ -17,16 +17,13 @@ export async function getAuthToken() {
 export function showMessage(message, type) {
 	const messageDiv = document.getElementById('message');
 	let messageText = message;
-
 	if (window.languageManager && typeof message === 'string') {
 		const translated = window.languageManager.getTranslation(message);
 		if (translated !== message) {
 			messageText = translated;
 		}
 	}
-
 	messageDiv.innerHTML = `<div class="message ${type}">${messageText}</div>`;
-
 	if (type === 'success') {
 		setTimeout(() => {
 			messageDiv.innerHTML = '';
@@ -34,45 +31,29 @@ export function showMessage(message, type) {
 	}
 }
 
-export async function loadUserConsent() {
-	try {
-		const response = await fetch('/gdpr/user-consent', {
-			credentials: 'include'
-		});
-
-		if (response.ok) {
-			const result = await response.json();
-			if (result.success && result.consent) {
-				const dataProcessing = document.getElementById('dataProcessing');
-				const marketingEmails = document.getElementById('marketingEmails');
-				const analytics = document.getElementById('analytics');
-
-				if (dataProcessing) dataProcessing.checked = result.consent.dataProcessing;
-				if (marketingEmails) marketingEmails.checked = result.consent.marketingEmails;
-				if (analytics) analytics.checked = result.consent.analytics;
-
-				return result.consent;
-			}
-		}
-	} catch (error) {
-		console.error('Error loading user consent:', error);
-	}
-	return null;
-}
-
 export async function loadUserData() {
 	try {
 		showMessage(window.languageManager.getTranslation('common.loading'), 'success');
-
 		const response = await fetch('/gdpr/user-data', {
-			credentials: 'include'
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			}
 		});
-
-		if (!response.ok) {
-			const errorData = await response.json();
-			throw new Error(errorData.error || 'HTTP error');
+		if (response.status === 504) {
+			throw new Error('GATEWAY_TIMEOUT');
 		}
-
+		if (!response.ok) {
+			const errorText = await response.text();
+			let errorData;
+			try {
+				errorData = JSON.parse(errorText);
+			} catch {
+				errorData = { error: errorText };
+			}
+			throw new Error(errorData.error || `HTTP error ${response.status}`);
+		}
 		const result = await response.json();
 		if (result.success) {
 			displayUserData(result.data);
@@ -80,10 +61,14 @@ export async function loadUserData() {
 		} else {
 			throw new Error(result.error);
 		}
-
 	} catch (error) {
 		console.error('Error loading user data:', error);
-		const errorKey = error.message.includes('USER_NOT_FOUND') ? 'messages.userNotFound' : 'messages.connectionError';
+		let errorKey = 'messages.connectionError';
+		if (error.message.includes('GATEWAY_TIMEOUT')) {
+			errorKey = 'messages.gatewayTimeout';
+		} else if (error.message.includes('USER_NOT_FOUND')) {
+			errorKey = 'messages.userNotFound';
+		}
 		showMessage(window.languageManager.getTranslation(errorKey), 'error');
 	}
 }
@@ -93,14 +78,15 @@ export async function exportUserData() {
 		showMessage(window.languageManager.getTranslation('gdpr.exportInProgress'), 'success');
 		const response = await fetch('/gdpr/export-data', {
 			method: 'POST',
-			credentials: 'include'
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json'
+			}
 		});
-
 		if (!response.ok) {
 			const errorData = await response.json();
 			throw new Error(errorData.error || 'HTTP error');
 		}
-
 		const result = await response.json();
 		if (result.success) {
 			const dataStr = JSON.stringify(result.data, null, 2);
@@ -123,20 +109,71 @@ export async function exportUserData() {
 	}
 }
 
+export async function anonymizeUserData() {
+	try {
+		showMessage(window.languageManager.getTranslation('gdpr.anonymizingData'), 'success');
+		const response = await fetch('/gdpr/anonymize', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Accept': 'application/json'
+			}
+		});
+		const result = await response.json();
+		if (result.success) {
+			showMessage(window.languageManager.getTranslation('messages.dataAnonymized'), 'success');
+			hideAnonymizeConfirmation();
+			setTimeout(() => {
+				window.location.href = '/auth/logout';
+			}, 3000);
+		} else {
+			showMessage(window.languageManager.getTranslation(result.error), 'error');
+		}
+	} catch (error) {
+		console.error('Error anonymizing data:', error);
+		showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
+	}
+}
+
+export async function loadUserConsent() {
+    try {
+        const response = await fetch('/gdpr/user-consent', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) return null;
+
+        const result = await response.json();
+        if (!result.success || !result.consent) return null;
+
+        document.getElementById('dataProcessing').checked = result.consent.dataProcessing === 1 || result.consent.dataProcessing === true;
+document.getElementById('marketingEmails').checked = result.consent.marketingEmails === 1 || result.consent.marketingEmails === true;
+document.getElementById('analytics').checked = result.consent.analytics === 1 || result.consent.analytics === true;
+
+
+        return result.consent;
+    } catch (error) {
+        console.error('Error loading user consent:', error);
+        return null;
+    }
+}
+
+
 export async function setupConsentForm() {
 	await loadUserConsent();
-
 	const consentForm = document.getElementById('consentForm');
 	if (consentForm) {
 		consentForm.addEventListener('submit', async function (e) {
 			e.preventDefault();
-
 			const consentData = {
 				dataProcessing: document.getElementById('dataProcessing').checked,
 				marketingEmails: document.getElementById('marketingEmails').checked,
 				analytics: document.getElementById('analytics').checked
 			};
-
 			try {
 				const response = await fetch('/gdpr/update-consent', {
 					method: 'POST',
@@ -144,7 +181,6 @@ export async function setupConsentForm() {
 					credentials: 'include',
 					body: JSON.stringify(consentData)
 				});
-
 				const result = await response.json();
 				if (result.success) {
 					showMessage(window.languageManager.getTranslation('messages.preferencesUpdated'), 'success');
@@ -157,22 +193,18 @@ export async function setupConsentForm() {
 			}
 		});
 	}
-
 	const confirmAnonymizeBtn = document.getElementById('confirmAnonymizeBtn');
 	if (confirmAnonymizeBtn) {
 		confirmAnonymizeBtn.addEventListener('click', anonymizeUserData);
 	}
-
 	const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 	const deleteConfirmationInput = document.getElementById('deleteConfirmationInput');
-
 	if (confirmDeleteBtn && deleteConfirmationInput) {
 		deleteConfirmationInput.addEventListener('input', function () {
 			const confirmationText = window.languageManager.getCurrentLanguage() === 'es' ?
 				'ELIMINAR MI CUENTA' : 'DELETE MY ACCOUNT';
 			confirmDeleteBtn.disabled = this.value !== confirmationText;
 		});
-
 		confirmDeleteBtn.addEventListener('click', function () {
 			const confirmationText = window.languageManager.getCurrentLanguage() === 'es' ?
 				'ELIMINAR MI CUENTA' : 'DELETE MY ACCOUNT';
@@ -192,41 +224,13 @@ export function hideAnonymizeConfirmation() {
 	document.getElementById('anonymizeModal').style.display = 'none';
 }
 
-export async function anonymizeUserData() {
-	try {
-		showMessage(window.languageManager.getTranslation('gdpr.anonymizingData'), 'success');
-
-		const response = await fetch('/gdpr/anonymize', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include'
-		});
-
-		const result = await response.json();
-		if (result.success) {
-			showMessage(window.languageManager.getTranslation('messages.dataAnonymized'), 'success');
-			hideAnonymizeConfirmation();
-
-			setTimeout(() => {
-				window.location.href = '/auth/logout';
-			}, 3000);
-		} else {
-			showMessage(window.languageManager.getTranslation(result.error), 'error');
-		}
-	} catch (error) {
-		console.error('Error anonymizing data:', error);
-		showMessage(window.languageManager.getTranslation('messages.connectionError'), 'error');
-	}
-}
 
 export function showDeleteConfirmation() {
 	const modal = document.getElementById('deleteModal');
 	const input = document.getElementById('deleteConfirmationInput');
 	const button = document.getElementById('confirmDeleteBtn');
-
 	const confirmationText = window.languageManager.getCurrentLanguage() === 'es' ?
 		'ELIMINAR MI CUENTA' : 'DELETE MY ACCOUNT';
-
 	input.placeholder = confirmationText;
 	input.value = '';
 	button.disabled = true;
@@ -241,14 +245,12 @@ export function hideDeleteConfirmation() {
 export async function deleteAccount(confirmationText) {
 	try {
 		showMessage(window.languageManager.getTranslation('gdpr.deletingAccount'), 'success');
-
 		const response = await fetch('/gdpr/delete-account', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			credentials: 'include',
 			body: JSON.stringify({ confirmation: confirmationText })
 		});
-
 		const result = await response.json();
 		if (result.success) {
 			showMessage(window.languageManager.getTranslation('messages.accountDeleted'), 'success');
@@ -283,13 +285,13 @@ export function displayUserData(data) {
                 </div>
             </div>
         `;
-
 		if (window.languageManager && window.languageManager.applyTranslations) {
 			window.languageManager.applyTranslations();
 		}
 	}
 }
 
+window.setupConsentForm = setupConsentForm;
 window.showAnonymizeConfirmation = showAnonymizeConfirmation;
 window.hideAnonymizeConfirmation = hideAnonymizeConfirmation;
 window.anonymizeUserData = anonymizeUserData;
@@ -298,3 +300,4 @@ window.hideDeleteConfirmation = hideDeleteConfirmation;
 window.deleteAccount = deleteAccount;
 window.exportUserData = exportUserData;
 window.showMessage = showMessage;
+window.loadUserConsent = loadUserConsent;

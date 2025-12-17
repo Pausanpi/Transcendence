@@ -186,7 +186,8 @@
 		"invalidConfirmation": "Incorrect confirmation text",
 		"userNotFound": "User not found",
 		"anonymizationSuccess": "Your data has been successfully anonymized",
-		"confirmationRequired": "Written confirmation is required to delete the account"
+		"confirmationRequired": "Written confirmation is required to delete the account",
+		"currentPreferences": "Current Preferences"
 	},
 	"messages": {
 		"authError": "Authentication error",
@@ -207,7 +208,8 @@
 		"invalidToken": "Invalid code",
 		"timeSyncIssue": "Please check that your authenticator time is synchronized",
 		"2faDisabled": "2FA disabled successfully",
-		"backupCodesGenerated": "Backup codes generated"
+		"backupCodesGenerated": "Backup codes generated",
+		"gatewayTimeout": "Service is taking too long. Please try again later."
 	},
 	"validation": {
 		"emailRequired": "Email is required",

@@ -27,6 +27,24 @@ curl http://localhost:3004/health         # Users
 
 ![alt text](_assets/run.png)
 
+---
+
+# TODO
+- [ ] Pasar a TS
+- [ ] Reparar 2fa
+- [ ] Repasar GDPR
+- [ ] Crear tests para checkear la seguridad (siege, simuladores de ataque, script, ...)
+- [ ] Mejorar grafana, logs
+- [ ] 2fa con apps, Parece no sincronizarse con app android
+- [ ] Mejor uso de vault
+- [ ] + Frances?
+
+## Sugerencias
+- [ ] Mirar Oauth con telegram y 42oauth
+- [ ] Página error custom
+
+---
+
 
 ## Índice de Servicios
 
@@ -366,19 +384,3 @@ https://localhost:8444/v1/sys/health
 
 > GRAFANA
 https://localhost:8445/api/health
-
-# TODO
-- [ ] Mostrar mejor los fallos en popup y en su idioma correcto
-- [X] Terminar GDPR + cookie ?
-- [ ] Pasar a TS
-- [ ] Crear tests para checkear la seguridad (siege, simuladores de ataque, script, ...)
-- [ ] Mejorar grafana
-- [ ] 2fa con apps
-- [ ] Mejor uso de vault
-- [ ] TODO - Parece no sincronizarse con app android
-- [ ]
-- [ ] + Frances?
-
-## Sugerencias
-- [ ] Mirar Oauth con telegram y 42
-- [ ] Página error custom

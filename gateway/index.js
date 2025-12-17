@@ -5,6 +5,7 @@ import path from 'path';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import gatewayRoutes from './routes/gateway.js';
+import gdprRoutes from './routes/gdpr.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,34 +66,45 @@ async function startGateway() {
 	} catch (e) {
 	}
 
-	fastify.setErrorHandler(function (error, request, reply) {
-		try {
-			const headerTypes = {};
-			for (const [k, v] of Object.entries(request.headers || {})) {
-				headerTypes[k] = Array.isArray(v) ? `Array(${v.length})` : typeof v;
-			}
-		} catch (e) {
-		}
+fastify.setErrorHandler(function (error, request, reply) {
+	fastify.log.error({
+		err: error,
+		url: request.url,
+		method: request.method,
+		headers: request.headers,
+		stack: error.stack
+	}, 'Gateway Error Handler');
 
-		if (error.code === 'ECONNREFUSED') {
-			return reply.status(503).send({
-				error: 'Service unavailable',
-				message: 'Authentication service is not responding'
-			});
-		}
+	console.error('=== GATEWAY ERROR ===');
+	console.error('URL:', request.url);
+	console.error('Method:', request.method);
+	console.error('Error:', error.message);
+	console.error('Stack:', error.stack);
+	console.error('==================');
 
-		if (error.code === 'ETIMEDOUT') {
-			return reply.status(504).send({
-				error: 'Gateway timeout',
-				message: 'The authentication service took too long to respond'
-			});
-		}
-
-		reply.status(500).send({
-			error: 'Internal gateway error',
-			message: error.message
+	if (error.code === 'ECONNREFUSED') {
+		return reply.status(503).send({
+			error: 'Service unavailable',
+			message: 'Authentication service is not responding'
 		});
+	}
+	if (error.code === 'ETIMEDOUT') {
+		return reply.status(504).send({
+			error: 'Gateway timeout',
+			message: 'The authentication service took too long to respond'
+		});
+	}
+	reply.status(500).send({
+		error: 'Internal gateway error',
+		message: error.message,
+		details: process.env.NODE_ENV === 'development' ? error.stack : undefined
 	});
+});
+
+
+
+
+
 	fastify.addHook('onRequest', async (request, reply) => {
 		try {
 			request.raw.on('close', () => { });
@@ -268,8 +280,12 @@ async function startGateway() {
 		}
 	}
 
+	await fastify.register(gdprRoutes, { prefix: '/gdpr' });
+
+
 	const authUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/auth/*', async (request, reply) => proxyForward(request, reply, authUpstream, '/auth'));
+
 
 	const twoFaUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/2fa/*', async (request, reply) => proxyForward(request, reply, twoFaUpstream, '/2fa'));
@@ -284,63 +300,8 @@ async function startGateway() {
 	fastify.all('/users/*', async (request, reply) => proxyForward(request, reply, usersUpstream, '/users'));
 
 
-	const gdprUpstream = process.env.GATEWAY_URL || 'http://localhost:3000';
-	fastify.all('/gdpr/*', async (request, reply) => {
-		const target = `${gdprUpstream}${request.url}`;
 
-		const headers = {
-			'x-service-token': SERVICE_TOKEN,
-			'x-forwarded-for': request.headers['x-forwarded-for'] || '',
-			'cookie': request.headers.cookie || '',
-			'user-agent': request.headers['user-agent'] || 'gateway-proxy'
-		};
 
-		if (request.headers['content-type']) {
-			headers['content-type'] = request.headers['content-type'];
-		}
-
-		if (request.user && request.user.id) {
-			headers['x-user-id'] = request.user.id;
-			headers['x-user'] = JSON.stringify(request.user);
-		}
-
-		try {
-			const method = request.method;
-			let body;
-
-			if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-				body = undefined;
-			} else if (request.headers['content-type']?.includes('application/json')) {
-				body = JSON.stringify(request.body || {});
-			} else {
-				body = request.body;
-			}
-
-			const response = await fetch(target, {
-				method,
-				headers,
-				body,
-				credentials: 'include'
-			});
-
-			const responseData = await response.text();
-
-			try {
-				const jsonData = JSON.parse(responseData);
-				reply.code(response.status);
-				return reply.send(jsonData);
-			} catch {
-				reply.code(response.status);
-				return reply.send(responseData);
-			}
-		} catch (error) {
-			return reply.status(502).send({
-				success: false,
-				error: 'Bad Gateway',
-				message: error.message
-			});
-		}
-	});
 
 	await fastify.register(fastifyStatic, {
 		root: path.join(__dirname, '../frontend'),

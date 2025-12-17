@@ -18,6 +18,10 @@ class User {
 		this.locked_until = data.locked_until;
 		this.created_at = data.created_at;
 		this.updated_at = data.updated_at;
+		this.consent_marketing = data.consent_marketing;
+		this.consent_analytics = data.consent_analytics;
+		this.consent_data_processing = data.consent_data_processing;
+		this.consent_updated_at = data.consent_updated_at;
 	}
 
 	async verifyPassword(password) {
