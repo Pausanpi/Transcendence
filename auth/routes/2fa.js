@@ -2,80 +2,55 @@ import twoFactorService from '../services/twoFactor.js';
 import { authenticateJWT } from '../middleware/auth.js';
 import { findUserById, updateUser } from '../../users/models/User.js';
 import jwtService from '../services/jwt.js';
-import fastifyStatic from '@fastify/static';
 
 export default async function twoFactorRoutes(fastify) {
+
 	fastify.post('/verify-login', async (request, reply) => {
 		try {
-			const { token, userId, isBackupCode = false } = request.body;
+			const { token: totpToken, tempToken } = request.body;
 
-			if (!token || !userId) {
+			if (!totpToken || !tempToken) {
 				return reply.status(400).send({
 					success: false,
-					error: '2fa.tokenUserIdRequired'
+					error: '2fa.tokenRequired'
 				});
 			}
 
-			const user = await findUserById(userId);
-			if (!user) {
-				return reply.status(404).send({
+			const decoded = await jwtService.verifyToken(tempToken);
+			if (!decoded?.temp2FA) {
+				return reply.status(401).send({
 					success: false,
-					error: 'messages.userNotFound'
+					error: 'auth.invalidToken'
 				});
 			}
 
-			if (!user.two_factor_enabled && !isBackupCode) {
+			const user = await findUserById(decoded.id);
+			if (!user?.two_factor_enabled) {
 				return reply.status(400).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
 			}
 
-			let isValid = false;
-			let usedBackupCode = false;
-			let remainingBackupCodes = 0;
-
-			if (isBackupCode) {
-				isValid = await twoFactorService.verifyBackupCode(user.id, token);
-				usedBackupCode = isValid;
-				if (isValid) {
-					remainingBackupCodes = await twoFactorService.getRemainingBackupCodes(user.id);
-				}
-			} else {
-				isValid = twoFactorService.verifyToken(user.two_factor_secret, token);
-			}
-			if (isValid) {
-				request.session.twoFactorVerified = true;
-				request.session.pending2FAUserId = null;
-
-				if (request.session.get) {
-					request.session.set('twoFactorVerified', true);
-					request.session.delete('pending2FAUserId');
-				}
-
-				const jwtToken = await jwtService.generateToken({
-					id: user.id,
-					username: user.username,
-					email: user.email,
-					twoFactorEnabled: true
-				});
-
-				if (request.session.set) {
-					request.session.set('jwtToken', jwtToken);
-				}
-
-				return {
-					success: true,
-					usedBackupCode,
-					remainingBackupCodes
-				};
-
-			} else {
+			const isValid = twoFactorService.verifyToken(user.two_factor_secret, totpToken);
+			if (!isValid) {
 				return reply.status(400).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
 			}
+
+			const finalToken = await jwtService.generateToken({
+				id: user.id,
+				username: user.username,
+				email: user.email
+			});
+
+			return {
+				success: true,
+				token: finalToken,
+				user: user.toSafeJSON()
+			};
 		} catch (error) {
 			return reply.status(500).send({
 				success: false,
@@ -84,46 +59,35 @@ export default async function twoFactorRoutes(fastify) {
 		}
 	});
 
-	fastify.post('/setup', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
+	fastify.post('/setup', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
-			const user = request.user;
+			const user = await findUserById(request.user.id);
 			if (!user) {
-				return reply.status(401).send({
-					success: false,
-					error: 'messages.authError'
-				});
-			}
-
-			const dbUser = await findUserById(user.id);
-			if (!dbUser) {
 				return reply.status(404).send({
 					success: false,
 					error: 'messages.userNotFound'
 				});
 			}
 
-			if (dbUser.two_factor_enabled) {
+			if (user.two_factor_enabled) {
 				return reply.status(400).send({
 					success: false,
 					error: '2fa.alreadyEnabled'
 				});
 			}
 
-			const { secret, otpauth_url } = twoFactorService.generateSecret(dbUser);
+			const { secret, otpauth_url } = twoFactorService.generateSecret(user);
 			const qrCode = await twoFactorService.generateQRCode(otpauth_url);
-
-			request.session.pendingTwoFactor = {
-				secret,
-				userId: dbUser.id,
-				createdAt: Date.now()
-			};
 
 			return {
 				success: true,
 				secret,
-				qrCode
+				qrCode,
+				setupToken: await jwtService.generateToken({
+					userId: user.id,
+					secret,
+					setup2FA: true
+				}, { expiresIn: '10m' })
 			};
 		} catch (err) {
 			return reply.status(500).send({
@@ -133,43 +97,19 @@ export default async function twoFactorRoutes(fastify) {
 		}
 	});
 
-	fastify.get('/management', async (request, reply) => {
-		if (!request.isAuthenticated || !request.isAuthenticated()) {
-			return reply.redirect('/');
-		}
-		return reply.sendFile('auth/2fa-management.html');
-	});
-
-	fastify.post('/verify', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
+	fastify.post('/verify', async (request, reply) => {
 		try {
-			const user = request.user;
-			const { token } = request.body;
+			const { token, setupToken } = request.body;
 
-			if (!user) {
-				return reply.status(401).send({
-					success: false,
-					error: 'messages.authError'
-				});
-			}
-
-			if (!token) {
-				return reply.status(400).send({
-					success: false,
-					error: '2fa.tokenRequired'
-				});
-			}
-
-			const sessionData = request.session.pendingTwoFactor;
-			if (!sessionData || sessionData.userId !== user.id) {
+			const decoded = await jwtService.verifyToken(setupToken);
+			if (!decoded?.setup2FA) {
 				return reply.status(400).send({
 					success: false,
 					error: '2fa.setupExpired'
 				});
 			}
 
-			const isValid = twoFactorService.verifyToken(sessionData.secret, token);
+			const isValid = twoFactorService.verifyToken(decoded.secret, token);
 			if (!isValid) {
 				return reply.status(400).send({
 					success: false,
@@ -177,21 +117,19 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			const dbUser = await findUserById(user.id);
-			await updateUser(dbUser.id, {
+			const user = await findUserById(decoded.userId);
+			await updateUser(user.id, {
 				two_factor_enabled: true,
-				two_factor_secret: sessionData.secret
+				two_factor_secret: decoded.secret
 			});
 
 			const backupCodes = twoFactorService.generateBackupCodes();
-			await twoFactorService.saveBackupCodes(dbUser.id, backupCodes);
-
-			delete request.session.pendingTwoFactor;
+			await twoFactorService.saveBackupCodes(user.id, backupCodes);
 
 			return {
 				success: true,
 				message: 'messages.2FASetupSuccess',
-				backupCodes: backupCodes
+				backupCodes
 			};
 		} catch (err) {
 			return reply.status(500).send({
@@ -201,43 +139,19 @@ export default async function twoFactorRoutes(fastify) {
 		}
 	});
 
-	fastify.post('/disable', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
+	fastify.post('/disable', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
-			const user = request.user;
 			const { token } = request.body;
+			const user = await findUserById(request.user.id);
 
-			if (!user) {
-				return reply.status(401).send({
-					success: false,
-					error: 'messages.authError'
-				});
-			}
-
-			if (!token) {
-				return reply.status(400).send({
-					success: false,
-					error: '2fa.tokenRequired'
-				});
-			}
-
-			const dbUser = await findUserById(user.id);
-			if (!dbUser || !dbUser.two_factor_enabled) {
+			if (!user?.two_factor_enabled) {
 				return reply.status(400).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
 			}
 
-			if (!dbUser.two_factor_secret) {
-				return reply.status(400).send({
-					success: false,
-					error: '2fa.invalidSetup'
-				});
-			}
-
-			const isValid = twoFactorService.verifyToken(dbUser.two_factor_secret, token);
+			const isValid = twoFactorService.verifyToken(user.two_factor_secret, token);
 			if (!isValid) {
 				return reply.status(400).send({
 					success: false,
@@ -245,12 +159,12 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			await updateUser(dbUser.id, {
+			await updateUser(user.id, {
 				two_factor_enabled: false,
 				two_factor_secret: null
 			});
 
-			await twoFactorService.clearBackupCodes(dbUser.id);
+			await twoFactorService.clearBackupCodes(user.id);
 
 			return {
 				success: true,
@@ -264,55 +178,10 @@ export default async function twoFactorRoutes(fastify) {
 		}
 	});
 
-	fastify.post('/refresh-qr', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
+	fastify.post('/backup-codes/generate', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
-			const user = request.user;
-			if (!user) {
-				return reply.status(401).send({
-					success: false,
-					error: 'messages.authError'
-				});
-			}
-
-			const dbUser = await findUserById(user.id);
-			const { secret, otpauth_url } = twoFactorService.generateSecret(dbUser);
-			const qrCode = await twoFactorService.generateQRCode(otpauth_url);
-
-			request.session.pendingTwoFactor = {
-				secret,
-				userId: dbUser.id,
-				createdAt: Date.now()
-			};
-
-			return {
-				success: true,
-				secret,
-				qrCode
-			};
-		} catch (err) {
-			return reply.status(500).send({
-				success: false,
-				error: 'common.internalError'
-			});
-		}
-	});
-
-	fastify.post('/backup-codes/generate', {
-		preHandler: authenticateJWT
-	}, async (request, reply) => {
-		try {
-			const user = request.user;
-			if (!user) {
-				return reply.status(401).send({
-					success: false,
-					error: 'messages.authError'
-				});
-			}
-
-			const dbUser = await findUserById(user.id);
-			if (!dbUser || !dbUser.two_factor_enabled) {
+			const user = await findUserById(request.user.id);
+			if (!user?.two_factor_enabled) {
 				return reply.status(400).send({
 					success: false,
 					error: '2fa.notEnabled'
@@ -320,7 +189,7 @@ export default async function twoFactorRoutes(fastify) {
 			}
 
 			const backupCodes = twoFactorService.generateBackupCodes();
-			await twoFactorService.saveBackupCodes(dbUser.id, backupCodes);
+			await twoFactorService.saveBackupCodes(user.id, backupCodes);
 
 			return {
 				success: true,

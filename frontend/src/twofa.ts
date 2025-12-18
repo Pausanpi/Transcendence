@@ -1,9 +1,10 @@
-import { getCookie } from './api.js';
+import { api, getToken } from './api.js';
 import { navigate } from './router.js';
 
 export class TwoFAManager {
   private status: boolean = false;
   private currentBackupCodes: string[] = [];
+  private setupToken: string = '';
 
   async init(): Promise<void> {
     await this.load2FAStatus();
@@ -15,7 +16,7 @@ export class TwoFAManager {
     document.getElementById('disable2FABtn')?.addEventListener('click', () => this.showDisableModal());
     document.getElementById('generateBackupCodesBtn')?.addEventListener('click', () => this.generateBackupCodes());
     document.getElementById('verifyCodeBtn')?.addEventListener('click', () => this.verify2FA());
-    document.getElementById('refreshQRBtn')?.addEventListener('click', () => this.refreshQR());
+    document.getElementById('refreshQRBtn')?.addEventListener('click', () => this.setup2FA());
     document.getElementById('confirmDisableBtn')?.addEventListener('click', () => this.disable2FA());
     document.getElementById('cancelSetupBtn')?.addEventListener('click', () => this.hideSetupModal());
     document.getElementById('cancelDisableBtn')?.addEventListener('click', () => this.hideDisableModal());
@@ -26,6 +27,7 @@ export class TwoFAManager {
     document.getElementById('verificationCode')?.addEventListener('keypress', (e) => {
       if ((e as KeyboardEvent).key === 'Enter') this.verify2FA();
     });
+
     document.getElementById('disableVerificationCode')?.addEventListener('keypress', (e) => {
       if ((e as KeyboardEvent).key === 'Enter') this.disable2FA();
     });
@@ -33,14 +35,9 @@ export class TwoFAManager {
 
   async load2FAStatus(): Promise<void> {
     try {
-      const response = await fetch('/auth/profile-data', {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const userData = await response.json();
-        this.status = Boolean(userData.twoFactorEnabled);
-        this.updateUI();
-      }
+      const data = await api<any>('/api/auth/profile');
+      this.status = Boolean(data.user.twoFactorEnabled);
+      this.updateUI();
     } catch (error) {
       console.error('Error loading 2FA status:', error);
     }
@@ -61,6 +58,7 @@ export class TwoFAManager {
     if (enableSection) {
       enableSection.style.display = this.status ? 'none' : 'block';
     }
+
     if (disableSection) {
       disableSection.style.display = this.status ? 'block' : 'none';
     }
@@ -68,19 +66,19 @@ export class TwoFAManager {
 
   async setup2FA(): Promise<void> {
     try {
-      const response = await fetch('/2fa/setup', {
-        method: 'POST',
-        credentials: 'include'
+      const result = await api<any>('/api/2fa/setup', {
+        method: 'POST'
       });
-      const result = await response.json();
+
       if (result.success) {
+        this.setupToken = result.setupToken;
         this.showSetupModal(result.secret, result.qrCode);
       } else {
         this.showError(result.error || 'Failed to setup 2FA');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up 2FA:', error);
-      this.showError('Connection error');
+      this.showError(error.message || 'Connection error');
     }
   }
 
@@ -119,14 +117,14 @@ export class TwoFAManager {
     }
 
     try {
-      const response = await fetch('/2fa/verify', {
+      const result = await api<any>('/api/2fa/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ token: code })
+        body: JSON.stringify({
+          token: code,
+          setupToken: this.setupToken
+        })
       });
 
-      const result = await response.json();
       if (result.success) {
         this.showSuccess('2FA enabled successfully!');
         this.hideSetupModal();
@@ -144,45 +142,15 @@ export class TwoFAManager {
       } else {
         this.showError(result.error || 'Invalid verification code');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error verifying 2FA:', error);
-      this.showError('Connection error');
-    }
-  }
-
-  async refreshQR(): Promise<void> {
-    try {
-      const response = await fetch('/2fa/refresh-qr', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const result = await response.json();
-      if (result.success) {
-        const secretText = document.getElementById('secretText');
-        const qrImage = document.getElementById('qrCodeImage') as HTMLImageElement;
-        const verificationCode = document.getElementById('verificationCode') as HTMLInputElement;
-
-        if (secretText) secretText.textContent = result.secret;
-        if (qrImage) qrImage.src = result.qrCode;
-        if (verificationCode) {
-          verificationCode.value = '';
-          verificationCode.focus();
-        }
-
-        this.showSuccess('QR code refreshed');
-      } else {
-        this.showError(result.error || 'Failed to refresh QR code');
-      }
-    } catch (error) {
-      console.error('Error refreshing QR:', error);
-      this.showError('Connection error');
+      this.showError(error.message || 'Connection error');
     }
   }
 
   private showDisableModal(): void {
     const modal = document.getElementById('disableModal');
     const input = document.getElementById('disableVerificationCode') as HTMLInputElement;
-
     if (modal) modal.classList.remove('hidden');
     if (input) {
       input.value = '';
@@ -204,14 +172,11 @@ export class TwoFAManager {
     }
 
     try {
-      const response = await fetch('/2fa/disable', {
+      const result = await api<any>('/api/2fa/disable', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ token: code })
       });
 
-      const result = await response.json();
       if (result.success) {
         this.showSuccess('2FA disabled successfully');
         this.hideDisableModal();
@@ -221,19 +186,18 @@ export class TwoFAManager {
       } else {
         this.showError(result.error || 'Invalid verification code');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error disabling 2FA:', error);
-      this.showError('Connection error');
+      this.showError(error.message || 'Connection error');
     }
   }
 
   async generateBackupCodes(): Promise<void> {
     try {
-      const response = await fetch('/2fa/backup-codes/generate', {
-        method: 'POST',
-        credentials: 'include'
+      const result = await api<any>('/api/2fa/backup-codes/generate', {
+        method: 'POST'
       });
-      const result = await response.json();
+
       if (result.success) {
         this.currentBackupCodes = result.codes;
         this.showBackupCodesModal(result.codes);
@@ -241,16 +205,15 @@ export class TwoFAManager {
       } else {
         this.showError(result.error || 'Failed to generate backup codes');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating backup codes:', error);
-      this.showError('Connection error');
+      this.showError(error.message || 'Connection error');
     }
   }
 
   private showBackupCodesModal(codes: string[]): void {
     const modal = document.getElementById('backupCodesModal');
     const codesList = document.getElementById('backupCodesList');
-
     if (!modal || !codesList) return;
 
     this.currentBackupCodes = codes;
@@ -326,39 +289,16 @@ export class TwoFAManager {
   }
 }
 
-export async function verify2FALogin(token: string, isBackupCode: boolean = false): Promise<boolean> {
+export async function verify2FALogin(token: string, tempToken: string): Promise<{ success: boolean; token?: string }> {
   try {
-    const userId = await getPending2FAUser();
-    if (!userId) {
-      throw new Error('No pending 2FA user');
-    }
-
-    const response = await fetch('/2fa/verify-login', {
+    const result = await api<any>('/api/2fa/verify-login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ token, userId, isBackupCode })
+      body: JSON.stringify({ token, tempToken })
     });
 
-    const result = await response.json();
-    return result.success;
+    return result;
   } catch (error) {
     console.error('Error verifying 2FA login:', error);
-    return false;
+    return { success: false };
   }
-}
-
-async function getPending2FAUser(): Promise<string | null> {
-  try {
-    const response = await fetch('/auth/pending-2fa-user', {
-      credentials: 'include'
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return data.userId;
-    }
-  } catch (error) {
-    console.error('Error getting pending 2FA user:', error);
-  }
-  return null;
 }

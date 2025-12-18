@@ -1,60 +1,58 @@
 import gdprService from '../../database/services/gdpr.js';
 import { findUserById } from '../../users/models/User.js';
+import jwtService from '../../auth/services/jwt.js';
 
 export default async function gdprRoutes(fastify, options) {
+
 	async function authenticateUser(request, reply) {
-		if (!request.isAuthenticated?.()) {
+		const authHeader = request.headers.authorization;
+
+		if (!authHeader?.startsWith('Bearer ')) {
 			return reply.status(401).send({
-				error: 'messages.authError',
-				code: 'AUTH_REQUIRED'
+				success: false,
+				error: 'messages.authError'
 			});
 		}
-		if (!request.user?.id) {
-			const userId = request.session?.get?.('userId');
-			if (!userId) {
-				return reply.status(401).send({
-					error: 'messages.authError',
-					code: 'INVALID_USER'
-				});
-			}
-			request.user = { id: userId };
+
+		const token = authHeader.substring(7);
+		const decoded = await jwtService.verifyToken(token);
+
+		if (!decoded?.id) {
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.invalidToken'
+			});
 		}
+
+		request.user = decoded;
 	}
 
 	fastify.get('/user-data', {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR user-data request for user:', request.user?.id);
-
 			const user = await findUserById(request.user.id);
 			if (!user) {
-				fastify.log.error('User not found:', request.user.id);
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
 			const dataSummary = await gdprService.getUserDataSummary(user.id);
-			const userData = {
-				profile: user.toSafeJSON(),
-				dataSummary: dataSummary
-			};
 
-			fastify.log.info('GDPR user-data success');
 			return {
 				success: true,
-				data: userData
+				data: {
+					profile: user.toSafeJSON(),
+					dataSummary
+				}
 			};
 		} catch (error) {
 			fastify.log.error('GDPR user-data error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'common.internalError',
-				code: 'DATA_RETRIEVAL_ERROR',
-				message: error.message
+				error: 'common.internalError'
 			});
 		}
 	});
@@ -63,35 +61,26 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR user-consent request for user:', request.user?.id);
-
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
-			const consent = {
-				dataProcessing: user.consent_data_processing === 1,
-				marketingEmails: user.consent_marketing === 1,
-				analytics: user.consent_analytics === 1
-			};
-
-			fastify.log.info('GDPR user-consent success');
 			return {
 				success: true,
-				consent
+				consent: {
+					dataProcessing: user.consent_data_processing === 1,
+					marketingEmails: user.consent_marketing === 1,
+					analytics: user.consent_analytics === 1
+				}
 			};
 		} catch (error) {
-			fastify.log.error('GDPR user-consent error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'common.internalError',
-				code: 'CONSENT_RETRIEVAL_ERROR',
-				message: error.message
+				error: 'common.internalError'
 			});
 		}
 	});
@@ -100,14 +89,11 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR anonymize request for user:', request.user?.id);
-
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
@@ -115,27 +101,18 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(500).send({
 					success: false,
-					error: 'gdpr.anonymizationError',
-					code: 'ANONYMIZATION_ERROR'
+					error: 'gdpr.anonymizationError'
 				});
 			}
 
-			if (request.session?.destroy) {
-				request.session.destroy();
-			}
-
-			fastify.log.info('GDPR anonymize success');
 			return {
 				success: true,
 				message: 'messages.dataAnonymized'
 			};
 		} catch (error) {
-			fastify.log.error('GDPR anonymize error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'gdpr.anonymizationError',
-				code: 'ANONYMIZATION_ERROR',
-				message: error.message
+				error: 'gdpr.anonymizationError'
 			});
 		}
 	});
@@ -144,14 +121,11 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR export-data request for user:', request.user?.id);
-
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
@@ -159,12 +133,10 @@ export default async function gdprRoutes(fastify, options) {
 			if (!exportData) {
 				return reply.status(500).send({
 					success: false,
-					error: 'gdpr.exportError',
-					code: 'EXPORT_ERROR'
+					error: 'gdpr.exportError'
 				});
 			}
 
-			fastify.log.info('GDPR export-data success');
 			return {
 				success: true,
 				data: exportData,
@@ -172,12 +144,9 @@ export default async function gdprRoutes(fastify, options) {
 				generatedAt: new Date().toISOString()
 			};
 		} catch (error) {
-			fastify.log.error('GDPR export error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'gdpr.exportError',
-				code: 'EXPORT_ERROR',
-				message: error.message
+				error: 'gdpr.exportError'
 			});
 		}
 	});
@@ -186,24 +155,21 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR delete-account request for user:', request.user?.id);
-
 			const { confirmation } = request.body;
 			const user = await findUserById(request.user.id);
+
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
 			const confirmationText = 'DELETE MY ACCOUNT';
-			if (!confirmation || confirmation !== confirmationText) {
+			if (confirmation !== confirmationText) {
 				return reply.status(400).send({
 					success: false,
-					error: 'gdpr.invalidConfirmation',
-					code: 'CONFIRMATION_REQUIRED'
+					error: 'gdpr.invalidConfirmation'
 				});
 			}
 
@@ -211,27 +177,18 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(500).send({
 					success: false,
-					error: 'gdpr.deletionError',
-					code: 'DELETION_ERROR'
+					error: 'gdpr.deletionError'
 				});
 			}
 
-			if (request.session?.destroy) {
-				request.session.destroy();
-			}
-
-			fastify.log.info('GDPR delete-account success');
 			return {
 				success: true,
 				message: 'messages.accountDeleted'
 			};
 		} catch (error) {
-			fastify.log.error('GDPR delete-account error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'gdpr.deletionError',
-				code: 'DELETION_ERROR',
-				message: error.message
+				error: 'gdpr.deletionError'
 			});
 		}
 	});
@@ -240,16 +197,13 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			fastify.log.info('GDPR update-consent request for user:', request.user?.id);
-			fastify.log.info('Consent data:', request.body);
-
 			const { marketingEmails, analytics, dataProcessing } = request.body;
 			const user = await findUserById(request.user.id);
+
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound',
-					code: 'USER_NOT_FOUND'
+					error: 'messages.userNotFound'
 				});
 			}
 
@@ -263,23 +217,18 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(500).send({
 					success: false,
-					error: 'gdpr.consentUpdateError',
-					code: 'CONSENT_UPDATE_ERROR'
+					error: 'gdpr.consentUpdateError'
 				});
 			}
 
-			fastify.log.info('GDPR update-consent success');
 			return {
 				success: true,
 				message: 'messages.preferencesUpdated'
 			};
 		} catch (error) {
-			fastify.log.error('GDPR update-consent error:', error);
 			return reply.status(500).send({
 				success: false,
-				error: 'gdpr.consentUpdateError',
-				code: 'CONSENT_UPDATE_ERROR',
-				message: error.message
+				error: 'gdpr.consentUpdateError'
 			});
 		}
 	});

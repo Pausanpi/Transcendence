@@ -1,62 +1,42 @@
-export function getToken(): string | null {
-  return localStorage.getItem('token');
+const API_BASE = '';
+
+function getToken(): string | null {
+  return localStorage.getItem('auth_token');
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem('token', token);
+function setToken(token: string): void {
+  localStorage.setItem('auth_token', token);
 }
 
-export function clearToken(): void {
-  localStorage.removeItem('token');
+function clearToken(): void {
+  localStorage.removeItem('auth_token');
 }
 
-/*
-export function getHeaders(auth = true): HeadersInit {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+function getHeaders(): HeadersInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+
   const token = getToken();
-  if (auth && token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}*/
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
-
-export function getHeaders(auth = true): HeadersInit {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const token = getToken() || getCookie('auth_jwt');
-  if (auth && token) headers['Authorization'] = `Bearer ${token}`;
   return headers;
 }
 
-export async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
+async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    headers: { ...getHeaders(), ...options.headers },
-	credentials: 'include'
+    headers: { ...getHeaders(), ...options.headers }
   });
-  return res.json();
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'common.requestFailed');
+  }
+
+  return response.json();
 }
 
-export function showResult(id: string, data: any, isError = false): void {
-	const el = document.getElementById(id);
-	if (!el) return;
-
-	el.classList.remove('hidden', 'success', 'error');
-	el.classList.add('result', isError ? 'error' : 'success');
-
-	if (data && typeof data === 'object' && typeof data.error === 'string') {
-		el.innerHTML = `<span data-i18n="${data.error}"></span>`;
-		window.languageManager?.applyTranslations();
-		return;
-	}
-
-	if (typeof data === 'string') {
-		el.textContent = data;
-		return;
-	}
-
-	el.textContent = JSON.stringify(data, null, 2);
-}
-
-export function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? match[2] : null;
-}
+export { api, getToken, setToken, clearToken };

@@ -1,10 +1,10 @@
 import { verify2FALogin } from '../twofa.js';
 import { navigate } from '../router.js';
+import { setToken } from '../api.js';
 import { updateAuthBtn } from '../auth.js';
 
 export function renderTwoFAVerify(): string {
   setTimeout(initVerify, 100);
-
   return `
     <div class="max-w-md mx-auto">
       <div class="card text-center">
@@ -21,28 +21,6 @@ export function renderTwoFAVerify(): string {
           </button>
         </form>
 
-        <div class="border-t border-gray-700 pt-4">
-          <p class="text-sm text-gray-400 mb-3" data-i18n="2fa.useBackupCode">Lost your device? Use a backup code</p>
-          <button onclick="showBackupCodeForm()" class="btn btn-gray w-full" data-i18n="2fa.useBackupCodeBtn">
-            Use Backup Code
-          </button>
-        </div>
-
-        <div id="backupCodeForm" class="hidden mt-4 pt-4 border-t border-gray-700">
-          <p class="text-sm text-gray-400 mb-3" data-i18n="2fa.enterBackupCode">Enter your backup code:</p>
-          <input type="text" id="backupCodeInput" maxlength="9" placeholder="12345-678"
-                 class="input text-center text-xl font-mono tracking-wider mb-4"
-                 data-i18n-placeholder="2fa.backupCodePlaceholder" autocomplete="off">
-          <div class="flex gap-2">
-            <button onclick="verifyBackupCode()" class="btn btn-blue flex-1" data-i18n="2fa.verifyBackupCode">
-              Verify Backup Code
-            </button>
-            <button onclick="hideBackupCodeForm()" class="btn btn-gray flex-1" data-i18n="common.cancel">
-              Cancel
-            </button>
-          </div>
-        </div>
-
         <div id="verifyMessage" class="hidden mt-4"></div>
       </div>
     </div>
@@ -52,7 +30,6 @@ export function renderTwoFAVerify(): string {
 function initVerify(): void {
   const form = document.getElementById('verify2FAForm');
   const tokenInput = document.getElementById('tokenInput') as HTMLInputElement;
-  const backupInput = document.getElementById('backupCodeInput') as HTMLInputElement;
 
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -69,17 +46,6 @@ function initVerify(): void {
     });
   }
 
-  if (backupInput) {
-    backupInput.addEventListener('input', (e) => {
-      const input = e.target as HTMLInputElement;
-      let value = input.value.replace(/[^0-9]/g, '');
-      if (value.length > 5) {
-        value = value.substr(0, 5) + '-' + value.substr(5, 3);
-      }
-      input.value = value;
-    });
-  }
-
   window.languageManager?.applyTranslations();
 }
 
@@ -92,11 +58,20 @@ async function verifyToken(): Promise<void> {
     return;
   }
 
+  const tempToken = localStorage.getItem('temp_2fa_token');
+  if (!tempToken) {
+    showMessage('Session expired. Please login again.', 'error');
+    setTimeout(() => navigate('auth'), 2000);
+    return;
+  }
+
   try {
     showMessage('Verifying...', 'info');
-    const success = await verify2FALogin(token, false);
+    const result = await verify2FALogin(token, tempToken);
 
-    if (success) {
+    if (result.success && result.token) {
+      localStorage.removeItem('temp_2fa_token');
+      setToken(result.token);
       showMessage('Verification successful! Redirecting...', 'success');
       updateAuthBtn();
       setTimeout(() => {
@@ -113,46 +88,6 @@ async function verifyToken(): Promise<void> {
   }
 }
 
-async function verifyBackupCode(): Promise<void> {
-  const backupInput = document.getElementById('backupCodeInput') as HTMLInputElement;
-  const code = backupInput?.value.trim().toUpperCase();
-
-  if (!code || !/^\d{5}-\d{3}$/.test(code)) {
-    showMessage('Invalid backup code format. Use: 12345-678', 'error');
-    return;
-  }
-
-  try {
-    showMessage('Verifying backup code...', 'info');
-    const success = await verify2FALogin(code, true);
-
-    if (success) {
-      showMessage('Backup code accepted! Redirecting...', 'success');
-      updateAuthBtn();
-      setTimeout(() => {
-        navigate('profile');
-      }, 1000);
-    } else {
-      showMessage('Invalid or already used backup code.', 'error');
-      backupInput.value = '';
-      backupInput.focus();
-    }
-  } catch (error) {
-    console.error('Verification error:', error);
-    showMessage('Connection error. Please try again.', 'error');
-  }
-}
-
-function showBackupCodeForm(): void {
-  document.getElementById('backupCodeForm')?.classList.remove('hidden');
-  (document.getElementById('backupCodeInput') as HTMLInputElement)?.focus();
-}
-
-function hideBackupCodeForm(): void {
-  document.getElementById('backupCodeForm')?.classList.add('hidden');
-  (document.getElementById('backupCodeInput') as HTMLInputElement).value = '';
-}
-
 function showMessage(message: string, type: 'success' | 'error' | 'info'): void {
   const messageDiv = document.getElementById('verifyMessage');
   if (!messageDiv) return;
@@ -167,7 +102,3 @@ function showMessage(message: string, type: 'success' | 'error' | 'info'): void 
   messageDiv.textContent = message;
   messageDiv.classList.remove('hidden');
 }
-
-(window as any).showBackupCodeForm = showBackupCodeForm;
-(window as any).hideBackupCodeForm = hideBackupCodeForm;
-(window as any).verifyBackupCode = verifyBackupCode;

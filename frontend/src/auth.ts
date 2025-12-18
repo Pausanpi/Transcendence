@@ -1,4 +1,4 @@
-import { api, getToken, setToken, clearToken, showResult, getHeaders, getCookie } from './api.js';
+import { api, setToken, clearToken, getToken } from './api.js';
 import { navigate } from './router.js';
 
 export function initAuth(): void {
@@ -9,8 +9,7 @@ export function updateAuthBtn(): void {
   const btn = document.getElementById('authBtn');
   if (!btn) return;
 
-  const token = getCookie('auth_jwt');
-
+  const token = getToken();
   if (token) {
     btn.textContent = 'Logout';
     btn.onclick = logout;
@@ -20,53 +19,27 @@ export function updateAuthBtn(): void {
   }
 }
 
-
 export async function login(): Promise<void> {
   const email = (document.getElementById('loginEmail') as HTMLInputElement).value;
   const password = (document.getElementById('loginPassword') as HTMLInputElement).value;
 
   try {
-    const response = await fetch('/auth/login', {
+    const data = await api<any>('/api/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ email, password })
     });
 
-    if (!response.ok) {
-      if (response.status === 504) {
-        showResult('loginResult', 'messages.gatewayTimeout', true);
-        return;
-      }
-      const errorData = await response.json();
-      showResult('loginResult', errorData.error || 'messages.connectionError', true);
-      return;
-    }
-
-    const data = await response.json();
-
- if (data.requires2FA) {
+    if (data.requires2FA) {
+      localStorage.setItem('temp_2fa_token', data.tempToken);
       navigate('twofaverify');
       return;
     }
 
-
-if (data.success) {
-  if (data.token) {
-    document.cookie = `auth_jwt=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
-  }
-
-  setTimeout(() => {
+    setToken(data.token);
     updateAuthBtn();
     navigate('profile');
-  }, 100);
-  return;
-}
-
-    showResult('loginResult', data.error || 'messages.loginFailed', true);
-  } catch (error) {
-    console.error('Login error:', error);
-    showResult('loginResult', 'messages.connectionError', true);
+  } catch (error: any) {
+    showResult('loginResult', error.message, true);
   }
 }
 
@@ -76,41 +49,36 @@ export async function register(): Promise<void> {
   const password = (document.getElementById('regPassword') as HTMLInputElement).value;
 
   try {
-    const data = await api<any>('/auth/register', {
+    const data = await api<any>('/api/auth/register', {
       method: 'POST',
-      headers: getHeaders(false),
       body: JSON.stringify({ username, email, password })
     });
 
-	/*
-    if (data.token) {
-      setToken(data.token);
-      updateAuthBtn();
-      navigate('home');
-    }*/
-
-
-	  if (data.token) {
-  document.cookie = `auth_jwt=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
-  updateAuthBtn();
-  navigate('home');
-    }
-
-
-    showResult('registerResult', data, !data.token);
-  } catch (e: any) {
-    showResult('registerResult', e.message, true);
+    setToken(data.token);
+    updateAuthBtn();
+    navigate('home');
+    showResult('registerResult', 'messages.registrationSuccess', false);
+  } catch (error: any) {
+    showResult('registerResult', error.message, true);
   }
 }
 
 export function logout(): void {
   clearToken();
-  document.cookie = 'auth_jwt=; path=/; max-age=0';
   updateAuthBtn();
   navigate('home');
 }
 
-// Global
+function showResult(id: string, message: string, isError: boolean): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.classList.remove('hidden', 'success', 'error');
+  el.classList.add('result', isError ? 'error' : 'success');
+  el.innerHTML = `<span data-i18n="${message}"></span>`;
+  window.languageManager?.applyTranslations();
+}
+
 (window as any).login = login;
 (window as any).register = register;
 (window as any).logout = logout;
