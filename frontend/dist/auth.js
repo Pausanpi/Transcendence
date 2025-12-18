@@ -1,4 +1,4 @@
-import { api, getToken, setToken, clearToken, showResult, getHeaders } from './api.js';
+import { api, clearToken, showResult, getHeaders, getCookie } from './api.js';
 import { navigate } from './router.js';
 export function initAuth() {
     updateAuthBtn();
@@ -7,7 +7,8 @@ export function updateAuthBtn() {
     const btn = document.getElementById('authBtn');
     if (!btn)
         return;
-    if (getToken()) {
+    const token = getCookie('auth_jwt');
+    if (token) {
         btn.textContent = 'Logout';
         btn.onclick = logout;
     }
@@ -20,20 +21,41 @@ export async function login() {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     try {
-        const data = await api('/auth/login', {
+        const response = await fetch('/auth/login', {
             method: 'POST',
-            headers: getHeaders(false),
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ email, password })
         });
-        if (data.token) {
-            setToken(data.token);
-            updateAuthBtn();
-            navigate('home');
+        if (!response.ok) {
+            if (response.status === 504) {
+                showResult('loginResult', 'messages.gatewayTimeout', true);
+                return;
+            }
+            const errorData = await response.json();
+            showResult('loginResult', errorData.error || 'messages.connectionError', true);
+            return;
         }
-        showResult('loginResult', data, !data.token);
+        const data = await response.json();
+        if (data.requires2FA) {
+            navigate('twofaverify');
+            return;
+        }
+        if (data.success) {
+            if (data.token) {
+                document.cookie = `auth_jwt=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
+            }
+            setTimeout(() => {
+                updateAuthBtn();
+                navigate('profile');
+            }, 100);
+            return;
+        }
+        showResult('loginResult', data.error || 'messages.loginFailed', true);
     }
-    catch (e) {
-        showResult('loginResult', e.message, true);
+    catch (error) {
+        console.error('Login error:', error);
+        showResult('loginResult', 'messages.connectionError', true);
     }
 }
 export async function register() {
@@ -46,8 +68,14 @@ export async function register() {
             headers: getHeaders(false),
             body: JSON.stringify({ username, email, password })
         });
+        /*
         if (data.token) {
-            setToken(data.token);
+          setToken(data.token);
+          updateAuthBtn();
+          navigate('home');
+        }*/
+        if (data.token) {
+            document.cookie = `auth_jwt=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
             updateAuthBtn();
             navigate('home');
         }
@@ -59,6 +87,7 @@ export async function register() {
 }
 export function logout() {
     clearToken();
+    document.cookie = 'auth_jwt=; path=/; max-age=0';
     updateAuthBtn();
     navigate('home');
 }

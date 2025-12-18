@@ -14,12 +14,6 @@ export class LanguageManager {
         this.initialized = true;
     }
     renderLanguageSelector(containerSelector = null) {
-        if (document.getElementById('languageSelect'))
-            return;
-        let container = null;
-        if (containerSelector) {
-            container = document.querySelector(containerSelector);
-        }
         this.attachLanguageSelectorEvents();
     }
     attachLanguageSelectorEvents() {
@@ -148,6 +142,9 @@ export class LanguageManager {
             ? current
             : parts[parts.length - 1];
     }
+    t(key) {
+        return this.getTranslation(key);
+    }
     async changeLanguage(lang) {
         try {
             this.currentLanguage = lang;
@@ -186,8 +183,4 @@ export class LanguageManager {
             Object.keys(this.translations).length > 0);
     }
 }
-/* bootstrap */
 window.languageManager = new LanguageManager();
-document.addEventListener('DOMContentLoaded', async () => {
-    await window.languageManager.init();
-});

@@ -28,16 +28,6 @@ export class LanguageManager {
 	}
 
 	renderLanguageSelector(containerSelector: string | null = null): void {
-		if (document.getElementById('languageSelect')) return;
-
-	
-		let container: Element | null = null;
-
-		if (containerSelector) {
-			container = document.querySelector(containerSelector);
-		}
-
-
 
 		this.attachLanguageSelectorEvents();
 	}
@@ -193,6 +183,10 @@ export class LanguageManager {
 			: parts[parts.length - 1];
 	}
 
+public t(key: string): string {
+	return this.getTranslation(key);
+}
+
 	async changeLanguage(lang: Language): Promise<boolean> {
 		try {
 			this.currentLanguage = lang;
@@ -242,9 +236,4 @@ export class LanguageManager {
 	}
 }
 
-/* bootstrap */
 window.languageManager = new LanguageManager();
-
-document.addEventListener('DOMContentLoaded', async () => {
-	await window.languageManager.init();
-});

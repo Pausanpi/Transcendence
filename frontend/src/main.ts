@@ -1,16 +1,22 @@
 import { initRouter } from './router.js';
 import { initAuth } from './auth.js';
+import './i18n.js';
+import './gdpr.js';
 import './pong.js';
 import './tictactoe.js';
-import { LanguageManager } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    window.languageManager = new LanguageManager();
+  initRouter();
+  initAuth();
+
+  if (window.languageManager) {
     await window.languageManager.init();
-    initRouter();
-    initAuth();
+    window.languageManager.applyTranslations();
+  }
 
-	window.languageManager.applyTranslations();
-	window.languageManager.renderLanguageSelector('.container');
-
+  setTimeout(() => {
+    if (typeof window.updateAuthBtn === 'function') {
+      window.updateAuthBtn();
+    }
+  }, 200);
 });

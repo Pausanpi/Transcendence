@@ -4,6 +4,9 @@ import { renderDashboard } from './pages/dashboard.js';
 import { renderAuth } from './pages/auth.js';
 import { renderProfile } from './pages/profile.js';
 import { renderGame } from './pages/game.js';
+import { renderGdpr } from './pages/gdpr.js';
+import { updateAuthBtn } from './auth.js';
+import { renderTwoFAVerify } from './pages/twofaverify.js';
 
 const routes: Record<string, () => string> = {
   home: renderHome,
@@ -12,21 +15,31 @@ const routes: Record<string, () => string> = {
   auth: renderAuth,
   profile: renderProfile,
   game: renderGame,
+  gdpr: renderGdpr,
+  twofaverify: renderTwoFAVerify,
 };
 
 let currentPage = 'home';
 
+
 export function navigate(page: string): void {
   const app = document.getElementById('app')!;
   const render = routes[page];
-  
   if (render) {
     app.innerHTML = render();
+
+    if (window.languageManager?.isReady()) {
+      window.languageManager.applyTranslations();
+    }
+
     currentPage = page;
     updateNav();
     document.getElementById('navbar')?.classList.remove('hidden');
-    
-    // Dispatch event for page init
+
+    if (typeof window.updateAuthBtn === 'function') {
+      window.updateAuthBtn();
+    }
+
     window.dispatchEvent(new CustomEvent('pagechange', { detail: page }));
   }
 }
@@ -54,10 +67,11 @@ export function initRouter(): void {
   });
 
 
-  
+
   // Start at home
   navigate('home');
 }
 
 // Make navigate global
 (window as any).navigate = navigate;
+(window as any).updateAuthBtn = updateAuthBtn;

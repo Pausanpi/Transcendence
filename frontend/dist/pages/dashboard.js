@@ -15,15 +15,28 @@ export function renderDashboard() {
         <button onclick="testApi()" class="btn btn-green w-full">Send GET</button>
         <pre id="apiResult" class="result mt-3 overflow-auto max-h-60"></pre>
       </div>
+
+	  <div class="card">
+	  <button onclick="window.open('https://localhost:8445', '_blank')" class="btn btn-blue mt-4" title="Open Grafana Dashboard">
+                        📊 Grafana
+                    </button>
+
+
+<button onclick="window.open('https://localhost:8444', '_blank')"
+                            class="btn btn-blue mt-4" title="Open HashiCorp Vault">
+                        🔐 Vault
+                    </button>
+<a target="_blank" href="decode.html" class="btn btn-yellow mt-4">TOOL GEN TOPT</a>
+		</div>
     </div>
   `;
 }
 const services = [
     { name: 'Gateway', url: '/health' },
-    { name: 'Auth', url: '/api/auth/status' },
-    { name: 'Users', url: '/api/users/status' },
-    { name: 'Backend', url: '/api/backend/status' },
-    { name: 'Vault', url: '/api/auth/vault-status' },
+    { name: 'Auth', url: '/api/auth/health' },
+    { name: 'I18n', url: '/api/i18n/health' },
+    { name: 'Users', url: '/api/users/health' },
+    { name: 'Database', url: '/api/database/health' },
 ];
 export async function checkServices() {
     const container = document.getElementById('services');
@@ -39,10 +52,13 @@ export async function checkServices() {
     for (const s of services) {
         try {
             const data = await api(s.url);
-            setStatus(s.name, true, data.status || 'OK');
+            const status = data.status || data.message || 'UNKNOWN';
+            const isOk = status === 'OK' || status === 'ok' || status === 'healthy';
+            setStatus(s.name, isOk, status);
         }
-        catch {
-            setStatus(s.name, false, 'DOWN');
+        catch (error) {
+            const errorMsg = error.message || 'DOWN';
+            setStatus(s.name, false, errorMsg);
         }
     }
 }

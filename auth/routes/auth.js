@@ -103,7 +103,6 @@ export default async function authRoutes(fastify, options) {
 		};
 	});
 
-
 	fastify.get('/profile', {
 		preHandler: async (request, reply) => {
 			if (!request.isAuthenticated || !request.isAuthenticated()) {

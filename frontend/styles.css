@@ -104,6 +104,24 @@
   50% { opacity: 0.5; }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .github-btn {
 	display: flex;
 	align-items: center;
@@ -122,4 +140,21 @@
 
 .github-btn:hover {
 	background-color: #555;
+}
+
+
+
+.modal-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

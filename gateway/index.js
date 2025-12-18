@@ -288,7 +288,11 @@ async function startGateway() {
 
 	const twoFaUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	fastify.all('/2fa/*', async (request, reply) => proxyForward(request, reply, twoFaUpstream, '/2fa'));
-
+	fastify.all('/api/2fa/*', async (request, reply) => {
+    const url = request.url.replace(/^\/api\/2fa/, '');
+    const target = `${twoFaUpstream}${url}`;
+		return proxyForward(request, reply, twoFaUpstream, '/api/2fa', true);
+	});
 
 	const i18nUpstream = process.env.I18N_SERVICE_URL || 'http://localhost:3002';
 	fastify.all('/i18n/*', async (request, reply) => proxyForward(request, reply, i18nUpstream, '/i18n'));
