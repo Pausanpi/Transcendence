@@ -7,11 +7,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function startAuthService() {
-	const fastify = await createFastifyApp({
-		serviceName: 'auth-service',
-		enableSessions: false,
-		corsOrigin: process.env.CORS_ORIGIN || true
-	});
+
+
+
+const fastify = await createFastifyApp({
+    serviceName: 'auth-service',
+    enableSessions: false,
+    corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
+});
+
 
 	await fastify.register(authRoutes, { prefix: '/auth' });
 	await fastify.register(twoFARoutes, { prefix: '/2fa' });

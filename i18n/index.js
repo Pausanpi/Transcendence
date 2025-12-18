@@ -18,13 +18,15 @@ async function startI18nService() {
 		trustProxy: true
 	});
 
-	if (process.env.CORS_ORIGIN) {
-		const fastifyCors = await import('@fastify/cors');
-		await fastify.register(fastifyCors.default, {
-			origin: process.env.CORS_ORIGIN === 'true' ? true : process.env.CORS_ORIGIN,
-			credentials: true
-		});
-	}
+const corsOrigin = process.env.CORS_ORIGIN || 'https://localhost:8443';
+const fastifyCors = await import('@fastify/cors');
+await fastify.register(fastifyCors.default, {
+    origin: corsOrigin === 'true' ? true : corsOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token'],
+    exposedHeaders: ['Set-Cookie']
+});
 
 	const locales = {};
 	const localesPath = path.join(__dirname, 'locales');
@@ -43,6 +45,7 @@ async function startI18nService() {
 	}
 
 	await fastify.register(i18nRoutes, { prefix: '/i18n' });
+
 	await fastify.register(healthRoutes);
 
 	const port = process.env.I18N_SERVICE_PORT || 3002;

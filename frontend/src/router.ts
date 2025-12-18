@@ -8,6 +8,14 @@ import { renderGdpr } from './pages/gdpr.js';
 import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
 
+
+declare global {
+  interface Window {
+    updateAuthBtn: () => void;
+    navigate: (page: string) => void;
+  }
+}
+
 const routes: Record<string, () => string> = {
   home: renderHome,
   games: renderGames,
@@ -53,13 +61,11 @@ function updateNav(): void {
 
 
 function renderRoute() {
-	// pintar HTML
 	window.languageManager.applyTranslations();
 }
 
 
 export function initRouter(): void {
-  // Nav click handlers
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', () => {
       navigate(el.getAttribute('data-nav')!);
@@ -68,10 +74,8 @@ export function initRouter(): void {
 
 
 
-  // Start at home
   navigate('home');
 }
 
-// Make navigate global
 (window as any).navigate = navigate;
 (window as any).updateAuthBtn = updateAuthBtn;

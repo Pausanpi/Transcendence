@@ -112,6 +112,76 @@ export default async function authRoutes(fastify, options) {
 		};
 	});
 
+fastify.get('/profile-data', async (request, reply) => {
+    const userId = request.headers['x-user-id'] ||
+                   (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+
+    if (!userId) {
+        return reply.status(401).send({
+            success: false,
+            error: 'messages.authError'
+        });
+    }
+
+    try {
+        const user = await findUserById(userId);
+        if (!user) {
+            return reply.status(404).send({
+                success: false,
+                error: 'messages.userNotFound'
+            });
+        }
+        return {
+            success: true,
+            user: user.toSafeJSON()
+        };
+    } catch (error) {
+        return reply.status(500).send({
+            success: false,
+            error: 'common.internalError'
+        });
+    }
+});
+
+fastify.put('/profile-data', async (request, reply) => {
+    const userId = request.headers['x-user-id'] ||
+                   (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+
+    if (!userId) {
+        return reply.status(401).send({
+            success: false,
+            error: 'messages.authError'
+        });
+    }
+
+    try {
+        const { displayName, avatar } = request.body;
+        const user = await findUserById(userId);
+        if (!user) {
+            return reply.status(404).send({
+                success: false,
+                error: 'messages.userNotFound'
+            });
+        }
+        const updateData = {};
+        if (displayName !== undefined) updateData.username = displayName;
+        if (avatar !== undefined) updateData.avatar = avatar;
+        if (Object.keys(updateData).length > 0) {
+            await updateUser(user.id, updateData);
+        }
+        const updatedUser = await findUserById(userId);
+        return {
+            success: true,
+            user: updatedUser.toSafeJSON()
+        };
+    } catch (error) {
+        return reply.status(500).send({
+            success: false,
+            error: 'common.internalError'
+        });
+    }
+});
+
 	fastify.get('/profile', { preHandler: async (req, reply) => {
 		const authHeader = req.headers.authorization;
 		if (!authHeader?.startsWith('Bearer ')) {

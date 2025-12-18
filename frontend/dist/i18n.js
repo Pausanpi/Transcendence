@@ -50,7 +50,7 @@ export class LanguageManager {
     }
     async syncWithServer() {
         try {
-            const response = await fetch('/i18n/change-language', {
+            const response = await fetch('/api/i18n/change-language', {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ export class LanguageManager {
     }
     async loadTranslations() {
         try {
-            const response = await fetch(`/i18n/translations?t=${Date.now()}`, {
+            const response = await fetch(`/api/i18n/translations?t=${Date.now()}`, {
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -82,7 +82,7 @@ export class LanguageManager {
     }
     async loadFallbackTranslations() {
         try {
-            const response = await fetch(`/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
+            const response = await fetch(`/api/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
             if (response.ok) {
                 this.translations = await response.json();
             }
@@ -149,7 +149,7 @@ export class LanguageManager {
         try {
             this.currentLanguage = lang;
             localStorage.setItem('preferredLanguage', lang);
-            const response = await fetch('/i18n/change-language', {
+            const response = await fetch('/api/i18n/change-language', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ language: lang }),

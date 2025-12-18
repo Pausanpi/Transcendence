@@ -7,11 +7,10 @@ dotenv.config();
 
 async function startDatabaseService() {
 
-	const fastify = await createFastifyApp({
-		serviceName: 'database-service',
-		enableSessions: true,
-		corsOrigin: process.env.CORS_ORIGIN || true
-	});
+const fastify = await createFastifyApp({
+    serviceName: 'database-service',
+    corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
+});
 
 	await fastify.register(queryRoutes);
 

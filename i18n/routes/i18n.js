@@ -1,62 +1,63 @@
 import i18n from '../services/i18n.js';
 
 export default async function i18nRoutes(fastify, options) {
+    fastify.get('/translations', async (request, reply) => {
+        const language = request.query.language || i18n.getLanguage() || 'en';
+        const translations = i18n.locales[language];
 
-	fastify.get('/translations', async (request, reply) => {
-		const language = request.query.language || i18n.getLanguage() || 'en';
-		const translations = i18n.locales[language];
-		if (!translations) {
-			return reply.status(404).send({
-				success: false,
-				error: 'Translations not found for language: ' + language
-			});
-		}
-		return translations;
-	});
+        if (!translations) {
+            return reply.status(404).send({
+                success: false,
+                error: 'Translations not found for language: ' + language
+            });
+        }
 
-	fastify.post('/change-language', async (request, reply) => {
-		const { language } = request.body;
+        return translations;
+    });
 
-		if (!language || !['en', 'es'].includes(language)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'common.unsupportedLanguage'
-			});
-		}
+    fastify.post('/change-language', async (request, reply) => {
+        const { language } = request.body;
 
-		i18n.setLanguage(language);
+        if (!language || !['en', 'es'].includes(language)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'common.unsupportedLanguage'
+            });
+        }
 
-		if (request.session) {
-			request.session.language = language;
-		}
+        i18n.setLanguage(language);
 
-		return {
-			success: true,
-			message: 'common.languageChanged',
-			language: language
-		};
-	});
+        if (request.session) {
+            request.session.language = language;
+        }
 
-	fastify.get('/available-languages', async (request, reply) => {
-		return {
-			success: true,
-			languages: ['en', 'es'],
-			current: i18n.getLanguage()
-		};
-	});
+        return {
+            success: true,
+            message: 'common.languageChanged',
+            language: language
+        };
+    });
 
-	fastify.get('/locales/:language.json', async (request, reply) => {
-		const { language } = request.params;
+    fastify.get('/available-languages', async (request, reply) => {
+        return {
+            success: true,
+            languages: ['en', 'es'],
+            current: i18n.getLanguage()
+        };
+    });
 
-		if (!['en', 'es'].includes(language)) {
-			return reply.status(404).send({ error: 'Language not found' });
-		}
+    fastify.get('/locales/:language.json', async (request, reply) => {
+        const { language } = request.params;
 
-		const translations = i18n.locales[language];
-		if (!translations) {
-			return reply.status(404).send({ error: 'Translations not found' });
-		}
+        if (!['en', 'es'].includes(language)) {
+            return reply.status(404).send({ error: 'Language not found' });
+        }
 
-		return translations;
-	});
+        const translations = i18n.locales[language];
+        if (!translations) {
+            return reply.status(404).send({ error: 'Translations not found' });
+        }
+
+        return translations;
+    });
 }

@@ -5,79 +5,52 @@ const SERVICE_TOKEN = process.env.SERVICE_TOKEN || 'dev-service-token';
 export default async function gatewayRoutes(fastify, options) {
 	const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret';
 
-	fastify.get('/', async (request, reply) => {
-		try {
-			const cookieHeader = request.headers && request.headers.cookie;
-			if (cookieHeader && typeof cookieHeader === 'string') {
-				const match = cookieHeader.split(';').find(c => c.trim().startsWith('auth_jwt='));
-				if (match) {
-					const token = match.split('=')[1];
-					if (token) {
-						try {
-							const decoded = jwt.verify(token, jwtSecret, { issuer: 'gateway', audience: 'user' });
-							if (decoded) return reply.redirect('/auth/profile');
-						} catch (e) {
-						}
-					}
-				}
-			}
-		} catch (e) {
+	fastify.addHook('onRequest', async (request, reply) => {
+if (
+	!request.url.startsWith('/api/') ||
+	request.url.startsWith('/api/auth/login') ||
+	request.url.startsWith('/api/auth/register') ||
+	request.url.startsWith('/api/i18n/')
+) {
+	return;
+}
+
+
+		const authHeader = request.headers.authorization;
+		if (!authHeader?.startsWith('Bearer ')) {
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.authenticationRequired'
+			});
 		}
 
-		return reply.sendFile('auth/login.html');
+		const token = authHeader.substring(7).trim();
+		try {
+			const decoded = jwt.verify(token, jwtSecret, {
+				issuer: 'auth-service',
+				audience: 'user'
+			});
+			request.user = decoded;
+		} catch {
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.invalidToken'
+			});
+		}
 	});
 
 	fastify.get('/health', async () => ({
 		gateway: 'OK',
 		timestamp: new Date().toISOString(),
 		endpoints: [
-			'/auth',
-			'/2fa',
-			'/i18n',
-			'/users',
-			'/auth/login',
-			'/auth/profile',
-			'/2fa/management',
-			'/gdpr/management'
+			'/api/auth',
+			'/api/2fa',
+			'/api/i18n',
+			'/api/users',
+			'/api/database',
+			'/api/gdpr'
 		]
 	}));
-
-	fastify.get('/auth/logout', async (request, reply) => {
-		reply.clearCookie('auth_jwt', {
-			path: '/',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax'
-		});
-		return reply.redirect('/');
-	});
-
-	fastify.get('/auth/login', async (request, reply) => reply.sendFile('auth/login.html'));
-
-	fastify.get('/auth/profile', async (request, reply) => {
-		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
-		return reply.sendFile('auth/profile.html');
-	});
-
-	fastify.get('/auth/2fa-required', async (request, reply) => reply.sendFile('auth/2fa-required.html'));
-
-	fastify.get('/2fa/management', async (request, reply) => {
-		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
-		return reply.sendFile('auth/2fa-management.html');
-	});
-
-	fastify.get('/gdpr/management', async (request, reply) => {
-		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
-		return reply.sendFile('auth/gdpr.html');
-	});
-	fastify.get('/game', async (request, reply) => reply.sendFile('index.html'));
-
-	fastify.get('/users/users.html', async (request, reply) => {
-		if (!request.isAuthenticated?.()) return reply.redirect('/auth/login');
-		return reply.sendFile('users/users.html');
-	});
-
-	fastify.get('/users/decode.html', async (request, reply) => reply.sendFile('users/decode.html'));
 
 	fastify.get('/ready', async () => {
 		try {
@@ -90,11 +63,18 @@ export default async function gatewayRoutes(fastify, options) {
 		}
 	});
 
-	fastify.get('/auth/profile-data', async (request, reply) => {
-		const isAuthenticated = request.isAuthenticated?.();
+	fastify.get('/game', async (request, reply) => reply.sendFile('index.html'));
 
-		if (!isAuthenticated || !request.user || !request.user.id) {
-			return reply.status(401).send({ error: 'messages.authError', code: 'AUTH_REQUIRED' });
+	fastify.get('/users/decode.html', async (request, reply) =>
+		reply.sendFile('users/decode.html')
+	);
+
+	fastify.get('/api/auth/profile-data', async (request, reply) => {
+		if (!request.user?.id) {
+			return reply.status(401).send({
+				error: 'messages.authError',
+				code: 'AUTH_REQUIRED'
+			});
 		}
 
 		const upstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
@@ -106,7 +86,7 @@ export default async function gatewayRoutes(fastify, options) {
 				'x-forwarded-for': request.headers['x-forwarded-for'] || '',
 				'x-user-id': request.user.id,
 				'x-user': JSON.stringify(request.user),
-				'cookie': request.headers.cookie || ''
+				'authorization': request.headers.authorization
 			};
 
 			const response = await fetch(url, { headers });
@@ -114,8 +94,38 @@ export default async function gatewayRoutes(fastify, options) {
 
 			reply.code(response.status);
 			return reply.send(data);
-		} catch (error) {
-			return reply.status(502).send({ error: 'Service unavailable', code: 'SERVICE_ERROR' });
+		} catch {
+			return reply.status(502).send({
+				error: 'Service unavailable',
+				code: 'SERVICE_ERROR'
+			});
 		}
 	});
+
+
+	const proxy = (await import('@fastify/http-proxy')).default;
+
+	fastify.register(proxy, {
+		upstream: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
+		prefix: '/api/auth',
+		rewritePrefix: '',
+		http2: false
+	});
+
+	fastify.register(proxy, {
+		upstream: process.env.I18N_SERVICE_URL || 'http://localhost:3002',
+		prefix: '/api/i18n',
+		rewritePrefix: '',
+		http2: false
+	});
+
+	fastify.register(proxy, {
+		upstream: process.env.USERS_SERVICE_URL || 'http://localhost:3004',
+		prefix: '/api/users',
+		rewritePrefix: '',
+		http2: false
+	});
+
+
+
 }

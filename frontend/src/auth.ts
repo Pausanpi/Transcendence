@@ -82,3 +82,4 @@ function showResult(id: string, message: string, isError: boolean): void {
 (window as any).login = login;
 (window as any).register = register;
 (window as any).logout = logout;
+(window as any).updateAuthBtn = updateAuthBtn;

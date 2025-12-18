@@ -66,9 +66,10 @@ export class TwoFAManager {
 
   async setup2FA(): Promise<void> {
     try {
-      const result = await api<any>('/api/2fa/setup', {
-        method: 'POST'
-      });
+  const result = await api<any>('/api/2fa/setup', {
+    method: 'POST',
+    body: JSON.stringify({})
+});
 
       if (result.success) {
         this.setupToken = result.setupToken;

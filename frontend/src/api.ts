@@ -39,4 +39,8 @@ async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
   return response.json();
 }
 
-export { api, getToken, setToken, clearToken };
+function removeAuthToken(): void {
+  clearToken();
+}
+
+export { api, getToken, setToken, clearToken, removeAuthToken };

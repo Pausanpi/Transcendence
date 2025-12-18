@@ -1,5 +1,6 @@
-import { api, getCookie } from '../api.js';
+import { api, getToken } from '../api.js';
 import { TwoFAManager } from '../twofa.js';
+import { removeAuthToken } from '../api.js';
 export function renderProfile() {
     setTimeout(initTwoFA, 100);
     setTimeout(loadProfile, 100);
@@ -117,7 +118,7 @@ async function initTwoFA() {
     window.twoFAManager = manager;
 }
 async function loadProfile() {
-    const token = getCookie('auth_jwt');
+    const token = getToken();
     if (!token) {
         const infoDiv = document.getElementById('profileInfo');
         if (infoDiv) {
@@ -127,19 +128,25 @@ async function loadProfile() {
         return;
     }
     try {
-        const data = await api('/auth/profile-data');
+        const response = await api('/api/auth/profile-data');
         const infoDiv = document.getElementById('profileInfo');
         if (infoDiv) {
-            infoDiv.innerHTML = `
-        <p><strong data-i18n="profile.username">Username:</strong> ${data.username}</p>
-        <p><strong data-i18n="profile.email">Email:</strong> ${data.email}</p>
-        <p><strong data-i18n="profile.id">ID:</strong> ${data.id}</p>
-        <p><strong data-i18n="profile.2fa">2FA:</strong> <span class="${data.twoFactorEnabled ? 'text-green-400' : 'text-yellow-400'}">${data.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span></p>
-      `;
+            if (response.success && response.user) {
+                infoDiv.innerHTML = `
+          <p><strong data-i18n="profile.username">Username:</strong> ${response.user.username || 'N/A'}</p>
+          <p><strong data-i18n="profile.email">Email:</strong> ${response.user.email || 'N/A'}</p>
+          <p><strong data-i18n="profile.id">ID:</strong> ${response.user.id || 'N/A'}</p>
+          <p><strong data-i18n="profile.2fa">2FA:</strong> <span class="${response.user.twoFactorEnabled ? 'text-green-400' : 'text-yellow-400'}">${response.user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span></p>
+        `;
+            }
+            else {
+                infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
+            }
             window.languageManager?.applyTranslations();
         }
     }
     catch (error) {
+        console.error('Error loading profile:', error);
         const infoDiv = document.getElementById('profileInfo');
         if (infoDiv) {
             infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
@@ -151,7 +158,7 @@ async function updateProfile() {
     const displayName = document.getElementById('displayName').value;
     const avatar = document.getElementById('avatar').value;
     try {
-        const data = await api('/auth/profile-data', {
+        const data = await api('/api/auth/profile-data', {
             method: 'PUT',
             body: JSON.stringify({ displayName, avatar })
         });
@@ -213,7 +220,7 @@ async function deleteAcc() {
             resultDiv.textContent = 'Account deleted successfully';
         }
         setTimeout(() => {
-            document.cookie = 'auth_jwt=; path=/; max-age=0';
+            removeAuthToken();
             window.location.href = '/';
         }, 2000);
     }

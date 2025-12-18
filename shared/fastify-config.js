@@ -28,29 +28,26 @@ export default async function createFastifyApp(options = {}) {
 		trustProxy: true
 	});
 
-	if (corsOrigin) {
-		const fastifyCors = await import('@fastify/cors');
-		await fastify.register(fastifyCors.default, {
-			origin: corsOrigin === true ? true : corsOrigin,
-			credentials: true,
-			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-			allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token', 'Cookie'],
-			exposedHeaders: ['Set-Cookie', 'Authorization']
-		});
-	}
+if (corsOrigin) {
+    const fastifyCors = await import('@fastify/cors');
+    const origin = corsOrigin === true
+        ? true
+        : (process.env.CORS_ORIGIN || corsOrigin);
+
+    await fastify.register(fastifyCors.default, {
+        origin: origin,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token', 'Cookie'],
+        exposedHeaders: ['Set-Cookie', 'Authorization']
+    });
+}
 
 	if (serviceName === 'api-gateway' || serviceName === 'auth-service') {
 		const fastifyFormbody = await import('@fastify/formbody');
 		await fastify.register(fastifyFormbody.default);
 	}
 
-	if (serviceName === 'api-gateway') {
-		const fastifyCookie = await import('@fastify/cookie');
-		await fastify.register(fastifyCookie.default, {
-			secret: process.env.COOKIE_SECRET || 'cookie-secret-' + crypto.randomBytes(16).toString('hex'),
-			hook: 'onRequest'
-		});
-	}
 
 	if (enableSessions) {
 		const fastifySecureSession = await import('@fastify/secure-session');

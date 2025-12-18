@@ -29,4 +29,7 @@ async function api(url, options = {}) {
     }
     return response.json();
 }
-export { api, getToken, setToken, clearToken };
+function removeAuthToken() {
+    clearToken();
+}
+export { api, getToken, setToken, clearToken, removeAuthToken };

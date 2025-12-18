@@ -1,36 +1,12 @@
-import { api, getCookie } from './api.js';
-import { navigate } from './router.js';
+import { api } from './api.js';
 
 export async function loadUserData(): Promise<any> {
   try {
-    const response = await fetch('/gdpr/user-data', {
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.status === 504) {
-      throw new Error('GATEWAY_TIMEOUT');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: errorText };
-      }
-      throw new Error(errorData.error || `HTTP error ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (result.success) {
-      return result.data;
+    const data = await api<any>('/api/gdpr/user-data');
+    if (data.success) {
+      return data.data;
     } else {
-      throw new Error(result.error);
+      throw new Error(data.error);
     }
   } catch (error: any) {
     console.error('Error loading user data:', error);
@@ -40,20 +16,10 @@ export async function loadUserData(): Promise<any> {
 
 export async function exportUserData(): Promise<void> {
   try {
-    const response = await fetch('/gdpr/export-data', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json'
-      }
+    const result = await api<any>('/api/gdpr/export-data', {
+      method: 'POST'
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'HTTP error');
-    }
-
-    const result = await response.json();
     if (result.success) {
       const dataStr = JSON.stringify(result.data, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -65,7 +31,6 @@ export async function exportUserData(): Promise<void> {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
       showGDPRMessage('messages.dataExported', 'success');
     } else {
       throw new Error(result.error);
@@ -78,19 +43,14 @@ export async function exportUserData(): Promise<void> {
 
 export async function anonymizeUserData(): Promise<void> {
   try {
-    const response = await fetch('/gdpr/anonymize', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json'
-      }
+    const result = await api<any>('/api/gdpr/anonymize', {
+      method: 'POST'
     });
 
-    const result = await response.json();
     if (result.success) {
       showGDPRMessage('messages.dataAnonymized', 'success');
       setTimeout(() => {
-        document.cookie = 'auth_jwt=; path=/; max-age=0';
+        localStorage.removeItem('auth_token');
         window.location.href = '/';
       }, 3000);
     } else {
@@ -104,18 +64,15 @@ export async function anonymizeUserData(): Promise<void> {
 
 export async function deleteAccount(confirmationText: string): Promise<void> {
   try {
-    const response = await fetch('/gdpr/delete-account', {
+    const result = await api<any>('/api/gdpr/delete-account', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ confirmation: confirmationText })
     });
 
-    const result = await response.json();
     if (result.success) {
       showGDPRMessage('messages.accountDeleted', 'success');
       setTimeout(() => {
-        document.cookie = 'auth_jwt=; path=/; max-age=0';
+        localStorage.removeItem('auth_token');
         window.location.href = '/';
       }, 2000);
     } else {
@@ -129,20 +86,11 @@ export async function deleteAccount(confirmationText: string): Promise<void> {
 
 export async function loadUserConsent(): Promise<any> {
   try {
-    const response = await fetch('/gdpr/user-consent', {
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) return null;
-
-    const result = await response.json();
-    if (!result.success || !result.consent) return null;
-
-    return result.consent;
+    const data = await api<any>('/api/gdpr/user-consent');
+    if (data.success) {
+      return data.consent;
+    }
+    return null;
   } catch (error) {
     console.error('Error loading user consent:', error);
     return null;
@@ -151,14 +99,11 @@ export async function loadUserConsent(): Promise<any> {
 
 export async function updateConsent(consentData: any): Promise<boolean> {
   try {
-    const response = await fetch('/gdpr/update-consent', {
+    const result = await api<any>('/api/gdpr/update-consent', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify(consentData)
     });
 
-    const result = await response.json();
     if (result.success) {
       showGDPRMessage('messages.preferencesUpdated', 'success');
       return true;
@@ -178,12 +123,9 @@ function showGDPRMessage(message: string, type: 'success' | 'error'): void {
   messageDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
     type === 'success' ? 'bg-green-600' : 'bg-red-600'
   } text-white z-50`;
-
   const translatedMessage = window.languageManager?.t(message) || message;
   messageDiv.textContent = translatedMessage;
-
   document.body.appendChild(messageDiv);
-
   setTimeout(() => {
     messageDiv.remove();
   }, 5000);

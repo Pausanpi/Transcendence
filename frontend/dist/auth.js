@@ -73,3 +73,4 @@ function showResult(id, message, isError) {
 window.login = login;
 window.register = register;
 window.logout = logout;
+window.updateAuthBtn = updateAuthBtn;

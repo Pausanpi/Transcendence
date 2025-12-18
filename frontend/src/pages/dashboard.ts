@@ -34,10 +34,10 @@ export function renderDashboard(): string {
   `;
 }
 
+
 const services = [
   { name: 'Gateway', url: '/health' },
   { name: 'Auth', url: '/api/auth/health' },
-  { name: 'I18n', url: '/api/i18n/health' },
   { name: 'Users', url: '/api/users/health' },
   { name: 'Database', url: '/api/database/health' },
 ];
@@ -89,6 +89,5 @@ export async function testApi(): Promise<void> {
   }
 }
 
-// Global
 (window as any).checkServices = checkServices;
 (window as any).testApi = testApi;

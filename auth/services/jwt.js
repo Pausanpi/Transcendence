@@ -40,34 +40,34 @@ class JWTService {
 		return parts.length === 3;
 	}
 
-	async generateToken(payload = {}, options = {}) {
-		const ok = await this.ensureSecretLoaded();
-		if (!ok) throw new Error('JWT secret not available');
+async generateToken(payload = {}, options = {}) {
+    const ok = await this.ensureSecretLoaded();
+    if (!ok) throw new Error('JWT secret not available');
 
-		const tokenPayload = { ...payload };
-		const jwtOptions = {
-			expiresIn: options.expiresIn || '7d',
-			issuer: options.issuer || 'gateway',
-			audience: options.audience || 'user'
-		};
+    const tokenPayload = { ...payload };
+    const jwtOptions = {
+        expiresIn: options.expiresIn || '7d',
+        issuer: options.issuer || 'auth-service',
+        audience: options.audience || 'user'
+    };
 
-		return jwt.sign(tokenPayload, this.secret, jwtOptions);
-	}
+    return jwt.sign(tokenPayload, this.secret, jwtOptions);
+}
 
-	async verifyToken(token) {
-		if (!this.isValidTokenFormat(token)) return null;
-		const ok = await this.ensureSecretLoaded();
-		if (!ok) return null;
+async verifyToken(token) {
+    if (!this.isValidTokenFormat(token)) return null;
+    const ok = await this.ensureSecretLoaded();
+    if (!ok) return null;
 
-		try {
-			return jwt.verify(token, this.secret, {
-				issuer: 'gateway',
-				audience: 'user'
-			});
-		} catch (error) {
-			return null;
-		}
-	}
+    try {
+        return jwt.verify(token, this.secret, {
+            issuer: 'auth-service',
+            audience: 'user'
+        });
+    } catch (error) {
+        return null;
+    }
+}
 
 	decodeToken(token) {
 		if (!this.isValidTokenFormat(token)) return null;

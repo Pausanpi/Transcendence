@@ -41,19 +41,15 @@ function updateNav() {
     });
 }
 function renderRoute() {
-    // pintar HTML
     window.languageManager.applyTranslations();
 }
 export function initRouter() {
-    // Nav click handlers
     document.querySelectorAll('[data-nav]').forEach(el => {
         el.addEventListener('click', () => {
             navigate(el.getAttribute('data-nav'));
         });
     });
-    // Start at home
     navigate('home');
 }
-// Make navigate global
 window.navigate = navigate;
 window.updateAuthBtn = updateAuthBtn;

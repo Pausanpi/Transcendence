@@ -6,11 +6,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function startUserService() {
-	const fastify = await createFastifyApp({
-		serviceName: 'users-service',
-		enableSessions: true,
-		corsOrigin: process.env.CORS_ORIGIN || true
-	});
+const fastify = await createFastifyApp({
+    serviceName: 'users-service',
+    corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
+});
 
 	await fastify.register(adminRoutes, { prefix: '/users' });
 	await fastify.register(healthRoutes);

@@ -60,7 +60,8 @@ export class TwoFAManager {
     async setup2FA() {
         try {
             const result = await api('/api/2fa/setup', {
-                method: 'POST'
+                method: 'POST',
+                body: JSON.stringify({})
             });
             if (result.success) {
                 this.setupToken = result.setupToken;

@@ -5,7 +5,6 @@ class HttpClient {
 		this.client = axios.create({
 			baseURL,
 			timeout: options.timeout || 5000,
-			withCredentials: true,
 			headers: Object.assign({
 				'Content-Type': 'application/json',
 				'x-service-token': process.env.SERVICE_TOKEN || 'dev-service-token'
