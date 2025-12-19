@@ -49,7 +49,7 @@ export async function register() {
         });
         setToken(data.token);
         updateAuthBtn();
-        navigate('home');
+        navigate('profile');
         showResult('registerResult', 'messages.registrationSuccess', false);
     }
     catch (error) {

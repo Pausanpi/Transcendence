@@ -8,6 +8,16 @@ export default async function healthRoutes(fastify, options) {
 		endpoints: ['/auth', '/2fa']
 	}));
 
+	fastify.get('/auth/health', async () => ({
+		service: 'auth-service',
+		status: 'OK',
+		url: process.env.AUTH_SERVICE_PORT,
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+		endpoints: ['/auth', '/2fa']
+	}));
+
+
 	fastify.get('/ready', async () => {
 		try {
 			const databaseUrl = process.env.DATABASE_SERVICE_URL || 'http://localhost:3003';

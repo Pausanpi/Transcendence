@@ -18,7 +18,7 @@ export default async function i18nRoutes(fastify, options) {
     fastify.post('/change-language', async (request, reply) => {
         const { language } = request.body;
 
-        if (!language || !['en', 'es'].includes(language)) {
+        if (!language || !['en', 'es', 'ja'].includes(language)) {
             return reply.status(400).send({
                 success: false,
                 error: 'common.unsupportedLanguage'
@@ -41,7 +41,7 @@ export default async function i18nRoutes(fastify, options) {
     fastify.get('/available-languages', async (request, reply) => {
         return {
             success: true,
-            languages: ['en', 'es'],
+            languages: ['en', 'es', 'ja'],
             current: i18n.getLanguage()
         };
     });
@@ -49,7 +49,7 @@ export default async function i18nRoutes(fastify, options) {
     fastify.get('/locales/:language.json', async (request, reply) => {
         const { language } = request.params;
 
-        if (!['en', 'es'].includes(language)) {
+        if (!['en', 'es', 'ja'].includes(language)) {
             return reply.status(404).send({ error: 'Language not found' });
         }
 

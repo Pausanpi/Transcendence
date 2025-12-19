@@ -27,7 +27,6 @@ destroy:
 	@docker compose down -v --rmi local
 
 health:
-	ps aux | grep -E "(3000|3001|3002|3003|3004|8443)"
 	@echo "\n --- GATEWAY ---\n"
 	curl http://localhost:3000/health
 	@echo "\n --- AUTH ---\n"

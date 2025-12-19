@@ -40,6 +40,7 @@ const services = [
   { name: 'Auth', url: '/api/auth/health' },
   { name: 'Users', url: '/api/users/health' },
   { name: 'Database', url: '/api/database/health' },
+  { name: 'I18n', url: '/api/i18n/health' },
 ];
 
 export async function checkServices(): Promise<void> {

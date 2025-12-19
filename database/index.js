@@ -1,6 +1,6 @@
 import createFastifyApp from '../shared/fastify-config.js';
 import dotenv from 'dotenv';
-
+import healthRoutes from './routes/health.js';
 import queryRoutes from './routes/query.js';
 
 dotenv.config();
@@ -12,7 +12,10 @@ const fastify = await createFastifyApp({
     corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
 });
 
-	await fastify.register(queryRoutes);
+//await fastify.register(queryRoutes, { prefix: '/database' });
+
+await fastify.register(queryRoutes);
+await fastify.register(healthRoutes);
 
 	fastify.addHook('onRequest', async (request, reply) => {
 		if (request.method === 'GET' && request.url.startsWith('/health')) return;

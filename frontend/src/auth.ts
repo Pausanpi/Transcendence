@@ -56,7 +56,7 @@ export async function register(): Promise<void> {
 
     setToken(data.token);
     updateAuthBtn();
-    navigate('home');
+    navigate('profile');
     showResult('registerResult', 'messages.registrationSuccess', false);
   } catch (error: any) {
     showResult('registerResult', error.message, true);

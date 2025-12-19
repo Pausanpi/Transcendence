@@ -18,9 +18,6 @@ export function renderProfile(): string {
         </div>
 
 
-
-
-
 <div class="grid grid-cols-2 gap-4 mt-4">
           <input id="displayName" placeholder="Display Name" class="input" data-i18n-placeholder="profile.displayName" />
           <input id="avatar" placeholder="Avatar URL" class="input" data-i18n-placeholder="profile.avatarUrl" />
@@ -28,17 +25,14 @@ export function renderProfile(): string {
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
        <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA">
-          🔐 Setup Two-Factor Authentication
         </button>
         <div id="profileResult" class="hidden"></div>
 
       <div id="disableSection" class="card" style="display: none;">
         <div class="flex gap-4">
           <button id="disable2FABtn" class="btn btn-red" data-i18n="2fa.disable2FA">
-            🔓 Disable 2FA
           </button>
           <button id="generateBackupCodesBtn" class="btn btn-yellow" data-i18n="2fa.generateBackupCodes">
-            📋 Generate Backup Codes
           </button>
         </div>
       </div>
@@ -93,10 +87,10 @@ export function renderProfile(): string {
         <div id="backupCodesList" class="grid grid-cols-2 gap-3 mb-6"></div>
         <div class="flex gap-4">
           <button id="copyAllCodesBtn" class="btn btn-blue flex-1">
-            📋 Copy All Codes
+          Copy all
           </button>
           <button id="downloadCodesBtn" class="btn btn-yellow flex-1">
-            💾 Download Codes
+          Download
           </button>
           <button id="closeBackupCodesBtn" class="btn btn-gray flex-1" data-i18n="common.confirm">
             I've Saved Them
@@ -104,9 +98,6 @@ export function renderProfile(): string {
         </div>
       </div>
     </div>
-
-
-
 
       </div>
 
@@ -128,7 +119,7 @@ async function loadProfile(): Promise<void> {
   if (!token) {
     const infoDiv = document.getElementById('profileInfo');
     if (infoDiv) {
-      infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.pleaseLogin">Please login</p>';
+      infoDiv.innerHTML = '<p class="text-red-400" data-i18n="auth.authenticationRequired">Please login</p>';
       window.languageManager?.applyTranslations();
     }
     return;
@@ -142,11 +133,16 @@ async function loadProfile(): Promise<void> {
     if (infoDiv) {
       if (response.success && response.user) {
         infoDiv.innerHTML = `
+        <p><img width='200px' height='200px'  src=${response.user.avatar || '/default-avatar.png'} />
           <p><strong data-i18n="profile.username">Username:</strong> ${response.user.username || 'N/A'}</p>
           <p><strong data-i18n="profile.email">Email:</strong> ${response.user.email || 'N/A'}</p>
           <p><strong data-i18n="profile.id">ID:</strong> ${response.user.id || 'N/A'}</p>
           <p><strong data-i18n="profile.2fa">2FA:</strong> <span class="${response.user.twoFactorEnabled ? 'text-green-400' : 'text-yellow-400'}">${response.user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span></p>
         `;
+
+        
+
+
       } else {
         infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
       }

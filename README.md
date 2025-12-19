@@ -1,52 +1,102 @@
 # LO NUEVO
 
+> [!WARNING]
+- La web se levanta en https://localhost:8443 por cuestiones del campus
+- En el navegador, al usar certificados autofirmado debes aceptar los riesgos
+- PELIGRO: make destroy borra todas las imagenes, ... pero es una buena forma de 
+evitar errores por incompatibilidades con otras versiones
+- Se puede acceder a la BD de 2 formas:
+  - Directamente accediendo al servicio (Puertos expuestos TEMPORALMENTE) HTTP: 
+    `http://localhost:3003/users/all`
+  - Una vez logeado y con un token valido. HTTPS:
+    `https://localhost:8443/api/database/health`
+
 ### Últimos cambios (acorde a la pasada reunión)
-
+- Adaptación de microservicios al frontend basepauela
+- 0 cookies, Todo a traves de JWT guardado en localStorage
+- PSA ok, nada de redirecciones, para 2fa, etc...
+- Añadido un 3cer idioma de prueba
+- Services del Dashboard revisados y funcionando
+- Desde el frontend se accede solo mediante la API `https://localhost:8443/api/SERVICIO/...`
 - Backend fragmentado en microservicios cada uno con su Dockerfile
-- Microservicios expuestos (temporalmente para desarrollo) en puertos distintos
-- Dockerfile base para intentar minimizar tiempo/espacio
 - Cada servicio tiene su propio endpoint "health", ver make health
-- Gateway actúa como reverse proxy
+- Dockerfile base común para intentar minimizar tiempo/espacio
 
-- Hay archivos que rehubicar
-- Al fragmentar servicios se han ido a la porra cosas que tengo que revisar, 2fa, oauth ....
+#### Faltan entre otras cosas
+- Cosas que traducir
+- Lo de modificar (botón UPDATE) y subir avatar (parte gestión de usuarios?)
+- Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
+- etc...
+- si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault) 
+  Pierdes la ventaja “stateless”
+  Necesitas Redis / DB / Vault
+- seguridad BD: si un usuario usa el id de otro puede ver sus datos??
+  rutas a las que no se deberia acceder sin ser admin, como: /database/users/all
 
-**Para no tener que andar creando usuarios si accedes a http://localhost:3003/users/all se deben ver todos los ya creados**
+
+
+**Para no tener que andar creando usuarios si accedes a http://localhost:3003/users/all se deben ver todos los ya creados, sus datos, etc**
 
 
 ### **Health Checks (ver desde el navegador o curl):**
 ```bash
 # Verificar todos los servicios
-curl http://localhost:3000/health          # Gateway
+curl -k https://localhost:8443/health     # nginx
+curl http://localhost:3000/health         # Gateway
 curl http://localhost:3001/health         # Auth
 curl http://localhost:3002/health         # I18n
 curl http://localhost:3003/health         # Database
 curl http://localhost:3004/health         # Users
 ```
 
-
 ![alt text](_assets/run.png)
+
+### COSITAS
+
+> Para acceder a traves de la api detras de nginx hay que pasarle el token
+
+``` javascript
+curl -k https://localhost:8443/api/auth/profile-data \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfeGhtOWc5dmJvbWoxNXA0ODciLCJ1c2VybmFtZSI6InBlcGUiLCJlbWFpbCI6InBlcGUxMjM0QEdNQUlMLmNvbSIsImlhdCI6MTc2NjEzMjQ0OSwiZXhwIjoxNzY2NzM3MjQ5LCJhdWQiOiJ1c2VyIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIn0.13UZfSyPCJKbFKyoQkUEbX_RBqJftQUbMtcraAUM49I" 
+
+{"success":true,"user":{"id":"user_xhm9g9vbomj15p487","username":"pepe","email":"pepe1234@GMAIL.com","avatar":"default-avatar.png","twoFactorEnabled":false,"isActive":true,"isAnonymized":false,"createdAt":"2025-12-11 08:08:30","updatedAt":"2025-12-17 15:07:32"}}%  
+
+curl -k https://localhost:8443/api/gdpr/user-data \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfeGhtOWc5dmJvbWoxNXA0ODciLCJ1c2VybmFtZSI6InBlcGUiLCJlbWFpbCI6InBlcGUxMjM0QEdNQUlMLmNvbSIsImlhdCI6MTc2NjEzMjQ0OSwiZXhwIjoxNzY2NzM3MjQ5LCJhdWQiOiJ1c2VyIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIn0.13UZfSyPCJKbFKyoQkUEbX_RBqJftQUbMtcraAUM49I"
+
+{"success":true,"data":{"profile":{"id":"user_xhm9g9vbomj15p487","username":"pepe","email":"pepe1234@GMAIL.com","avatar":"default-avatar.png","twoFactorEnabled":false,"isActive":true,"isAnonymized":false,"createdAt":"2025-12-11 08:08:30","updatedAt":"2025-12-17 15:07:32"},"dataSummary":{"profileInfo":{"hasUsername":true,"hasEmail":true,"hasAvatar":true,"twoFactorEnabled":false},"activity":{"sessionCount":0,"accountCreated":"2025-12-11 08:08:30","lastUpdated":"2025-12-17 15:07:32"},"consent":{"marketingEmails":true,"analytics":true,"dataProcessing":true,"updatedAt":"2025-12-17T15:07:32.460Z"}}}}% 
+
+curl -k https://localhost:8443/api/database/users/all \ 
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfeGhtOWc5dmJvbWoxNXA0ODciLCJ1c2VybmFtZSI6InBlcGUiLCJlbWFpbCI6InBlcGUxMjM0QEdNQUlMLmNvbSIsImlhdCI6MTc2NjEzMjQ0OSwiZXhwIjoxNzY2NzM3MjQ5LCJhdWQiOiJ1c2VyIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIn0.13UZfSyPCJKbFKyoQkUEbX_RBqJftQUbMtcraAUM49I"
+
+{"success":true,"users":[{"id":"user_jr7lznmnsmjb9vvix","username":"laksd","email":"laksd123@Gmail.com","password_hash":"$2b$04$oAAVIG3LVZ1yktNbH0g6kuvSHW89dTzVuGDpAeNifZXlFdFTW9nSq","oauth_provider":null,"oauth_id":null,"avatar":"default-avatar.png","two_factor_enabled":0,"two_factor_secret":null,"is_active":1,"is_anonymized":0,"login_attempts":0,"locked_until":null,"consent_marketing":0,"consent_analytics":0,"consent_data_processing":1,"consent_updated_at":null,"created_at":"2025-12-18 10:03:26","updated_at":"2025-12-18 10:03:26"},{"id":"user_uvoccq4t4mja89k1u","username":"pepe1d2","email":"pepe1d234@GMAIL.com","password_hash":"$2b$04$0ne69G7E6LJeOS21Zc8KIeMvbUgJioQd3Od/gyy4KhGoFHow.c4GS","oauth_provider":null,"oauth_id":null,"avatar":
+```
+
+> Transpilar a ts desde host
 npx tsc --watch
+
 ---
 
 # TODO
-- [ ] Pasar a TS
-- [ ] Reparar 2fa
-- [ ] Repasar GDPR
+- [ ] Reparar oauth
+- [ ] Pasar a TS (Integrar automaticamente en los contenedores), PRODUCCIÓN
+- [ ] Repasar Reparar GDPR
 - [ ] Crear tests para checkear la seguridad (siege, simuladores de ataque, script, ...)
 - [ ] Mejorar grafana, logs
 - [ ] 2fa con apps, Parece no sincronizarse con app android
 - [ ] Mejor uso de vault
-- [ ] + Frances?
-- [ ] Integrar en estilos paula
 - [ ] Comprobar seguridad apis con podman
 
 ## Sugerencias
 - [ ] Mirar Oauth con telegram y 42oauth
 - [ ] Página error custom
+- [ ] Hay archivos que rehubicar o estarían mejor en otro servicio
 
 ---
 
+# LO DE ABAJO YA ESTABA (VIEJO/DESACTUALIZADO)
+
+---
 
 ## Índice de Servicios
 
@@ -206,17 +256,10 @@ npx tsc --watch
 | `/users/users` | `authenticateJWT`, `requireAdmin` | Página admin usuarios |
 | `/users/users/list` | `authenticateJWT`, `requireAdmin` | Lista usuarios JSON |
 
-
-
 ---
 
 # LO DE ABAJO YA ESTABA (VIEJO)
 
-> IMPORTANTE:
-- La web se levanta en https://localhost:8443 por cuestiones del campus
-- En el navegador, al usar certificados autofirmado debes aceptar los riesgos
-- En el campus hay restricciones de permisos, uso de puertos, acceso a logs
-- La web se puede poner en Ingles/Español por si no concuerda con algo de esta guia
 
 ### Últimos cambios
 

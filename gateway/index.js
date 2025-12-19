@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import gdprRoutes from './routes/gdpr.js';
 
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -140,9 +141,6 @@ async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
 	const databaseUpstream = process.env.DATABASE_SERVICE_URL || 'http://localhost:3003';
 	const usersUpstream = process.env.USERS_SERVICE_URL || 'http://localhost:3004';
 
-
-
-
 fastify.get('/api/auth/profile', async (request, reply) => {
     return proxyAPI(request, reply, authUpstream, true);
 });
@@ -152,7 +150,8 @@ fastify.get('/api/auth/profile-data', async (request, reply) => {
 });
 
 fastify.get('/health', async () => ({
-    gateway: 'OK',
+    status: 'OK',
+    success: true,
     timestamp: new Date().toISOString()
 }));
 
@@ -171,7 +170,6 @@ fastify.get('/api/database/health', async (request, reply) => {
 fastify.get('/api/users/health', async (request, reply) => {
     return proxyAPI(request, reply, usersUpstream, true);
 });
-
 
 fastify.route({
     method: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
@@ -199,10 +197,6 @@ fastify.route({
         });
     }
 });
-
-
-
-
 
 	const port = process.env.GATEWAY_PORT || 3000;
 	await fastify.listen({ port, host: '0.0.0.0' });

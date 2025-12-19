@@ -11,6 +11,7 @@ const fastify = await createFastifyApp({
     corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
 });
 
+
 	await fastify.register(adminRoutes, { prefix: '/users' });
 	await fastify.register(healthRoutes);
 
