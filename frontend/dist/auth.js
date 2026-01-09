@@ -1,0 +1,78 @@
+import { api, setToken, clearToken, getToken } from './api.js';
+import { navigate } from './router.js';
+import { clearUserCache } from './gameService.js';
+export function initAuth() {
+    updateAuthBtn();
+}
+export function updateAuthBtn() {
+    const btn = document.getElementById('authBtn');
+    if (!btn)
+        return;
+    const token = getToken();
+    if (token) {
+        btn.textContent = 'Logout';
+        btn.onclick = logout;
+    }
+    else {
+        btn.textContent = 'Login';
+        btn.onclick = () => navigate('auth');
+    }
+}
+export async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    try {
+        const data = await api('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        });
+        if (data.requires2FA) {
+            localStorage.setItem('temp_2fa_token', data.tempToken);
+            navigate('twofaverify');
+            return;
+        }
+        setToken(data.token);
+        updateAuthBtn();
+        navigate('profile');
+    }
+    catch (error) {
+        showResult('loginResult', error.message, true);
+    }
+}
+export async function register() {
+    const username = document.getElementById('regUsername').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    try {
+        const data = await api('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, email, password })
+        });
+        setToken(data.token);
+        updateAuthBtn();
+        navigate('profile');
+        showResult('registerResult', 'messages.registrationSuccess', false);
+    }
+    catch (error) {
+        showResult('registerResult', error.message, true);
+    }
+}
+export function logout() {
+    clearToken();
+    clearUserCache();
+    updateAuthBtn();
+    navigate('home');
+}
+function showResult(id, message, isError) {
+    const el = document.getElementById(id);
+    if (!el)
+        return;
+    el.classList.remove('hidden', 'success', 'error');
+    el.classList.add('result', isError ? 'error' : 'success');
+    el.innerHTML = `<span data-i18n="${message}"></span>`;
+    window.languageManager?.applyTranslations();
+}
+window.login = login;
+window.register = register;
+window.logout = logout;
+window.updateAuthBtn = updateAuthBtn;
