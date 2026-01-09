@@ -84,3 +84,12 @@ Or use merge:
 git checkout feature/your-feature
 git merge dev
 ```
+
+
+EN GENERAL
+git checkout dev
+git pull origin dev
+git checkout -b feature/my-feature
+# ... work, commit ...
+git push -u origin feature/my-feature
+# → Create PR on GitHub → Get review → Merge → Delete branch
