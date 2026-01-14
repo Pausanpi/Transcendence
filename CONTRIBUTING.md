@@ -1,5 +1,5 @@
 # Contributing Guide
-
+.
 ## Branch Structure
 
 ```
