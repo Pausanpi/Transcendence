@@ -1,9 +1,9 @@
 import createFastifyApp from '../shared/fastify-config.js';
 import adminRoutes from './routes/users.js';
 import healthRoutes from './routes/health.js';
-import dotenv from 'dotenv';
 
-dotenv.config();
+
+
 
 async function startUserService() {
 const fastify = await createFastifyApp({
