@@ -11,6 +11,7 @@ export interface Player {
 export interface MatchResult {
   player1: Player;
   player2: Player;
+
   player1Score: number;
   player2Score: number;
   winner: Player;

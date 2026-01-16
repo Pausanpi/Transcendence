@@ -28,8 +28,6 @@ const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret-' +
 
 async function startGateway() {
 
-configurePassport(fastifyPassport);
-fastify.register(fastifyPassport.initialize());
 
 
 	const fastify = await createFastifyApp({
@@ -37,6 +35,12 @@ fastify.register(fastifyPassport.initialize());
 		enableSessions: false,
 		corsOrigin: true
 	});
+
+/*
+configurePassport(fastifyPassport);
+fastify.register(fastifyPassport.initialize());
+*/
+
 
 await fastify.register(fastifyStatic, {
   root: path.join(__dirname, '../frontend/dist'),
