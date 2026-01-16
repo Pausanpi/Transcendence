@@ -96,7 +96,6 @@ export default async function gdprRoutes(fastify, options) {
 					error: 'messages.userNotFound'
 				});
 			}
-
 			const success = await gdprService.anonymizeUserData(user.id);
 			if (!success) {
 				return reply.status(500).send({
@@ -112,7 +111,7 @@ export default async function gdprRoutes(fastify, options) {
 		} catch (error) {
 			return reply.status(500).send({
 				success: false,
-				error: 'gdpr.anonymizationError'
+				error: `gdpr.anonymizationError ${request.user.id}`
 			});
 		}
 	});

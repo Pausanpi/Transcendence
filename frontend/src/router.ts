@@ -8,6 +8,9 @@ import { renderTournament } from './pages/tournament.js';
 import { renderGdpr } from './pages/gdpr.js';
 import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
+import { renderPlayers } from './pages/players.js';
+import { renderFriends } from './pages/friends.js';
+import { renderTestPage } from './pages/testpage.js';
 
 
 declare global {

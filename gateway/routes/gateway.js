@@ -6,15 +6,16 @@ export default async function gatewayRoutes(fastify, options) {
 	const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret';
 
 	fastify.addHook('onRequest', async (request, reply) => {
-if (
-	!request.url.startsWith('/api/') ||
-	request.url.startsWith('/api/auth/login') ||
-	request.url.startsWith('/api/auth/register') ||
-	request.url.startsWith('/api/i18n/')
-) {
-	return;
-}
-
+	if (
+		!request.url.startsWith('/api/') ||
+		request.url.startsWith('/api/auth/login') ||
+		request.url.startsWith('/api/auth/register') ||
+		request.url.startsWith('/api/auth/2fa') ||
+		request.url.startsWith('/api/auth/github') ||
+		request.url.startsWith('/api/i18n/')
+	) {
+		return;
+	}
 
 		const authHeader = request.headers.authorization;
 		if (!authHeader?.startsWith('Bearer ')) {
@@ -62,12 +63,6 @@ if (
 			return { status: 'not-ready', database: 'error', error: error && error.message };
 		}
 	});
-
-	fastify.get('/game', async (request, reply) => reply.sendFile('index.html'));
-
-	fastify.get('/users/decode.html', async (request, reply) =>
-		reply.sendFile('users/decode.html')
-	);
 
 	fastify.get('/api/auth/profile-data', async (request, reply) => {
 		if (!request.user?.id) {
