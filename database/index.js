@@ -1,12 +1,12 @@
 import createFastifyApp from '../shared/fastify-config.js';
-import dotenv from 'dotenv';
+
 import healthRoutes from './routes/health.js';
 import queryRoutes from './routes/query.js';
 import matchesRoutes from './routes/matches.js';
 import tournamentsRoutes from './routes/tournaments.js';
 import friendsRoutes from './routes/friends.js';
 
-dotenv.config();
+
 
 async function startDatabaseService() {
 
