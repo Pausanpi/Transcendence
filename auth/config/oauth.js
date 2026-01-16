@@ -1,8 +1,5 @@
 import GitHubStrategy from 'passport-github2';
-import dotenv from 'dotenv';
 import { findUserById, findOrCreateOAuthUser } from '../../users/models/User.js';
-
-dotenv.config();
 
 export function configurePassport(passport) {
 	passport.registerUserSerializer(async (user) => {
