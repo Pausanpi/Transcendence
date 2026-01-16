@@ -157,7 +157,42 @@ async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
 	const authUpstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 	const i18nUpstream = process.env.I18N_SERVICE_URL || 'http://localhost:3002';
 	const databaseUpstream = process.env.DATABASE_SERVICE_URL || 'http://localhost:3003';
-	const usersUpstream = process.env.USERS_SERVICE_URL || 'http://localhost:3004';
+    const usersUpstream = process.env.USERS_SERVICE_URL || 'http://localhost:3004';
+
+    // Public players list (no auth needed)
+    fastify.get('/api/players', async (request, reply) => {
+        const search = request.query.search || '';
+        const limit = request.query.limit || 50;
+        const offset = request.query.offset || 0;
+        const url = `${databaseUpstream}/users/public/list?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`;
+        try {
+            const response = await fetch(url, {
+                headers: { 'x-service-token': SERVICE_TOKEN }
+            });
+            const data = await response.json();
+            reply.code(response.status);
+            return reply.send(data);
+        } catch (err) {
+            fastify.log.error('Players list error:', err);
+            return reply.status(502).send({ error: 'Service unavailable', code: 'SERVICE_ERROR' });
+        }
+    });
+
+    // Public player profile by ID (no auth needed)
+    fastify.get('/api/players/:id', async (request, reply) => {
+        const url = `${databaseUpstream}/users/public/${request.params.id}`;
+        try {
+            const response = await fetch(url, {
+                headers: { 'x-service-token': SERVICE_TOKEN }
+            });
+            const data = await response.json();
+            reply.code(response.status);
+            return reply.send(data);
+        } catch (err) {
+            fastify.log.error('Player profile error:', err);
+            return reply.status(502).send({ error: 'Service unavailable', code: 'SERVICE_ERROR' });
+        }
+    });
 
 
 fastify.get('/api/auth/github',
@@ -250,6 +285,9 @@ fastify.route({
         }
         if (service === 'users') {
             return proxyAPI(request, reply, usersUpstream, true);
+        }
+        if (service === 'friends') {
+            return proxyAPI(request, reply, databaseUpstream, true);
         }
         return reply.status(404).send({
             success: false,
