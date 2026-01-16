@@ -5,6 +5,8 @@
 		"start": "node gateway/index.js"
 	},
 	"dependencies": {
+		"passport": "^0.7.0",
+		"passport-github2": "^0.1.12",
 		"@fastify/passport": "^3.0.2",
 		"@fastify/secure-session": "^8.3.0",
 		"@fastify/cookie": "^11.0.2",
