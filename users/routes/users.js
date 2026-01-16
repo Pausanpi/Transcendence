@@ -31,14 +31,8 @@ export default async function adminRoutes(fastify, options) {
 		}
 	});
 
-	fastify.get('/users', {
-		preHandler: [authenticateJWT, requireAdmin]
-	}, async (request, reply) => {
-		return reply.sendFile('users/users.html');
-	});
-
-	fastify.get('/users/list', {
-		preHandler: [authenticateJWT, requireAdmin]
+	fastify.get('/list', {
+		preHandler: [authenticateJWT]
 	}, async (request, reply) => {
 		try {
 			const users = await getAllUsers();

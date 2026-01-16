@@ -2,9 +2,6 @@ import createFastifyApp from '../shared/fastify-config.js';
 import authRoutes from './routes/auth.js';
 import twoFARoutes from './routes/2fa.js';
 import healthRoutes from './routes/health.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 async function startAuthService() {
 
@@ -12,7 +9,7 @@ async function startAuthService() {
 
 const fastify = await createFastifyApp({
     serviceName: 'auth-service',
-    enableSessions: false,
+    enableSessions: true,
     corsOrigin: process.env.CORS_ORIGIN || 'https://localhost:8443'
 });
 

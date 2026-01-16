@@ -4,11 +4,19 @@ import {
 	findUserById,
 	findUserByEmail,
 	incrementLoginAttempts,
-	resetLoginAttempts
+	resetLoginAttempts,
+	findOrCreateOAuthUser
 } from '../../users/models/User.js';
 import { validateLogin, validateRegistration } from '../middleware/validation.js';
+import fastifyPassport from '@fastify/passport';
+import { configurePassport } from '../config/oauth.js';
+
+
 
 export default async function authRoutes(fastify, options) {
+
+
+
 
 	fastify.post('/login', { preHandler: validateLogin }, async (request, reply) => {
 		const { email, password } = request.body;
@@ -222,4 +230,9 @@ fastify.put('/profile-data', async (request, reply) => {
 			});
 		}
 	});
+
+
+
+
+
 }

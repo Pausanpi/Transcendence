@@ -35,10 +35,9 @@ class GdprService {
 
 	async anonymizeUserData(userId) {
 		try {
-			await databaseApiClient.deleteUserSessions(userId);
+			//await databaseApiClient.deleteUserSessions(userId);
 			const anonymizedData = {
 				username: `anonymous_${this.generateRandomId()}`,
-				email: null,
 				avatar: null,
 				is_anonymized: 1,
 				two_factor_enabled: 0,
