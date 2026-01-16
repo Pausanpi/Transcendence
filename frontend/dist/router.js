@@ -15,7 +15,7 @@ const routes = {
     auth: renderAuth,
     profile: renderProfile,
     game: renderGame,
-	tournament: renderTournament,
+    tournament: renderTournament,
     gdpr: renderGdpr,
     twofaverify: renderTwoFAVerify,
 };
