@@ -16,7 +16,7 @@ fclean:
 logs:
 	@docker compose logs
 ps:
-	@docker compose ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+	@docker compose ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 destroy:
 	@docker stop $$(docker ps -aq) || true
 	@docker rm $$(docker ps -aq) || true

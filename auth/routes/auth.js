@@ -1,22 +1,17 @@
 import jwtService from '../services/jwt.js';
-import {
+import User, {
 	saveUser,
 	findUserById,
 	findUserByEmail,
 	incrementLoginAttempts,
 	resetLoginAttempts,
 	findOrCreateOAuthUser
-} from '../../users/models/User.js';
+} from '../services/user.js';
 import { validateLogin, validateRegistration } from '../middleware/validation.js';
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from '../config/oauth.js';
 
-
-
 export default async function authRoutes(fastify, options) {
-
-
-
 
 	fastify.post('/login', { preHandler: validateLogin }, async (request, reply) => {
 		const { email, password } = request.body;
@@ -120,119 +115,17 @@ export default async function authRoutes(fastify, options) {
 		};
 	});
 
-fastify.get('/profile-data', async (request, reply) => {
-    const userId = request.headers['x-user-id'] ||
-                   (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-
-    if (!userId) {
-        return reply.status(401).send({
-            success: false,
-            error: 'messages.authError'
-        });
-    }
-
-    try {
-        const user = await findUserById(userId);
-        if (!user) {
-            return reply.status(404).send({
-                success: false,
-                error: 'messages.userNotFound'
-            });
-        }
-        return {
-            success: true,
-            user: user.toSafeJSON()
-        };
-    } catch (error) {
-        return reply.status(500).send({
-            success: false,
-            error: 'common.internalError'
-        });
-    }
-});
-
-fastify.put('/profile-data', async (request, reply) => {
-    const userId = request.headers['x-user-id'] ||
-                   (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-
-    if (!userId) {
-        return reply.status(401).send({
-            success: false,
-            error: 'messages.authError'
-        });
-    }
-
-    try {
-        const { displayName, avatar } = request.body;
-        const user = await findUserById(userId);
-        if (!user) {
-            return reply.status(404).send({
-                success: false,
-                error: 'messages.userNotFound'
-            });
-        }
-        const updateData = {};
-        if (displayName !== undefined) updateData.username = displayName;
-        if (avatar !== undefined) updateData.avatar = avatar;
-        if (Object.keys(updateData).length > 0) {
-            await updateUser(user.id, updateData);
-        }
-        const updatedUser = await findUserById(userId);
-        return {
-            success: true,
-            user: updatedUser.toSafeJSON()
-        };
-    } catch (error) {
-        return reply.status(500).send({
-            success: false,
-            error: 'common.internalError'
-        });
-    }
-});
-
-	fastify.get('/profile', { preHandler: async (req, reply) => {
-		const authHeader = req.headers.authorization;
-		if (!authHeader?.startsWith('Bearer ')) {
-			return reply.status(401).send({
-				success: false,
-				error: 'messages.authError'
-			});
-		}
-
-		const token = authHeader.substring(7);
-		const decoded = await jwtService.verifyToken(token);
-		if (!decoded) {
-			return reply.status(401).send({
-				success: false,
-				error: 'auth.invalidToken'
-			});
-		}
-
-		req.user = decoded;
-	}}, async (request, reply) => {
-		try {
-			const user = await findUserById(request.user.id);
-			if (!user) {
-				return reply.status(404).send({
-					success: false,
-					error: 'messages.userNotFound'
-				});
-			}
-
-			return {
-				success: true,
-				user: user.toSafeJSON()
-			};
-		} catch (error) {
-			return reply.status(500).send({
-				success: false,
-				error: 'common.internalError'
-			});
-		}
-	});
 
 
 
+	fastify.get('/health', async () => ({
+		service: 'auth-service',
+		status: 'OK',
+		url: process.env.AUTH_SERVICE_PORT,
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+		endpoints: ['/auth', '/2fa']
+	}));
 
 
 }

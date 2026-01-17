@@ -16,7 +16,6 @@ export default async function createFastifyApp(options = {}) {
 	});
 
 
-
 if (corsOrigin) {
     const fastifyCors = await import('@fastify/cors');
     const origin = corsOrigin === true

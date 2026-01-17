@@ -36,7 +36,7 @@ export function renderDashboard(): string {
 
 
 const services = [
-  { name: 'Gateway', url: '/health' },
+  { name: 'Gateway', url: '/api/gateway/health' },
   { name: 'Auth', url: '/api/auth/health' },
   { name: 'Users', url: '/api/users/health' },
   { name: 'Database', url: '/api/database/health' },

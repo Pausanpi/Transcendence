@@ -1,5 +1,5 @@
 import GitHubStrategy from 'passport-github2';
-import { findUserById, findOrCreateOAuthUser } from '../../users/models/User.js';
+import { findUserById, findOrCreateOAuthUser } from '../services/user.js';
 
 export function configurePassport(passport) {
 	passport.registerUserSerializer(async (user) => {
@@ -22,7 +22,7 @@ export function configurePassport(passport) {
 			{
 				clientID: process.env.GITHUB_CLIENT_ID,
 				clientSecret: process.env.GITHUB_CLIENT_SECRET,
-				callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:3000/auth/github/callback',
+				callbackURL: 'http://auth:3001/auth/github/callback',
 				scope: ["user:email"],
 				proxy: true
 			},

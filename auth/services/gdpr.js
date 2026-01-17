@@ -1,13 +1,20 @@
-import { databaseApiClient } from '../../shared/http-client.js';
-import { findUserById } from '../../users/models/User.js';
+import {
+	findUserById,
+	updateUser,
+	deleteUser,
+	getUserSessions,
+	deleteUserSessions
+ } from './user.js';
+
+import TwoFactorService from './twoFactor.js';
 
 class GdprService {
 	async getUserDataSummary(userId) {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-			const sessionsResponse = await databaseApiClient.getUserSessions(userId);
-			const sessions = sessionsResponse.data.success ? sessionsResponse.data.sessions : [];
+			const sessionsResponse = await getUserSessions(userId);
+			const sessions = sessionsResponse.success ? sessionsResponse.sessions : [];
 			return {
 				profileInfo: {
 					hasUsername: !!user.username,
@@ -35,7 +42,7 @@ class GdprService {
 
 	async anonymizeUserData(userId) {
 		try {
-			//await databaseApiClient.deleteUserSessions(userId);
+			//await deleteUserSessions(userId);
 			const anonymizedData = {
 				username: `anonymous_${this.generateRandomId()}`,
 				avatar: null,
@@ -43,8 +50,8 @@ class GdprService {
 				two_factor_enabled: 0,
 				two_factor_secret: null
 			};
-			const response = await databaseApiClient.updateUser(userId, anonymizedData);
-			return response.data.success;
+			const response = await updateUser(userId, anonymizedData);
+			return response !== undefined;
 		} catch (error) {
 			console.error('Error in anonymizeUserData:', error);
 			throw error;
@@ -55,8 +62,8 @@ class GdprService {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-			const sessionsResponse = await databaseApiClient.getUserSessions(userId);
-			const sessions = sessionsResponse.data.success ? sessionsResponse.data.sessions : [];
+			const sessionsResponse = await getUserSessions(userId);
+			const sessions = sessionsResponse.success ? sessionsResponse.sessions : [];
 			return {
 				exportInfo: {
 					generatedAt: new Date().toISOString(),
@@ -77,13 +84,13 @@ class GdprService {
 
 	async updateUserConsent(userId, consentData) {
 		try {
-			const response = await databaseApiClient.updateUser(userId, {
+			const response = await updateUser(userId, {
 				consent_marketing: consentData.marketingEmails ? 1 : 0,
 				consent_analytics: consentData.analytics ? 1 : 0,
 				consent_data_processing: consentData.dataProcessing ? 1 : 0,
 				consent_updated_at: consentData.consentUpdatedAt
 			});
-			return response.data.success;
+			return response !== undefined;
 		} catch (error) {
 			console.error('Error in updateUserConsent:', error);
 			throw error;
@@ -92,10 +99,10 @@ class GdprService {
 
 	async deleteUserAccount(userId) {
 		try {
-			await databaseApiClient.deleteUserSessions(userId);
-			await databaseApiClient.saveBackupCodes(userId, []);
-			const response = await databaseApiClient.deleteUser(userId);
-			return response.data.success;
+			await deleteUserSessions(userId);
+			await TwoFactorService.saveBackupCodes(userId, []);
+			const response = await deleteUser(userId);
+			return response !== undefined;
 		} catch (error) {
 			console.error('Error in deleteUserAccount:', error);
 			throw error;

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 class VaultClient {
 	constructor() {
-		this.vaultAddr = process.env.VAULT_ADDR || 'http://vault:8200';
+		this.vaultAddr = 'http://vault:8200';
 		this.vaultToken = process.env.VAULT_TOKEN;
 		this.client = axios.create({
 			baseURL: this.vaultAddr,

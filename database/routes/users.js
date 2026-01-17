@@ -1,6 +1,8 @@
+
 import db from '../config/sqlite.js';
 
-export default async function queryRoutes(fastify, options) {
+export default async function usersRoutes(fastify, options) {
+
 
 	fastify.get('/users/:id', async (request, reply) => {
 		const { id } = request.params;
@@ -56,9 +58,9 @@ export default async function queryRoutes(fastify, options) {
 		try {
 			const result = await db.run(
 				`INSERT INTO users (id, username, email, password_hash, avatar,
-                 oauth_provider, oauth_id, two_factor_enabled, two_factor_secret,
-                 is_active, is_anonymized, login_attempts, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+				 oauth_provider, oauth_id, two_factor_enabled, two_factor_secret,
+				 is_active, is_anonymized, login_attempts, created_at, updated_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
 				[id, username, email, password_hash, avatar, oauth_provider, oauth_id]
 			);
 			return { success: true, userId: id };
@@ -156,56 +158,6 @@ export default async function queryRoutes(fastify, options) {
 		}
 	});
 
-	fastify.post('/sessions', async (request, reply) => {
-		const { id, user_id, jwt_token, expires_at } = request.body;
-
-		try {
-			await db.run(
-				`INSERT INTO user_sessions (id, user_id, jwt_token, expires_at, created_at)
-                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-				[id, user_id, jwt_token, expires_at]
-			);
-			return { success: true };
-		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
-				success: false,
-				code: 'DB_ERROR'
-			});
-		}
-	});
-
-	fastify.delete('/sessions/user/:userId', async (request, reply) => {
-		const { userId } = request.params;
-		try {
-			await db.run('DELETE FROM user_sessions WHERE user_id = ?', [userId]);
-			return { success: true };
-		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
-				success: false,
-				code: 'DB_ERROR'
-			});
-		}
-	});
-
-	fastify.get('/sessions/user/:userId', async (request, reply) => {
-		const { userId } = request.params;
-		try {
-			const sessions = await db.all(
-				'SELECT * FROM user_sessions WHERE user_id = ? ORDER BY created_at DESC',
-				[userId]
-			);
-			return { success: true, sessions };
-		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
-				success: false,
-				code: 'DB_ERROR'
-			});
-		}
-	});
-
 	fastify.post('/backup-codes', async (request, reply) => {
 		const { user_id, codes } = request.body;
 
@@ -270,89 +222,6 @@ export default async function queryRoutes(fastify, options) {
 		}
 	});
 
-	fastify.post('/query', async (request, reply) => {
-		const { sql, params = [], type = 'all' } = request.body;
 
-		if (!sql || typeof sql !== 'string') {
-			return reply.status(400).send({
-				error: 'SQL query required',
-				success: false,
-				code: 'SQL_REQUIRED'
-			});
-		}
-
-		const safeSql = sql.trim().toUpperCase();
-		const allowedPrefixes = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
-		const isSafe = allowedPrefixes.some(prefix => safeSql.startsWith(prefix));
-
-		if (!isSafe) {
-			return reply.status(400).send({
-				error: 'Unsafe SQL query type',
-				success: false,
-				code: 'UNSAFE_SQL',
-				allowed: allowedPrefixes
-			});
-		}
-
-		try {
-			let result;
-			switch (type) {
-				case 'get':
-					result = await db.get(sql, params);
-					break;
-				case 'run':
-					result = await db.run(sql, params);
-					break;
-				case 'all':
-				default:
-					result = await db.all(sql, params);
-			}
-
-			return {
-				success: true,
-				type,
-				result,
-				timestamp: new Date().toISOString()
-			};
-		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
-				success: false,
-				code: 'DB_ERROR',
-				message: error.message
-			});
-		}
-	});
-
-	fastify.get('/health', async () => {
-		try {
-			await db.get('SELECT 1 as test');
-			return {
-				service: 'database-service',
-				status: 'OK',
-				url: process.env.DATABASE_SERVICE_PORT,
-				database: 'connected',
-				timestamp: new Date().toISOString(),
-				endpoints: [
-					'/users/:id',
-					'/users/email/:email',
-					'/users',
-					'/users/all',
-					'/sessions',
-					'/backup-codes',
-					'/query'
-				]
-			};
-		} catch (error) {
-			return {
-				service: 'database-service',
-				status: 'ERROR',
-				database: 'disconnected',
-				success: false,
-				error: error.message,
-				timestamp: new Date().toISOString()
-			};
-		}
-	});
 
 }

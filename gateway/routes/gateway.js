@@ -1,47 +1,16 @@
-import jwt from 'jsonwebtoken';
 
-const SERVICE_TOKEN = process.env.SERVICE_TOKEN || 'dev-service-token';
-
+import fastifyPassport from '@fastify/passport';
+import jwtService from '../../auth/services/jwt.js';
+import { configurePassport } from '../../auth/config/oauth.js';
+import { findOrCreateOAuthUser } from '../../auth/services/user.js';
 export default async function gatewayRoutes(fastify, options) {
-	const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret';
 
-	fastify.addHook('onRequest', async (request, reply) => {
-	if (
-		!request.url.startsWith('/api/') ||
-		request.url.startsWith('/api/auth/login') ||
-		request.url.startsWith('/api/auth/register') ||
-		request.url.startsWith('/api/auth/2fa') ||
-		request.url.startsWith('/api/auth/github') ||
-		request.url.startsWith('/api/i18n/')
-	) {
-		return;
-	}
 
-		const authHeader = request.headers.authorization;
-		if (!authHeader?.startsWith('Bearer ')) {
-			return reply.status(401).send({
-				success: false,
-				error: 'auth.authenticationRequired'
-			});
-		}
-
-		const token = authHeader.substring(7).trim();
-		try {
-			const decoded = jwt.verify(token, jwtSecret, {
-				issuer: 'auth-service',
-				audience: 'user'
-			});
-			request.user = decoded;
-		} catch {
-			return reply.status(401).send({
-				success: false,
-				error: 'auth.invalidToken'
-			});
-		}
-	});
-
-	fastify.get('/health', async () => ({
-		gateway: 'OK',
+	fastify.get('/api/gateway/health', async () => ({
+		service: 'api-gateway',
+		status: 'OK',
+		url: 'http://auth:3000',
+		database: 'connected',
 		timestamp: new Date().toISOString(),
 		endpoints: [
 			'/api/auth',
@@ -53,74 +22,45 @@ export default async function gatewayRoutes(fastify, options) {
 		]
 	}));
 
-	fastify.get('/ready', async () => {
-		try {
-			const databaseUrl = process.env.DATABASE_SERVICE_URL || 'http://localhost:3003';
-			const response = await fetch(`${databaseUrl}/health`);
-			const data = await response.json();
-			return { status: 'ready', database: data.status === 'OK' ? 'connected' : 'error' };
-		} catch (error) {
-			return { status: 'not-ready', database: 'error', error: error && error.message };
-		}
-	});
 
-	fastify.get('/api/auth/profile-data', async (request, reply) => {
-		if (!request.user?.id) {
-			return reply.status(401).send({
-				error: 'messages.authError',
-				code: 'AUTH_REQUIRED'
-			});
-		}
+	fastify.get('/api/auth/github',
+		{ preValidation: fastifyPassport.authenticate('github', { scope: ['user:email'], session: false }) },
+		async (req, reply) => { }
+	);
 
-		const upstream = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-		const url = `${upstream}/auth/profile-data`;
+	fastify.get('/api/auth/github/callback',
+		{
+			preValidation: fastifyPassport.authenticate('github', {
+				failureRedirect: '/?error=auth_failed',
+				session: false
+			})
+		},
+		async (request, reply) => {
+			const user = request.user;
+			if (!user) return reply.redirect('/?error=user_not_found');
 
-		try {
-			const headers = {
-				'x-service-token': SERVICE_TOKEN,
-				'x-forwarded-for': request.headers['x-forwarded-for'] || '',
-				'x-user-id': request.user.id,
-				'x-user': JSON.stringify(request.user),
-				'authorization': request.headers.authorization
+			const oauthProfile = {
+				provider: 'github',
+				id: user.id.toString(),
+				username: user.username,
+				email: user.email,
+				avatar: user.avatar || 'default-avatar.png',
+				profileUrl: user.profileUrl
 			};
 
-			const response = await fetch(url, { headers });
-			const data = await response.json();
+			const savedUser = await findOrCreateOAuthUser(oauthProfile);
+			if (!savedUser) return reply.redirect('/?error=save_failed');
 
-			reply.code(response.status);
-			return reply.send(data);
-		} catch {
-			return reply.status(502).send({
-				error: 'Service unavailable',
-				code: 'SERVICE_ERROR'
+			const jwtToken = await jwtService.generateToken({
+				id: savedUser.id,
+				username: savedUser.username,
+				email: savedUser.email,
+				avatar: savedUser.avatar,
+				twoFactorEnabled: savedUser.two_factor_enabled === true
 			});
-		}
-	});
 
-
-	const proxy = (await import('@fastify/http-proxy')).default;
-
-	fastify.register(proxy, {
-		upstream: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
-		prefix: '/api/auth',
-		rewritePrefix: '',
-		http2: false
-	});
-
-	fastify.register(proxy, {
-		upstream: process.env.I18N_SERVICE_URL || 'http://localhost:3002',
-		prefix: '/api/i18n',
-		rewritePrefix: '',
-		http2: false
-	});
-
-	fastify.register(proxy, {
-		upstream: process.env.USERS_SERVICE_URL || 'http://localhost:3004',
-		prefix: '/api/users',
-		rewritePrefix: '',
-		http2: false
-	});
-
+			return reply.redirect(`/?token=${jwtToken}`);
+		});
 
 
 }

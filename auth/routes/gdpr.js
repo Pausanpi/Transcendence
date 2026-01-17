@@ -1,6 +1,6 @@
-import gdprService from '../../database/services/gdpr.js';
-import { findUserById } from '../../users/models/User.js';
-import jwtService from '../../auth/services/jwt.js';
+import gdprService from '../services/gdpr.js';
+import { findUserById } from '../services/user.js';
+import jwtService from '../services/jwt.js';
 
 export default async function gdprRoutes(fastify, options) {
 
@@ -89,6 +89,10 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
+			if (request.body && request.body._dummy) {
+      delete request.body._dummy;
+    }
+
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
@@ -120,6 +124,9 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
+			if (request.body && request.body._dummy) {
+      delete request.body._dummy;
+    }
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({

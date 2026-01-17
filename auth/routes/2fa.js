@@ -1,7 +1,7 @@
+import jwtService from '../services/jwt.js';
 import twoFactorService from '../services/twoFactor.js';
 import { authenticateJWT } from '../middleware/auth.js';
-import { findUserById, updateUser } from '../../users/models/User.js';
-import jwtService from '../services/jwt.js';
+import { findUserById, updateUser } from '../services/user.js';
 
 export default async function twoFactorRoutes(fastify) {
 

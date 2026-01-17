@@ -18,7 +18,7 @@ export async function exportUserData(): Promise<void> {
   try {
     const result = await api<any>('/api/gdpr/export-data', {
       method: 'POST',
-      body: JSON.stringify('')
+      body: JSON.stringify({ _dummy: true })
     });
 
     if (result.success) {
@@ -46,7 +46,7 @@ export async function anonymizeUserData(): Promise<void> {
   try {
     const result = await api<any>('/api/gdpr/anonymize', {
       method: 'POST',
-      body: JSON.stringify('')
+      body: JSON.stringify({ _dummy: true })
     });
 
     if (result.success) {
