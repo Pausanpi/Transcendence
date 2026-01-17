@@ -17,7 +17,8 @@ export async function loadUserData() {
 export async function exportUserData() {
     try {
         const result = await api('/api/gdpr/export-data', {
-            method: 'POST'
+            method: 'POST',
+	        body: JSON.stringify('')
         });
         if (result.success) {
             const dataStr = JSON.stringify(result.data, null, 2);
@@ -44,7 +45,8 @@ export async function exportUserData() {
 export async function anonymizeUserData() {
     try {
         const result = await api('/api/gdpr/anonymize', {
-            method: 'POST'
+            method: 'POST',
+            body: JSON.stringify('')
         });
         if (result.success) {
             showGDPRMessage('messages.dataAnonymized', 'success');

@@ -9,8 +9,6 @@ import gdprRoutes from './routes/gdpr.js';
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-
-
 import jwtService from '../auth/services/jwt.js';
 import {
 	findOrCreateOAuthUser
@@ -18,9 +16,6 @@ import {
 
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from '../auth/config/oauth.js';
-
-
-
 
 const SERVICE_TOKEN = process.env.SERVICE_TOKEN || 'dev-service-token';
 const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret-' +
@@ -36,12 +31,6 @@ async function startGateway() {
 		corsOrigin: true
 	});
 
-/*
-configurePassport(fastifyPassport);
-fastify.register(fastifyPassport.initialize());
-*/
-
-
 await fastify.register(fastifyStatic, {
   root: path.join(__dirname, '../frontend/dist'),
   prefix: '/dist/',
@@ -52,7 +41,6 @@ await fastify.register(fastifyStatic, {
 
 fastify.addHook('onRequest', async (request, reply) => {
    if (!request.url.startsWith('/api/')) return;
-   // if (request.url.startsWith('/api/i18n/')) return;
 
     const publicRoutes = [
         '/api/auth/login',
