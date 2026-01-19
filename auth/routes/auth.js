@@ -121,7 +121,7 @@ export default async function authRoutes(fastify, options) {
 	fastify.get('/health', async () => ({
 		service: 'auth-service',
 		status: 'OK',
-		url: process.env.AUTH_SERVICE_PORT,
+		url: 'http://auth:3000',
 		timestamp: new Date().toISOString(),
 		version: '1.0.0',
 		endpoints: ['/auth', '/2fa']

@@ -10,9 +10,9 @@ down:
 re: down up
 rebuild: down build up
 clean:
-	@docker compose down -v --rmi local
-fclean:
 	@docker compose down -v
+fclean:
+	@docker compose down -v --rmi local
 logs:
 	@docker compose logs
 ps:
@@ -31,7 +31,6 @@ health:
 	curl http://localhost:3000/health
 	@echo "\n --- AUTH ---\n"
 	curl http://localhost:3001/health
-	curl http://localhost:3001/ready
 	@echo "\n --- I18N ---\n"
 	curl http://localhost:3002/health
 	@echo "\n --- DATABASE ---\n"

@@ -22,7 +22,7 @@ export function configurePassport(passport) {
 			{
 				clientID: process.env.GITHUB_CLIENT_ID,
 				clientSecret: process.env.GITHUB_CLIENT_SECRET,
-				callbackURL: 'http://auth:3001/auth/github/callback',
+				callbackURL: 'https://localhost:8443/api/oauth/github/callback',
 				scope: ["user:email"],
 				proxy: true
 			},

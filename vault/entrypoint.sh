@@ -1,56 +1,47 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-if [ ! -f "/vault/ssl/certificate.pem" ] || [ ! -f "/vault/ssl/private-key.pem" ]; then
-    exit 1
-fi
+export VAULT_ADDR=https://localhost:8200
+export VAULT_SKIP_VERIFY=true
 
+echo "Starting Vault..."
 vault server -config=/vault/config.hcl &
 VAULT_PID=$!
 
-export VAULT_ADDR="https://127.0.0.1:8200"
-export VAULT_SKIP_VERIFY=true
-
-sleep 3
-
-until curl -k -s $VAULT_ADDR/v1/sys/health > /dev/null; do
-    sleep 2
+echo "Waiting for Vault API..."
+for i in $(seq 1 15); do
+  if curl -sk $VAULT_ADDR/v1/sys/health >/dev/null; then
+    break
+  fi
+  sleep 2
 done
 
-VAULT_STATUS=$(curl -k -s $VAULT_ADDR/v1/sys/health)
-INITIALIZED=$(echo "$VAULT_STATUS" | jq -r '.initialized')
-SEALED=$(echo "$VAULT_STATUS" | jq -r '.sealed')
+STATUS=$(curl -sk $VAULT_ADDR/v1/sys/health)
+INITIALIZED=$(echo "$STATUS" | jq -r .initialized)
+SEALED=$(echo "$STATUS" | jq -r .sealed)
+
+echo "Vault status → initialized=$INITIALIZED sealed=$SEALED"
 
 if [ "$INITIALIZED" = "false" ]; then
-    INIT_OUTPUT=$(vault operator init -key-shares=1 -key-threshold=1 -format=json)
-    ROOT_TOKEN=$(echo "$INIT_OUTPUT" | jq -r '.root_token')
-    UNSEAL_KEY=$(echo "$INIT_OUTPUT" | jq -r '.unseal_keys_b64[0]')
-    vault operator unseal "$UNSEAL_KEY"
-    export VAULT_TOKEN="$ROOT_TOKEN"
-else
-    if [ "$SEALED" = "true" ]; then
-        if [ ! -z "$VAULT_UNSEAL_KEY" ]; then
-            vault operator unseal "$VAULT_UNSEAL_KEY"
-        fi
-    fi
-    export VAULT_TOKEN="$VAULT_DEV_ROOT_TOKEN_ID"
+  echo ""
+  echo "⚠️  Vault is NOT initialized"
+  echo "Run once:"
+  echo "docker exec -it vault vault operator init -key-shares=1 -key-threshold=1"
+  echo ""
+  wait "$VAULT_PID"
+  exit 0
 fi
 
-until vault status 2>/dev/null | grep -q "Sealed.*false"; do
-    sleep 2
-done
+if [ "$SEALED" = "true" ]; then
+  if [ -z "$VAULT_UNSEAL_KEY" ]; then
+    echo "ERROR: VAULT_UNSEAL_KEY not set"
+    exit 1
+  fi
 
-vault secrets enable -path=secret kv-v2
-vault policy write app /vault/policies/policy.hcl
-
-if [ ! -z "$GITHUB_CLIENT_ID" ] && [ ! -z "$GITHUB_CLIENT_SECRET" ]; then
-    vault kv put secret/oauth/github client_id="$GITHUB_CLIENT_ID" client_secret="$GITHUB_CLIENT_SECRET"
+  echo "Unsealing Vault..."
+  vault operator unseal "$VAULT_UNSEAL_KEY"
 fi
 
-if [ ! -z "$SESSION_SECRET" ]; then
-    vault kv put secret/session/config secret="$SESSION_SECRET"
-fi
+echo "✓ Vault ready"
 
-vault kv put secret/database/redis url="redis://redis:6379"
-
-wait $VAULT_PID
+wait "$VAULT_PID"

@@ -4,54 +4,48 @@ x-healthchecks:
     interval: 30s
     timeout: 10s
     retries: 3
-  redis: &redis-healthcheck
-    test: ["CMD", "redis-cli", "ping"]
-    interval: 30s
-    timeout: 3s
-    retries: 3
   prometheus: &prometheus-healthcheck
-    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
+    test: ["CMD", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 15s
   vault: &vault-healthcheck
-    test: ["CMD-SHELL", "curl -k -s https://localhost:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
+    test: ["CMD-SHELL", "curl -k -s https://localhost:8444/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
   grafana: &grafana-healthcheck
-    test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
+    test: ["CMD", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
   gateway: &gateway-healthcheck
-    test: ["CMD", "curl", "-f", "-s", "http://localhost:3000/health"]
+    test: ["CMD", "curl", "-f", "http://localhost:3000/gateway/health"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
     start_interval: 30s
   database: &database-healthcheck
-      test: ["CMD", "curl", "-f",  "-s", "http://localhost:3003/health"]
+      test: ["CMD", "curl", "-f", "http://database:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
   auth: &auth-healthcheck
-    test: ["CMD", "curl", "-f",  "-s", "http://localhost:3001/auth/health"]
+    test: ["CMD", "curl", "-f", "http://localhost:3001/auth/health"]
     interval: 30s
     timeout: 10s
     retries: 3
   i18n: &i18n-healthcheck
-    test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+    test: ["CMD", "curl", "-f", "http://i18n:3002/i18n/health"]
     interval: 30s
     timeout: 10s
     retries: 3
   users: &users-healthcheck
-    test: ["CMD", "curl", "-f", "http://localhost:3004/users/health"]
+    test: ["CMD", "curl", "-f", "http://users:3004/users/health"]
     interval: 30s
     timeout: 10s
     retries: 3
@@ -123,6 +117,8 @@ services:
       - ./shared:/app/shared
       - ./users:/app/users
     depends_on:
+      vault:
+        condition: service_healthy
       database:
         condition: service_healthy
     healthcheck: *auth-healthcheck
@@ -163,19 +159,18 @@ services:
     healthcheck: *users-healthcheck
     restart: always
 
-  nginx-waf:
-    image: nginx-waf
+  nginx:
+    image: nginx
     build:
       network: host
       context: nginx
       dockerfile: Dockerfile
-    container_name: nginx-waf
+    container_name: nginx
     ports: ["8443:443"]
     volumes:
       - logs-data:/var/log/nginx
     depends_on:
-      gateway:
-        condition: service_healthy
+      - gateway
     healthcheck: *nginx-healthcheck
     networks: [transcendence-net]
     restart: always
@@ -188,26 +183,20 @@ services:
       context: vault
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      VAULT_UNSEAL_KEY: ${VAULT_UNSEAL_KEY}
+      VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_ADDR: https://localhost:8200
+      VAULT_SKIP_VERIFY: "true"
+
     volumes:
+      - ./vault/data:/vault/data
       - ./nginx/ssl:/vault/ssl:ro
       - ./vault/policy.hcl:/vault/policies/policy.hcl:ro
+      - ./vault/config:/vault/config:ro
     ports: ["8444:8200"]
     networks: [transcendence-net]
     healthcheck: *vault-healthcheck
-    restart: always
-
-  redis:
-    image: redis
-    container_name: redis
-    build:
-      network: host
-      context: redis
-      dockerfile: Dockerfile
-    volumes:
-      - redis-data:/data
-      - logs-data:/var/log/redis
-    networks: [transcendence-net]
-    healthcheck: *redis-healthcheck
     restart: always
 
   prometheus:
@@ -248,8 +237,6 @@ services:
     restart: always
 
 volumes:
-  redis-data:
-    name: redis-data
   logs-data:
     name: logs-data
   grafana-data:

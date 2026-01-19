@@ -1,78 +1,67 @@
 import jwt from 'jsonwebtoken';
-import vaultClient from './vault-client.js';
+import VaultService from './vault.js';
 
 class JWTService {
-	constructor() {
-		this.secret = null;
-		this.secretLoaded = false;
-		this.loadSecret();
-	}
+  constructor() {
+    this.secret = null;
+    this.loaded = false;
+  }
 
-	async loadSecret() {
-		try {
-			this.secret = process.env.JWT_SECRET;
-			if (!this.secret && vaultClient) {
-				const secret = await vaultClient.getSecret('jwt/secret');
-				if (secret && secret.jwt_secret) {
-					this.secret = secret.jwt_secret;
-				}
-			}
-			if (!this.secret) {
-				this.secret = 'dev-fallback-secret-' + Math.random().toString(36).substring(2);
-			}
-			this.secretLoaded = true;
-		} catch (err) {
-			this.secret = process.env.JWT_SECRET || 'emergency-secret-' + Date.now();
-			this.secretLoaded = true;
-		}
-	}
+  async loadSecret() {
+    if (this.loaded) return;
 
-	async ensureSecretLoaded() {
-		if (!this.secretLoaded) {
-			await this.loadSecret();
-		}
-		return !!this.secret;
-	}
+    const jwtSecret = await VaultService.getJWTSecret();
 
-	isValidTokenFormat(token) {
-		if (!token || typeof token !== 'string') return false;
-		const parts = token.split('.');
-		return parts.length === 3;
-	}
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET not found in Vault');
+    }
 
-async generateToken(payload = {}, options = {}) {
-    const ok = await this.ensureSecretLoaded();
-    if (!ok) throw new Error('JWT secret not available');
+    this.secret = jwtSecret;
+    this.loaded = true;
+  }
 
-    const tokenPayload = { ...payload };
-    const jwtOptions = {
-        expiresIn: options.expiresIn || '7d',
-        issuer: options.issuer || 'auth-service',
-        audience: options.audience || 'user'
-    };
+  isValidTokenFormat(token) {
+    return typeof token === 'string' && token.split('.').length === 3;
+  }
 
-    return jwt.sign(tokenPayload, this.secret, jwtOptions);
-}
+  async generateToken(payload = {}, options = {}) {
+    await this.loadSecret();
 
-async verifyToken(token) {
+    return jwt.sign(payload, this.secret, {
+      expiresIn: options.expiresIn ?? '7d',
+      issuer: options.issuer ?? 'auth-service',
+      audience: options.audience ?? 'user',
+    });
+  }
+
+  async verifyToken(token, options = {}) {
     if (!this.isValidTokenFormat(token)) return null;
-    const ok = await this.ensureSecretLoaded();
-    if (!ok) return null;
+
+    await this.loadSecret();
 
     try {
-        return jwt.verify(token, this.secret, {
-            issuer: 'auth-service',
-            audience: 'user'
-        });
-    } catch (error) {
-        return null;
+      return jwt.verify(token, this.secret, {
+        issuer: options.issuer ?? 'auth-service',
+        audience: options.audience ?? 'user',
+      });
+    } catch {
+      return null;
     }
-}
+  }
 
-	decodeToken(token) {
-		if (!this.isValidTokenFormat(token)) return null;
-		return jwt.decode(token);
-	}
+  decodeToken(token) {
+    return this.isValidTokenFormat(token) ? jwt.decode(token) : null;
+  }
+
+  async refreshToken(oldToken, options = {}) {
+    const payload = await this.verifyToken(oldToken);
+    if (!payload) return null;
+
+    delete payload.iat;
+    delete payload.exp;
+
+    return this.generateToken(payload, options);
+  }
 }
 
 export default new JWTService();

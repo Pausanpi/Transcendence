@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 
 import path from 'path';
 
-const gatewayUpstream = 'http://auth:3000';
+const gatewayUpstream = 'http://gateway:3000';
 const authUpstream = 'http://auth:3001';
 const i18nUpstream = 'http://i18n:3002';
 const databaseUpstream = 'http://database:3003';
@@ -20,15 +20,17 @@ const SERVICE_TOKEN = process.env.SERVICE_TOKEN || 'dev-service-token';
 const jwtSecret = process.env.JWT_SECRET || 'dev-fallback-secret-' +
 	(process.env.JWT_SECRET_SUFFIX || 'default-suffix');
 
+
+
 async function startGateway() {
 
 	const fastify = await createFastifyApp({
 		serviceName: 'api-gateway',
-		enableSessions: false,
+		enableSessions: true,
 		corsOrigin: true
 	});
 
-	await fastify.register(gatewayRoutes);
+	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
 	await fastify.register(fastifyStatic, {
 		root: path.join(__dirname, '../frontend'),
 		prefix: '/'
@@ -38,14 +40,15 @@ async function startGateway() {
 		if (!request.url.startsWith('/api/')) return;
 
 		const publicRoutes = [
+			'/api/2fa/verify-login',
+			'/api/oauth/github',
+			'/api/oauth/github/callback',
+			'/api/auth/health',
 			'/api/auth/login',
 			'/api/auth/register',
-			'/api/2fa/verify-login',
-			'/api/auth/github',
-			'/api/i18n/',
-			'/api/gateway/health',
-			'/api/auth/health',
 			'/api/database/health',
+			'/api/gateway/health',
+			'/api/i18n/',
 			'/api/users/health'
 		];
 
@@ -112,8 +115,20 @@ async function startGateway() {
 			const upstreamRes = await fetch(target, {
 				method: request.method,
 				headers,
-				body
+				body,
+				redirect: 'manual'
 			});
+
+
+if (upstreamRes.status >= 300 && upstreamRes.status < 400) {
+  const location = upstreamRes.headers.get('location');
+  if (location) {
+    reply.code(upstreamRes.status);
+    reply.header('location', location);
+    return reply.send();
+  }
+}
+
 
 			const text = await upstreamRes.text();
 			let data;
@@ -141,6 +156,9 @@ async function startGateway() {
 			const service = request.params.service;
 			if (service === 'auth') {
 				return proxyAPI(request, reply, authUpstream, true);
+			}
+			if (service === 'oauth') {
+				return proxyAPI(request, reply, authUpstream, false);
 			}
 			if (service === '2fa') {
 				return proxyAPI(request, reply, authUpstream, true);

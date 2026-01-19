@@ -6,7 +6,6 @@ import usersRoutes from './routes/users.js';
 import sessionsRoutes from './routes/sessions.js';
 
 async function startDatabaseService() {
-
 	const fastify = await createFastifyApp({
 		serviceName: 'database-service',
 		corsOrigin: true
