@@ -41,12 +41,13 @@ export async function login() {
 }
 export async function register() {
     const username = document.getElementById('regUsername').value;
+    const display_name = document.getElementById('regUsername').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     try {
         const data = await api('/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, display_name, email, password })
         });
         setToken(data.token);
         updateAuthBtn();

@@ -11,6 +11,7 @@ export default async function userRoutes(fastify, options) {
 			const safeUsers = users.map(user => ({
 				id: user.id,
 				username: user.username || 'N/A',
+				displayName: user.display_name || 'N/A',
 				email: user.email || 'N/A',
 				twoFactorEnabled: user.twoFactorEnabled || false,
 				isActive: user.isActive !== false,

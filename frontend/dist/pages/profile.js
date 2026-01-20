@@ -17,7 +17,7 @@ export function renderProfile() {
 
 
 <div class="grid grid-cols-2 gap-4 mt-4">
-          <input id="displayName" placeholder="Display Name" class="input" data-i18n-placeholder="profile.displayName" />
+          <input id="displayName" placeholder="Display Name (Nickname)" class="input" data-i18n-placeholder="profile.displayName" />
           <input id="avatar" placeholder="Avatar URL" class="input" data-i18n-placeholder="profile.avatarUrl" />
         </div>
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
@@ -125,6 +125,7 @@ async function loadProfile() {
             if (response.success && response.user) {
                 infoDiv.innerHTML = `
         <p><img width='200px' height='200px'  src=${response.user.avatar || '/default-avatar.png'} />
+          <p><strong data-i18n="profile.displayName">Nickname:</strong> ${response.user.displayName || 'N/A'}</p>
           <p><strong data-i18n="profile.username">Username:</strong> ${response.user.username || 'N/A'}</p>
           <p><strong data-i18n="profile.email">Email:</strong> ${response.user.email || 'N/A'}</p>
           <p><strong data-i18n="profile.id">ID:</strong> ${response.user.id || 'N/A'}</p>

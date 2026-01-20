@@ -37,4 +37,11 @@ else
   vault kv put secret/jwt/config jwt_secret="$JWT_SECRET"
 fi
 
+if vault kv get secret/service-token/config >/dev/null 2>&1; then
+  echo "✔ Service token already exists"
+else
+  SERVICE_TOKEN=$(head -c 32 /dev/urandom | xxd -p -c 256)
+  vault kv put secret/service-token/config token="$SERVICE_TOKEN"
+fi
+
 wait $VAULT_PID

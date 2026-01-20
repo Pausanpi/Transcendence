@@ -46,13 +46,14 @@ export async function login(): Promise<void> {
 
 export async function register(): Promise<void> {
   const username = (document.getElementById('regUsername') as HTMLInputElement).value;
+  const display_name = (document.getElementById('regUsername') as HTMLInputElement).value;
   const email = (document.getElementById('regEmail') as HTMLInputElement).value;
   const password = (document.getElementById('regPassword') as HTMLInputElement).value;
 
   try {
     const data = await api<any>('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password })
+      body: JSON.stringify({ username, display_name, email, password })
     });
 
     setToken(data.token);

@@ -54,6 +54,8 @@
 		"notAvailable": "No disponible",
 		"title": "Perfil de Usuario",
 		"user": "Usuario",
+		"username": "Nombre completo",
+		"displayName": "Apodo",
 		"email": "Email",
 		"id": "ID",
 		"2fa": "2FA",

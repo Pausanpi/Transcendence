@@ -5,6 +5,7 @@ class User {
 		this.id = data.id;
 		this.username = data.username;
 		this.email = data.email;
+		this.display_name = data.display_name;
 		this.password_hash = data.password_hash;
 		this.oauth_provider = data.oauth_provider;
 		this.oauth_id = data.oauth_id;
@@ -38,6 +39,7 @@ class User {
 		return {
 			id: this.id,
 			username: this.username,
+			displayName: this.display_name,
 			email: this.email,
 			avatar: this.avatar,
 			twoFactorEnabled: Boolean(this.two_factor_enabled),
@@ -60,6 +62,7 @@ export async function findOrCreateOAuthUser(oauthProfile) {
 		const newUser = {
 			id: `oauth_${oauthProfile.provider}_${oauthProfile.id}`,
 			username: oauthProfile.username,
+			display_name: oauthProfile.username,
 			email: oauthProfile.email,
 			password_hash: null,
 			oauth_provider: oauthProfile.provider,
@@ -191,6 +194,7 @@ export async function saveUser(userData) {
 		const userToSave = {
 			id: userData.id,
 			username: userData.username,
+			display_name: userData.display_name,
 			email: userData.email,
 			password_hash: passwordHash,
 			avatar: userData.avatar || 'default-avatar.png',

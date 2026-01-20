@@ -17,10 +17,14 @@ const usersUpstream = 'http://users:3004';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const SERVICE_TOKEN = process.env.SERVICE_TOKEN || 'dev-service-token';
+
+const serviceToken = await VaultService.getSecret('service-token/config').then(s => s?.token);
+if (!serviceToken) {
+	throw new Error('Service secret not found in Vault');
+}
 const jwtSecret = await VaultService.getJWTSecret();
 if (!jwtSecret) {
-  throw new Error('JWT secret not found in Vault');
+	throw new Error('JWT secret not found in Vault');
 }
 async function startGateway() {
 
@@ -37,58 +41,53 @@ async function startGateway() {
 		prefix: '/'
 	});
 
-fastify.addHook('onRequest', async (request, reply) => {
-  if (!request.url.startsWith('/api/')) return;
+	fastify.addHook('onRequest', async (request, reply) => {
+		if (!request.url.startsWith('/api/')) return;
 
-  const publicRoutes = [
-    '/api/2fa/verify-login',
-    '/api/oauth/github',
-    '/api/oauth/github/callback',
-    '/api/auth/health',
-    '/api/auth/login',
-    '/api/auth/register',
-    '/api/database/health',
-    '/api/gateway/health',
-    '/api/i18n/',
-    '/api/users/health'
-  ];
+		const publicRoutes = [
+			'/api/2fa/verify-login',
+			'/api/oauth/github',
+			'/api/oauth/github/callback',
+			'/api/auth/health',
+			'/api/auth/login',
+			'/api/auth/register',
+			'/api/database/health',
+			'/api/gateway/health',
+			'/api/i18n/',
+			'/api/users/health'
+		];
 
-  if (publicRoutes.some(route => request.url.startsWith(route))) {
-    return;
-  }
+		if (publicRoutes.some(route => request.url.startsWith(route))) {
+			return;
+		}
 
-  const authHeader = request.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    return reply.status(401).send({
-      success: false,
-      error: 'auth.authenticationRequired'
-    });
-  }
+		const authHeader = request.headers.authorization;
+		if (!authHeader?.startsWith('Bearer ')) {
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.authenticationRequired'
+			});
+		}
 
-  const token = authHeader.substring(7).trim();
+		const token = authHeader.substring(7).trim();
 
-  // ✅ carga el secreto dinámico de Vault
-  const jwtSecret = await VaultService.getJWTSecret();
-  if (!jwtSecret) {
-    return reply.status(500).send({ success: false, error: 'JWT secret not available' });
-  }
+		if (!jwtSecret) {
+			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
+		}
 
-  try {
-    request.user = jwt.verify(token, jwtSecret, {
-      issuer: 'auth-service',
-      audience: 'user'
-    });
-  } catch (err) {
-    fastify.log.error('JWT verification failed:', err.message);
-    return reply.status(401).send({
-      success: false,
-      error: 'auth.invalidToken'
-    });
-  }
-});
-
-
-
+		try {
+			request.user = jwt.verify(token, jwtSecret, {
+				issuer: 'auth-service',
+				audience: 'user'
+			});
+		} catch (err) {
+			fastify.log.error('JWT verification failed:', err.message);
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.invalidToken'
+			});
+		}
+	});
 
 	async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
 		try {
@@ -99,7 +98,7 @@ fastify.addHook('onRequest', async (request, reply) => {
 				url = url.replace(/^\/api\/[^/]+/, '');
 			}
 			const target = `${upstreamBase}${url}`;
-			const headers = { 'x-service-token': SERVICE_TOKEN };
+			const headers = { 'x-service-token': serviceToken };
 			if (request.headers['content-type']) {
 				headers['content-type'] = request.headers['content-type'];
 			}

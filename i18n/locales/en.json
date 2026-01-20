@@ -54,6 +54,8 @@
 		"notAvailable": "Not available",
 		"title": "User Profile",
 		"user": "User",
+		"username": "Full name",
+		"displayName": "Nickname",
 		"email": "Email",
 		"id": "ID",
 		"2fa": "2FA",

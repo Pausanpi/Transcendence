@@ -6,6 +6,7 @@ import User, {
 	getAllUsers,
 	incrementLoginAttempts,
 	resetLoginAttempts,
+	updateUser,
 	findOrCreateOAuthUser
 } from '../services/user.js';
 import { validateLogin, validateRegistration } from '../middleware/validation.js';
@@ -23,6 +24,7 @@ export default async function userRoutes(fastify, options) {
 			const safeUsers = users.map(user => ({
 				id: user.id,
 				username: user.username || 'N/A',
+				displayName: user.display_name || 'N/A',
 				email: user.email || 'N/A',
 				twoFactorEnabled: user.twoFactorEnabled || false,
 				isActive: user.isActive !== false,
@@ -92,7 +94,7 @@ export default async function userRoutes(fastify, options) {
 				});
 			}
 			const updateData = {};
-			if (displayName !== undefined) updateData.username = displayName;
+			if (displayName !== undefined) updateData.display_name = displayName;
 			if (avatar !== undefined) updateData.avatar = avatar;
 			if (Object.keys(updateData).length > 0) {
 				await updateUser(user.id, updateData);

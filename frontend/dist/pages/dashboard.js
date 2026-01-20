@@ -38,6 +38,7 @@ const services = [
     { name: 'Database', url: '/api/database/health' },
     { name: 'I18n', url: '/api/i18n/health' },
 ];
+
 export async function checkServices() {
     const container = document.getElementById('services');
     if (!container)

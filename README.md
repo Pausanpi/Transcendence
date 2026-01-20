@@ -1,17 +1,5 @@
 # LO NUEVO
 
- ✔ Container users       Running                                                                                                                                                                              0.0s 
- ✔ Container vault       Healthy                                                                                                                                                                              0.5s 
- ✔ Container i18n        Healthy                                                                                                                                                                              1.0s 
- ✔ Container database    Healthy                                                                                                                                                                              1.0s 
- ✔ Container prometheus  Healthy                                                                                                                                                                              0.5s 
- ✔ Container auth        Healthy                                                                                                                                                                              1.0s 
- ✔ Container grafana     Running                                                                                                                                                                              0.0s 
- ✔ Container gateway     Running                                                                                                                                                                              0.0s 
- ✔ Container nginx       Running  
-
-
-
 docker stop auth
 docker rm auth
 docker rmi auth
@@ -45,6 +33,8 @@ CHANGES:
 - SECRET se guardan y leen en vault
 - Resuelta inversión de dependencias shared
 
+4to COMMIT
+- Ahora oAuth no hace fallar el servicio si las variables de entorno no estan seteadas
 
 
 
@@ -60,11 +50,12 @@ APIs REST modernas usan PUT/PATCH, pero CRS es conservador
 ---
 
   # TODO
-- Los SECRETS se generan automaticamente y se guardan en vault
 - Mejorar dashboard grafana
-- Después de enable 2fa refrescar perfil
+- 2fa con movil
+- Ocultar botones y data profile si no está logeadp
+- Después de enable 2fa refrescar perfil y ocultar boton
 - Cosas que traducir (Dejando para el final)
-- Lo de modificar (botón UPDATE) y subir avatar (parte gestión de usuarios?)
+- Lo de modificar (botón UPDATE) nickname y subir avatar
 - Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
 - si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault)
   Pierdes la ventaja “stateless”

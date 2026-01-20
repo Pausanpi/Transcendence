@@ -1,55 +1,25 @@
 x-healthchecks:
+  interval: 30s
+  timeout: 10s
+  retries: 3
   nginx: &nginx-healthcheck
     test: ["CMD", "nginx", "-t"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
   prometheus: &prometheus-healthcheck
     test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://prometheus:9090/-/healthy || exit 1"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 15s
   vault: &vault-healthcheck
     test: ["CMD-SHELL", "curl -s curl http://vault:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 30s
   grafana: &grafana-healthcheck
     test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 30s
   gateway: &gateway-healthcheck
     test: ["CMD", "curl", "-f", "-s", "http://gateway:3000/gateway/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 30s
-    start_interval: 30s
   database: &database-healthcheck
     test: ["CMD", "curl", "-f",  "-s", "http://database:3003/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
-    start_period: 40s
   auth: &auth-healthcheck
     test: ["CMD", "curl", "-f",  "-s", "http://auth:3001/auth/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
   i18n: &i18n-healthcheck
     test: ["CMD", "curl", "-f", "http://i18n:3002/i18n/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
   users: &users-healthcheck
     test: ["CMD", "curl", "-f", "http://users:3004/users/health"]
-    interval: 30s
-    timeout: 10s
-    retries: 3
 
 
 services:
@@ -63,7 +33,6 @@ services:
     container_name: gateway
     ports: ["3000:3000"]
     networks: [transcendence-net]
-    env_file: .env
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
@@ -97,7 +66,6 @@ services:
     container_name: database
     ports: ["3003:3003"]
     networks: [transcendence-net]
-    env_file: .env
     volumes:
       - ./data:/app/data
       - ./database:/app/database
@@ -143,7 +111,6 @@ services:
     container_name: i18n
     ports: ["3002:3002"]
     networks: [transcendence-net]
-    env_file: .env
     volumes:
       - ./i18n:/app/i18n
       - ./shared:/app/shared
@@ -159,7 +126,6 @@ services:
     container_name: users
     ports: ["3004:3004"]
     networks: [transcendence-net]
-    env_file: .env
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root    
@@ -228,7 +194,7 @@ services:
       context: grafana
       dockerfile: Dockerfile
     container_name: grafana
-    user: "root"
+    user: root
     env_file: .env
     volumes:
       - grafana-data:/var/lib/grafana

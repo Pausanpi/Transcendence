@@ -24,7 +24,7 @@ export function renderDashboard(): string {
                     </button>
 
 
-<button onclick="window.open('https://localhost:8444', '_blank')"
+<button onclick="window.open('http://localhost:8444', '_blank')"
                             class="btn btn-blue mt-4" title="Open HashiCorp Vault">
                         🔐 Vault
                     </button>
