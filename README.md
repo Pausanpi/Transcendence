@@ -35,7 +35,7 @@ CHANGES:
 
 4to COMMIT
 - Ahora oAuth no hace fallar el servicio si las variables de entorno no estan seteadas
-
+- Añadido display_name como nickname en todos sitios + update profile
 
 
 

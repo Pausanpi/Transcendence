@@ -54,7 +54,9 @@ async function startGateway() {
 			'/api/database/health',
 			'/api/gateway/health',
 			'/api/i18n/',
-			'/api/users/health'
+			'/api/users/health',
+			'/api/players',
+			
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -88,6 +90,42 @@ async function startGateway() {
 			});
 		}
 	});
+
+
+    fastify.get('/api/players', async (request, reply) => {
+        const search = request.query.search || '';
+        const limit = request.query.limit || 50;
+        const offset = request.query.offset || 0;
+        const url = `${databaseUpstream}/users/public/list?search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`;
+        try {
+            const response = await fetch(url, {
+                headers: { 'x-service-token': SERVICE_TOKEN }
+            });
+            const data = await response.json();
+            reply.code(response.status);
+            return reply.send(data);
+        } catch (err) {
+            fastify.log.error('Players list error:', err);
+            return reply.status(502).send({ error: 'Service unavailable', code: 'SERVICE_ERROR' });
+        }
+    });
+
+    // Public player profile by ID (no auth needed)
+    fastify.get('/api/players/:id', async (request, reply) => {
+        const url = `${databaseUpstream}/users/public/${request.params.id}`;
+        try {
+            const response = await fetch(url, {
+                headers: { 'x-service-token': SERVICE_TOKEN }
+            });
+            const data = await response.json();
+            reply.code(response.status);
+            return reply.send(data);
+        } catch (err) {
+            fastify.log.error('Player profile error:', err);
+            return reply.status(502).send({ error: 'Service unavailable', code: 'SERVICE_ERROR' });
+        }
+    });
+
 
 	async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
 		try {
@@ -184,6 +222,9 @@ async function startGateway() {
 			if (service === 'gateway') {
 				return proxyAPI(request, reply, gatewayUpstream, true);
 			}
+			if (service === 'friends') {
+            	return proxyAPI(request, reply, databaseUpstream, true);
+        	}
 			return reply.status(404).send({
 				success: false,
 				error: 'common.notFound'
@@ -198,3 +239,5 @@ startGateway().catch(error => {
 	console.error(error);
 	process.exit(1);
 });
+
+
