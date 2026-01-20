@@ -5,37 +5,38 @@ x-healthchecks:
     timeout: 10s
     retries: 3
   prometheus: &prometheus-healthcheck
-    test: ["CMD", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
+    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://prometheus:9090/-/healthy || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 15s
   vault: &vault-healthcheck
-    test: ["CMD-SHELL", "curl -k -s https://localhost:8444/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
+    test: ["CMD-SHELL", "curl -s curl http://vault:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
   grafana: &grafana-healthcheck
-    test: ["CMD", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
+    test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
   gateway: &gateway-healthcheck
-    test: ["CMD", "curl", "-f", "http://localhost:3000/gateway/health"]
+    test: ["CMD", "curl", "-f", "-s", "http://gateway:3000/gateway/health"]
     interval: 30s
     timeout: 10s
     retries: 3
     start_period: 30s
     start_interval: 30s
   database: &database-healthcheck
-      test: ["CMD", "curl", "-f", "http://database:3003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    test: ["CMD", "curl", "-f",  "-s", "http://database:3003/health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
   auth: &auth-healthcheck
-    test: ["CMD", "curl", "-f", "http://localhost:3001/auth/health"]
+    test: ["CMD", "curl", "-f",  "-s", "http://auth:3001/auth/health"]
     interval: 30s
     timeout: 10s
     retries: 3
@@ -50,6 +51,7 @@ x-healthchecks:
     timeout: 10s
     retries: 3
 
+
 services:
 
   gateway:
@@ -62,6 +64,9 @@ services:
     ports: ["3000:3000"]
     networks: [transcendence-net]
     env_file: .env
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root
     volumes:
       - ./data:/app/data
       - ./frontend:/app/frontend
@@ -72,6 +77,8 @@ services:
       - ./users:/app/users
       - logs-data:/app/logs
     depends_on:
+      vault:
+        condition: service_healthy    
       auth:
         condition: service_healthy
       i18n:
@@ -108,6 +115,9 @@ services:
     ports: ["3001:3001"]
     networks: [transcendence-net]
     env_file: .env
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root    
     volumes:
       - ./data:/app/data
       - ./auth:/app/auth
@@ -150,6 +160,9 @@ services:
     ports: ["3004:3004"]
     networks: [transcendence-net]
     env_file: .env
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root    
     volumes:
       - ./database:/app/database
       - ./gateway:/app/gateway
@@ -182,18 +195,12 @@ services:
       network: host
       context: vault
       dockerfile: Dockerfile
-    env_file: .env
     environment:
-      VAULT_UNSEAL_KEY: ${VAULT_UNSEAL_KEY}
-      VAULT_TOKEN: ${VAULT_TOKEN}
-      VAULT_ADDR: https://localhost:8200
-      VAULT_SKIP_VERIFY: "true"
-
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: root
     volumes:
-      - ./vault/data:/vault/data
       - ./nginx/ssl:/vault/ssl:ro
       - ./vault/policy.hcl:/vault/policies/policy.hcl:ro
-      - ./vault/config:/vault/config:ro
     ports: ["8444:8200"]
     networks: [transcendence-net]
     healthcheck: *vault-healthcheck

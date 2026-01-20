@@ -3,12 +3,12 @@ import crypto from 'crypto';
 
 export default async function createFastifyApp(options = {}) {
 
- const {
-    serviceName = 'unknown',
-    enableSessions = false,
-    corsOrigin = false,
-    getSessionSecret = null,
-  } = options;
+	const {
+		serviceName = 'unknown',
+		enableSessions = false,
+		corsOrigin = false,
+		getSessionSecret = null,
+	} = options;
 
 
 	const loggerConfig = {
@@ -43,42 +43,42 @@ export default async function createFastifyApp(options = {}) {
 		await fastify.register(fastifyFormbody.default);
 	}
 
-	if (enableSessions) {
-		const fastifySecureSession = await import('@fastify/secure-session');
+if (enableSessions) {
+  const fastifySecureSession = await import('@fastify/secure-session');
 
+  if (!getSessionSecret) {
+    throw new Error('getSessionSecret is required when enableSessions=true');
+  }
 
-		if (!getSessionSecret) {
-      throw new Error('getSessionSecret is required when enableSessions=true');
-    }
-		  const sessionSecret = await getSessionSecret();
+  const sessionSecret = await getSessionSecret();
 
+  let sessionKey;
+  if (sessionSecret && sessionSecret.length >= 64) {
+    sessionKey = Buffer.from(sessionSecret, 'hex');
+  } else {
+    console.warn('SESSION_SECRET not set or invalid, generating random session key');
+    sessionKey = crypto.randomBytes(32);
+  }
 
-		const sessionKey = sessionSecret;
-		if (sessionSecret && sessionSecret.length >= 64) {
-			sessionKey = Buffer.from(sessionSecret, 'hex');
-		} else {
-			console.warn('SESSION_SECRET not set or invalid, generating random session key');
-			sessionKey = crypto.randomBytes(32);
-		}
+  await fastify.register(fastifySecureSession.default, {
+    key: sessionKey,
+    cookie: {
+      path: '/',
+      secure: true,
+      httpOnly: true,
+      sameSite: 'none'
+    },
+    cookieName: 'sessionId',
+    sessionName: 'session'
+  });
 
-		await fastify.register(fastifySecureSession.default, {
-			key: sessionKey,
-			cookie: {
-				path: '/',
-				secure: true,
-				httpOnly: true,
-				sameSite: 'none'
-			},
-			cookieName: 'sessionId',
-			sessionName: 'session'
-		});
+  if (serviceName === 'api-gateway') {
+    const fastifyPassport = await import('@fastify/passport');
+    await fastify.register(fastifyPassport.default.initialize());
+    await fastify.register(fastifyPassport.default.secureSession());
+  }
+}
 
-		if (serviceName === 'api-gateway') {
-			const fastifyPassport = await import('@fastify/passport');
-			await fastify.register(fastifyPassport.default.initialize());
-			await fastify.register(fastifyPassport.default.secureSession());
-		}
-	}
 
 	fastify.addHook('onReady', async () => {
 		if (!fastify.hasRequestDecorator('isAuthenticated')) {

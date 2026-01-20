@@ -26,6 +26,12 @@ destroy:
 	@docker system prune -a -f --volumes
 	@docker compose down -v --rmi local
 
+status:
+	@docker ps -a 
+	@docker images -a
+	@docker volume ls
+	@docker network ls
+
 health:
 	@echo "\n --- GATEWAY ---\n"
 	curl http://localhost:3000/health

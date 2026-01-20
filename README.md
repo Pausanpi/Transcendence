@@ -1,5 +1,24 @@
 # LO NUEVO
 
+ ✔ Container users       Running                                                                                                                                                                              0.0s 
+ ✔ Container vault       Healthy                                                                                                                                                                              0.5s 
+ ✔ Container i18n        Healthy                                                                                                                                                                              1.0s 
+ ✔ Container database    Healthy                                                                                                                                                                              1.0s 
+ ✔ Container prometheus  Healthy                                                                                                                                                                              0.5s 
+ ✔ Container auth        Healthy                                                                                                                                                                              1.0s 
+ ✔ Container grafana     Running                                                                                                                                                                              0.0s 
+ ✔ Container gateway     Running                                                                                                                                                                              0.0s 
+ ✔ Container nginx       Running  
+
+
+
+docker stop auth
+docker rm auth
+docker rmi auth
+docker volume prune -f
+docker compose up -d auth
+docker ps -a
+docker logs auth
 
 CHANGES:
 

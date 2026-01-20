@@ -1,47 +1,40 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-export VAULT_ADDR=https://localhost:8200
-export VAULT_SKIP_VERIFY=true
+export VAULT_ADDR="http://vault:8200"
+export VAULT_TOKEN="root"
 
-echo "Starting Vault..."
-vault server -config=/vault/config.hcl &
+vault server \
+  -dev \
+  -dev-root-token-id="$VAULT_TOKEN" \
+  -dev-listen-address="0.0.0.0:8200" &
+
 VAULT_PID=$!
 
-echo "Waiting for Vault API..."
-for i in $(seq 1 15); do
-  if curl -sk $VAULT_ADDR/v1/sys/health >/dev/null; then
-    break
-  fi
-  sleep 2
+until vault status >/dev/null 2>&1; do
+  sleep 1
 done
 
-STATUS=$(curl -sk $VAULT_ADDR/v1/sys/health)
-INITIALIZED=$(echo "$STATUS" | jq -r .initialized)
-SEALED=$(echo "$STATUS" | jq -r .sealed)
-
-echo "Vault status → initialized=$INITIALIZED sealed=$SEALED"
-
-if [ "$INITIALIZED" = "false" ]; then
-  echo ""
-  echo "⚠️  Vault is NOT initialized"
-  echo "Run once:"
-  echo "docker exec -it vault vault operator init -key-shares=1 -key-threshold=1"
-  echo ""
-  wait "$VAULT_PID"
-  exit 0
+if ! vault secrets list | grep -q '^secret/'; then
+  vault secrets enable -path=secret kv-v2
 fi
 
-if [ "$SEALED" = "true" ]; then
-  if [ -z "$VAULT_UNSEAL_KEY" ]; then
-    echo "ERROR: VAULT_UNSEAL_KEY not set"
-    exit 1
-  fi
-
-  echo "Unsealing Vault..."
-  vault operator unseal "$VAULT_UNSEAL_KEY"
+if [ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ]; then
+  vault kv put secret/oauth/github client_id="$GITHUB_CLIENT_ID" client_secret="$GITHUB_CLIENT_SECRET"
 fi
 
-echo "✓ Vault ready"
+if vault kv get secret/session/config >/dev/null 2>&1; then
+  echo "✔ Session secret already exists"
+else
+    SESSION_SECRET=$(head -c 32 /dev/urandom | xxd -p -c 256)
+    vault kv put secret/session/config secret="$SESSION_SECRET"
+fi
 
-wait "$VAULT_PID"
+if vault kv get secret/jwt/config >/dev/null 2>&1; then
+  echo "✔ JWT secret already exists"
+else
+  JWT_SECRET=$(head -c 32 /dev/urandom | xxd -p -c 256)
+  vault kv put secret/jwt/config jwt_secret="$JWT_SECRET"
+fi
+
+wait $VAULT_PID

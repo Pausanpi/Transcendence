@@ -1,41 +1,41 @@
 import axios from 'axios';
-import https from 'node:https';
+
+async function waitForVault(retries = 10, delay = 500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await axios.get('http://vault:8200/v1/sys/health');
+      return true;
+    } catch {
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw new Error('Vault not reachable');
+}
 
 class VaultService {
   constructor() {
-    this.vaultAddr = 'https://vault:8200';
-    this.vaultToken = process.env.VAULT_TOKEN;
-
-    if (!this.vaultToken) throw new Error('VAULT_TOKEN is required');
-
-	this.axiosInstance = axios.create({
-	baseURL: this.vaultAddr + '/v1/',
-	headers: {
-		'X-Vault-Token': this.vaultToken,
-		'Content-Type': 'application/json',
-	},
-	httpsAgent: new https.Agent({ rejectUnauthorized: false }), // ignora certificado autofirmado
-	timeout: 5000,
-	});
-
+    this.axiosInstance = axios.create({
+      baseURL: 'http://vault:8200/v1/',
+      headers: {
+        'X-Vault-Token': 'root',
+        'Content-Type': 'application/json',
+      },
+      timeout: 5000,
+    });
   }
 
-async _request(path, options = {}) {
-  try {
+  async init() {
+    await waitForVault();
+  }
+
+  async _request(path, options = {}) {
     const resp = await this.axiosInstance.request({
       url: path,
       method: options.method || 'GET',
       data: options.body ?? undefined,
     });
     return resp.data;
-  } catch (err) {
-    if (err.response) {
-      throw new Error(`Vault ${err.response.status}: ${JSON.stringify(err.response.data)}`);
-    }
-    throw err;
   }
-}
-
 
   async getSecret(path) {
     const data = await this._request(`secret/data/${path}`);
@@ -43,7 +43,7 @@ async _request(path, options = {}) {
   }
 
   async getJWTSecret() {
-    const app = await this.getSecret('app');
+    const app = await this.getSecret('jwt/config');
     return app?.jwt_secret ?? null;
   }
 
@@ -57,4 +57,7 @@ async _request(path, options = {}) {
   }
 }
 
-export default new VaultService();
+const vaultService = new VaultService();
+await vaultService.init();
+
+export default vaultService;
