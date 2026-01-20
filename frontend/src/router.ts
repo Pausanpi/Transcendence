@@ -28,8 +28,10 @@ const routes: Record<string, () => string> = {
   game: renderGame,
   gdpr: renderGdpr,
   twofaverify: renderTwoFAVerify,
+  players: renderPlayers,
+  friends: renderFriends,
+  testpage: renderTestPage,
 };
-
 let currentPage = 'home';
 
 
