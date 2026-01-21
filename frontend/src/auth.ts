@@ -4,7 +4,23 @@ import { clearUserCache } from './gameService.js';
 
 export function initAuth(): void {
   updateAuthBtn();
+  checkOAuthError();
 }
+
+export function checkOAuthError(): void {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  const message = urlParams.get('message');
+
+  if (error === 'oauth_not_configured') {
+    showResult('loginResult', 'auth.oauthNotConfigured', true);
+
+    //const newUrl = window.location.pathname;
+    //window.history.replaceState({}, document.title, newUrl);
+  }
+}
+
+
 
 export function updateAuthBtn(): void {
   const btn = document.getElementById('authBtn');
@@ -72,15 +88,22 @@ export function logout(): void {
   navigate('home');
 }
 
+
 function showResult(id: string, message: string, isError: boolean): void {
   const el = document.getElementById(id);
   if (!el) return;
-
   el.classList.remove('hidden', 'success', 'error');
   el.classList.add('result', isError ? 'error' : 'success');
   el.innerHTML = `<span data-i18n="${message}"></span>`;
   window.languageManager?.applyTranslations();
+
+  if (isError) {
+    setTimeout(() => {
+      el.classList.add('hidden');
+    }, 5000);
+  }
 }
+
 
 (window as any).login = login;
 (window as any).register = register;

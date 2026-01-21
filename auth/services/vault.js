@@ -1,12 +1,37 @@
-import axios from 'axios';
+const VAULT_BASE = 'http://vault:8200/v1';
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Vault HTTP ${res.status}: ${text}`);
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(id);
+  }
+}
 
 async function waitForVault(retries = 10, delay = 500) {
   for (let i = 0; i < retries; i++) {
     try {
-      await axios.get('http://vault:8200/v1/sys/health');
+      await fetchWithTimeout(`${VAULT_BASE}/sys/health`);
       return true;
     } catch {
-      await new Promise((r) => setTimeout(r, delay));
+      await sleep(delay);
     }
   }
   throw new Error('Vault not reachable');
@@ -14,14 +39,11 @@ async function waitForVault(retries = 10, delay = 500) {
 
 class VaultService {
   constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: 'http://vault:8200/v1/',
-      headers: {
-        'X-Vault-Token': 'root',
-        'Content-Type': 'application/json',
-      },
-      timeout: 5000,
-    });
+    this.baseURL = VAULT_BASE;
+    this.headers = {
+      'X-Vault-Token': 'root',
+      'Content-Type': 'application/json',
+    };
   }
 
   async init() {
@@ -29,12 +51,11 @@ class VaultService {
   }
 
   async _request(path, options = {}) {
-    const resp = await this.axiosInstance.request({
-      url: path,
+    return fetchWithTimeout(`${this.baseURL}/${path}`, {
       method: options.method || 'GET',
-      data: options.body ?? undefined,
+      headers: this.headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
     });
-    return resp.data;
   }
 
   async getSecret(path) {

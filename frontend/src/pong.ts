@@ -1,9 +1,9 @@
 import { navigate } from './router.js';
-import { 
-  getCurrentUser, 
+import {
+  getCurrentUser,
   isLoggedIn,
-  createRegisteredPlayer, 
-  createGuestPlayer, 
+  createRegisteredPlayer,
+  createGuestPlayer,
   createAIPlayer,
   startGameSession,
   endGameSession,
@@ -42,15 +42,15 @@ export function startPong(ai: boolean, diff = 3): void {
   player2 = session.player2;
   isAI = session.isAI;
   difficulty = session.difficulty || diff;
-  
+
   navigate('game');
-  
+
   setTimeout(() => {
     canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     ctx = canvas.getContext('2d')!;
     canvas.width = 800;
     canvas.height = 600;
-    
+
     score1 = score2 = 0;
     paddle1.y = paddle2.y = 250;
     resetBall();
@@ -63,7 +63,7 @@ export function startPong(ai: boolean, diff = 3): void {
  */
 export async function setupPongGame(ai: boolean, diff = 3): Promise<void> {
   const currentUser = await getCurrentUser();
-  
+
   // Create player 1 (always the local user or guest)
   if (currentUser) {
     player1 = createRegisteredPlayer(currentUser);
@@ -75,7 +75,7 @@ export async function setupPongGame(ai: boolean, diff = 3): Promise<void> {
   if (ai) {
     // AI game - player 2 is AI
     player2 = createAIPlayer(diff);
-    
+
     // Start session
     startGameSession({
       player1,
@@ -85,7 +85,7 @@ export async function setupPongGame(ai: boolean, diff = 3): Promise<void> {
       difficulty: diff,
       startTime: Date.now()
     });
-    
+
     startPong(true, diff);
   } else {
     // PvP - show modal for player names
@@ -96,54 +96,60 @@ export async function setupPongGame(ai: boolean, diff = 3): Promise<void> {
 /**
  * Show modal to enter player names for PvP
  */
-function showPlayerSetupModal(currentUser: any): void {
+function showPlayerSetupModal(currentUser: any, onConfirm?: Function): void {
   const modal = document.getElementById('modal')!;
   modal.classList.remove('hidden');
-  
   const player1Default = currentUser ? currentUser.display_name || currentUser.username : '';
   const player1Disabled = currentUser ? 'disabled' : '';
   const player1Class = currentUser ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-700';
-  
   modal.innerHTML = `
     <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400">Enter Player Names</h2>
-      
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="players.enterNames">Enter Player Names</h2>
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Player 1 (W/S keys)</label>
-        <input 
-          type="text" 
-          id="player1Name" 
-          value="${player1Default}" 
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player1Keys">Player 1 (W/S keys)</label>
+        <input
+          type="text"
+          id="player1Name"
+          value="${player1Default}"
           placeholder="Enter name..."
           ${player1Disabled}
           class="w-full p-3 rounded ${player1Class} text-white"
           maxlength="20"
         />
-        ${currentUser ? '<p class="text-xs text-green-400 mt-1">✓ Logged in as ' + player1Default + '</p>' : '<p class="text-xs text-gray-500 mt-1">Playing as guest</p>'}
+    ${currentUser ? `<p class="text-xs text-green-400 mt-1" data-i18n="players.loggedInAs">✓ Logged in as ${player1Default}</p>` : '<p class="text-xs text-gray-500 mt-1" data-i18n="players.guestPlaying">Playing as guest</p>'}
       </div>
-      
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Player 2 (↑/↓ keys)</label>
-        <input 
-          type="text" 
-          id="player2Name" 
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player2Keys">Player 2 (↑/↓ keys)</label>
+        <input
+          type="text"
+          id="player2Name"
           placeholder="Enter name..."
           class="w-full p-3 rounded bg-gray-700 text-white"
           maxlength="20"
         />
-        <p class="text-xs text-gray-500 mt-1">Playing as guest</p>
+        <div id="player2Status" class="mt-1"></div>
       </div>
-      
       <div class="flex gap-4 mt-6">
-        <button onclick="hideModal()" class="btn btn-gray flex-1">Cancel</button>
-        <button onclick="confirmPlayerSetup()" class="btn btn-green flex-1">Start Game</button>
+        <button onclick="hideModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
+        <button id="confirmPlayerSetupBtn" class="btn btn-green flex-1" data-i18n="players.startGame">Start Game</button>
       </div>
     </div>
   `;
-  
-  // Focus on the first editable input
+
+  // Si hay un callback personalizado, lo usamos
+  if (onConfirm) {
+    document.getElementById('confirmPlayerSetupBtn')!.onclick = () => onConfirm();
+  } else {
+    document.getElementById('confirmPlayerSetupBtn')!.onclick = confirmPlayerSetup;
+  }
+
+  // Aplicar traducciones
+  if (window.languageManager?.isReady()) {
+    window.languageManager.applyTranslations();
+  }
+
   setTimeout(() => {
-    const input = currentUser 
+    const input = currentUser
       ? document.getElementById('player2Name') as HTMLInputElement
       : document.getElementById('player1Name') as HTMLInputElement;
     input?.focus();
@@ -155,19 +161,19 @@ function showPlayerSetupModal(currentUser: any): void {
  */
 async function confirmPlayerSetup(): Promise<void> {
   const currentUser = await getCurrentUser();
-  
+
   const p1Input = document.getElementById('player1Name') as HTMLInputElement;
   const p2Input = document.getElementById('player2Name') as HTMLInputElement;
-  
+
   const p1Name = p1Input.value.trim() || 'Player 1';
   const p2Name = p2Input.value.trim() || 'Player 2';
-  
+
   // Validate names are different
   if (p1Name.toLowerCase() === p2Name.toLowerCase()) {
     alert('Players must have different names!');
     return;
   }
-  
+
   // Create players
   if (currentUser) {
     player1 = createRegisteredPlayer(currentUser);
@@ -175,7 +181,7 @@ async function confirmPlayerSetup(): Promise<void> {
     player1 = createGuestPlayer(p1Name);
   }
   player2 = createGuestPlayer(p2Name);
-  
+
   // Start session
   startGameSession({
     player1,
@@ -184,7 +190,7 @@ async function confirmPlayerSetup(): Promise<void> {
     isAI: false,
     startTime: Date.now()
   });
-  
+
   hideModal();
   startPong(false);
 }
@@ -206,7 +212,7 @@ function update(): void {
   // Paddles
   if (keys['w'] && paddle1.y > 0) paddle1.y -= 5;
   if (keys['s'] && paddle1.y < 500) paddle1.y += 5;
-  
+
   if (isAI) {
     const center = paddle2.y + 50;
     if (center < ball.y - 10) paddle2.y += difficulty;
@@ -216,20 +222,20 @@ function update(): void {
     if (keys['ArrowUp'] && paddle2.y > 0) paddle2.y -= 5;
     if (keys['ArrowDown'] && paddle2.y < 500) paddle2.y += 5;
   }
-  
+
   // Ball
   ball.x += ball.dx;
   ball.y += ball.dy;
-  
+
   if (ball.y < 10 || ball.y > 590) ball.dy = -ball.dy;
-  
+
   if (ball.x < 20 && ball.y > paddle1.y && ball.y < paddle1.y + 100) {
     ball.dx = Math.abs(ball.dx) * 1.05;
   }
   if (ball.x > 770 && ball.y > paddle2.y && ball.y < paddle2.y + 100) {
     ball.dx = -Math.abs(ball.dx) * 1.05;
   }
-  
+
   if (ball.x < 0) { score2++; checkWin(); resetBall(); }
   if (ball.x > 800) { score1++; checkWin(); resetBall(); }
 }
@@ -238,7 +244,7 @@ function checkWin(): void {
   if (score1 >= 5 || score2 >= 5) {
     gameOn = false;
     const winner = score1 >= 5 ? player1 : player2;
-    
+
     // Save match to database
     endGameSession(score1, score2).then(result => {
       if (result.success) {
@@ -247,7 +253,7 @@ function checkWin(): void {
         console.warn('Failed to save match - may be offline or API error');
       }
     });
-    
+
     showWinner(winner.name);
   }
 }
@@ -255,20 +261,20 @@ function checkWin(): void {
 function draw(): void {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, 800, 600);
-  
+
   ctx.fillStyle = '#fff';
   ctx.fillRect(paddle1.x, paddle1.y, 10, 100);
   ctx.fillRect(paddle2.x, paddle2.y, 10, 100);
-  
+
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, 10, 0, Math.PI * 2);
   ctx.fill();
-  
+
   // Scores
   ctx.font = '48px monospace';
   ctx.fillText(score1.toString(), 200, 60);
   ctx.fillText(score2.toString(), 580, 60);
-  
+
   // Player names
   ctx.font = '16px monospace';
   ctx.fillStyle = '#888';
@@ -282,10 +288,10 @@ function countdown(cb: () => void): void {
   const el = document.getElementById('countdown')!;
   const txt = document.getElementById('countdownText')!;
   el.classList.remove('hidden');
-  
+
   let n = 3;
   txt.textContent = n.toString();
-  
+
   const i = setInterval(() => {
     n--;
     if (n > 0) txt.textContent = n.toString();
@@ -300,7 +306,7 @@ function showWinner(winner: string): void {
   el.classList.remove('hidden');
   txt.textContent = `🎉 ${winner} Wins!`;
   txt.className = 'text-5xl font-bold text-yellow-300';
-  
+
   setTimeout(() => {
     el.classList.add('hidden');
     txt.className = 'text-9xl font-extrabold text-yellow-300';

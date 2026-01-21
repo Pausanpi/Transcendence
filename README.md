@@ -1,12 +1,12 @@
 # LO NUEVO
 
-docker stop auth
-docker rm auth
-docker rmi auth
+docker stop gateway
+docker rm gateway
+docker rmi gateway
 docker volume prune -f
-docker compose up -d auth
+docker compose up -d gateway
 docker ps -a
-docker logs auth
+docker logs gateway
 
 CHANGES:
 
@@ -37,32 +37,30 @@ CHANGES:
 - Ahora oAuth no hace fallar el servicio si las variables de entorno no estan seteadas
 - Añadido display_name como nickname en todos sitios + update profile
 
-
-
-PUT está explícitamente prohibido por la política de seguridad por defecto del OWASP CRS.
-OWASP CRS bloquea PUT, PATCH y DELETE por defecto porque:
-Muchos ataques usan métodos no estándar
-APIs REST modernas usan PUT/PATCH, pero CRS es conservador
-👉 No es un error, es una decisión de seguridad.
-
+5to COMMIT
 
 
 ---
 
   # TODO
-- Mejorar dashboard grafana
 - 2fa con movil
-- Ocultar botones y data profile si no está logeadp
+
 - Después de enable 2fa refrescar perfil y ocultar boton
-- Cosas que traducir (Dejando para el final)
+
 - Lo de modificar (botón UPDATE) nickname y subir avatar
 - Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
 - si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault)
   Pierdes la ventaja “stateless”
   Necesitas Redis / DB / Vault
-
+- Hacer que si gateway falla, nginx en vez de 404 muestre estaticos?
 - demostracion de sublogin torneo
 - Crear volumem compartido
+- Normalizar rutas apiproxy
+
+--- (Dejando para el final)
+- Cosas que traducir
+- Mejorar dashboard grafana
+- Dependencias circulares
 
 ---
 

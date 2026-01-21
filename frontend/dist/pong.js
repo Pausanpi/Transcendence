@@ -72,7 +72,7 @@ export async function setupPongGame(ai, diff = 3) {
 /**
  * Show modal to enter player names for PvP
  */
-function showPlayerSetupModal(currentUser) {
+function showPlayerSetupModal(currentUser, onConfirm) {
     const modal = document.getElementById('modal');
     modal.classList.remove('hidden');
     const player1Default = currentUser ? currentUser.display_name || currentUser.username : '';
@@ -80,41 +80,48 @@ function showPlayerSetupModal(currentUser) {
     const player1Class = currentUser ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-700';
     modal.innerHTML = `
     <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400">Enter Player Names</h2>
-      
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="players.enterNames">Enter Player Names</h2>
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Player 1 (W/S keys)</label>
-        <input 
-          type="text" 
-          id="player1Name" 
-          value="${player1Default}" 
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player1Keys">Player 1 (W/S keys)</label>
+        <input
+          type="text"
+          id="player1Name"
+          value="${player1Default}"
           placeholder="Enter name..."
           ${player1Disabled}
           class="w-full p-3 rounded ${player1Class} text-white"
           maxlength="20"
         />
-        ${currentUser ? '<p class="text-xs text-green-400 mt-1">✓ Logged in as ' + player1Default + '</p>' : '<p class="text-xs text-gray-500 mt-1">Playing as guest</p>'}
+    ${currentUser ? `<p class="text-xs text-green-400 mt-1" data-i18n="players.loggedInAs">✓ Logged in as ${player1Default}</p>` : '<p class="text-xs text-gray-500 mt-1" data-i18n="players.guestPlaying">Playing as guest</p>'}
       </div>
-      
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Player 2 (↑/↓ keys)</label>
-        <input 
-          type="text" 
-          id="player2Name" 
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player2Keys">Player 2 (↑/↓ keys)</label>
+        <input
+          type="text"
+          id="player2Name"
           placeholder="Enter name..."
           class="w-full p-3 rounded bg-gray-700 text-white"
           maxlength="20"
         />
-        <p class="text-xs text-gray-500 mt-1">Playing as guest</p>
+        <div id="player2Status" class="mt-1"></div>
       </div>
-      
       <div class="flex gap-4 mt-6">
-        <button onclick="hideModal()" class="btn btn-gray flex-1">Cancel</button>
-        <button onclick="confirmPlayerSetup()" class="btn btn-green flex-1">Start Game</button>
+        <button onclick="hideModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
+        <button id="confirmPlayerSetupBtn" class="btn btn-green flex-1" data-i18n="players.startGame">Start Game</button>
       </div>
     </div>
   `;
-    // Focus on the first editable input
+    // Si hay un callback personalizado, lo usamos
+    if (onConfirm) {
+        document.getElementById('confirmPlayerSetupBtn').onclick = () => onConfirm();
+    }
+    else {
+        document.getElementById('confirmPlayerSetupBtn').onclick = confirmPlayerSetup;
+    }
+    // Aplicar traducciones
+    if (window.languageManager?.isReady()) {
+        window.languageManager.applyTranslations();
+    }
     setTimeout(() => {
         const input = currentUser
             ? document.getElementById('player2Name')

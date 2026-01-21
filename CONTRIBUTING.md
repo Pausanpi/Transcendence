@@ -151,3 +151,10 @@ git checkout -b feature/my-feature
 # ... work, commit ...
 git push -u origin feature/my-feature
 # → Create PR on GitHub → Get review → Merge → Delete branch
+
+
+---
+### Bruteforce pull
+
+git reset --hard origin/fix/refactor
+git clean -fd

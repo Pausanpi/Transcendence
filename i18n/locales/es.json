@@ -254,5 +254,25 @@
 		"vaultTooltip": "Abrir HashiCorp Vault",
 		"accessDenied": "Acceso denegado",
 		"adminRightsRequired": "Se requieren derechos de administrador"
-	}
+	},
+
+ "test": {
+    "playGame": "Test Game Setup",
+    "playDescription": "Test the player verification system",
+    "play": "🎮 Play",
+    "verifyPlayer": "Verify Player 2",
+    "enterPlayerName": "Please enter a player name",
+    "checkingPlayer": "Checking player...",
+    "playerNotRegistered": "Player not registered",
+    "checkError": "Error checking player",
+    "verifyCredentials": "Verify Player 2 Credentials",
+    "verifyCredentialsDesc": "Please enter credentials for",
+    "enterCredentials": "Please enter email and password",
+    "verifying": "Verifying...",
+    "invalidCredentials": "Invalid credentials",
+    "playerVerified": "Player verified",
+    "gameStarting": "Game starting with"
+  }
+
+
 }

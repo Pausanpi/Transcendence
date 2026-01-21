@@ -74,7 +74,7 @@ export async function findOrCreateOAuthUser(oauthProfile) {
 			`http://database:3003/users`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( newUser )
+			body: JSON.stringify(newUser)
 		});
 
 		const data = await response.json();
@@ -97,7 +97,7 @@ export async function updateUser(userId, updateData) {
 			`http://database:3003/users/${userId}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( updateData )
+			body: JSON.stringify(updateData)
 		});
 
 		const data = await response.json();
@@ -194,7 +194,7 @@ export async function saveUser(userData) {
 		const userToSave = {
 			id: userData.id,
 			username: userData.username,
-			display_name: userData.display_name,
+			display_name: userData.username,
 			email: userData.email,
 			password_hash: passwordHash,
 			avatar: userData.avatar || 'default-avatar.png',
@@ -208,7 +208,7 @@ export async function saveUser(userData) {
 			`http://database:3003/users`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( userToSave )
+			body: JSON.stringify(userToSave)
 		});
 
 		const data = await response.json();
@@ -255,7 +255,7 @@ export async function incrementLoginAttempts(userId, increment = true) {
 			`http://database:3003/users/${userId}/login-attempts`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( increment )
+			body: JSON.stringify(increment)
 		});
 
 		const data = await response.json();
@@ -276,7 +276,7 @@ export async function resetLoginAttempts(userId, increment = false) {
 			`http://database:3003/users/${userId}/login-attempts`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( increment )
+			body: JSON.stringify(increment)
 		});
 
 		const data = await response.json();
@@ -301,7 +301,7 @@ export async function deleteUserSessions(userId) {
 			`http://database:3003/sessions/user/${userId}`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( increment )
+			body: JSON.stringify(increment)
 		});
 
 		const data = await response.json();
@@ -322,7 +322,7 @@ export async function createUserSession(sessionData) {
 			`http://database:3003/sessions`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify( sessionData )
+			body: JSON.stringify(sessionData)
 		});
 
 		const data = await response.json();

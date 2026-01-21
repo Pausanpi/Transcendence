@@ -27,7 +27,7 @@ destroy:
 	@docker compose down -v --rmi local
 
 status:
-	@docker ps -a 
+	@docker ps -a
 	@docker images -a
 	@docker volume ls
 	@docker network ls
@@ -58,4 +58,7 @@ tails:
 	@echo "\n --- USERS ---\n"
 	docker logs users | tail -n 20
 
-.PHONY: all build up down fclean re logs ps clean destroy health tails
+tsc:
+	gnome-terminal -- bash -c "cd frontend && npx tsc --watch; exec bash"
+
+.PHONY: all build up down fclean re logs ps clean destroy health tails tsc

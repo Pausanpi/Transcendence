@@ -89,7 +89,7 @@ export default async function authRoutes(fastify, options) {
 		const newUser = {
 			id: 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36),
 			username,
-			display_name,
+			username,
 			email,
 			password,
 			two_factor_enabled: false
@@ -106,7 +106,6 @@ export default async function authRoutes(fastify, options) {
 		const token = await jwtService.generateToken({
 			id: savedUser.id,
 			username: savedUser.username,
-			display_name: savedUser.display_name,
 			email: savedUser.email
 		});
 
