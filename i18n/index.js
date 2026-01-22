@@ -1,13 +1,13 @@
 import Fastify from 'fastify';
 import i18nRoutes from './routes/i18n.js';
 import healthRoutes from './routes/health.js';
-import dotenv from 'dotenv';
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config();
+
 
 async function startI18nService() {
 	const fastify = Fastify({

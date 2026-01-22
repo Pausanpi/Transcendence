@@ -8,25 +8,14 @@ export default async function createFastifyApp(options = {}) {
 		level: process.env.LOG_LEVEL || 'info'
 	};
 
-	if (process.env.NODE_ENV === 'development') {
-		try {
-			await import('pino-pretty');
-			loggerConfig.transport = {
-				target: 'pino-pretty',
-				options: {
-					colorize: true,
-					translateTime: 'HH:MM:ss Z',
-					ignore: 'pid,hostname'
-				}
-			};
-		} catch (error) {
-		}
-	}
+
 
 	const fastify = Fastify({
 		logger: loggerConfig,
 		trustProxy: true
 	});
+
+
 
 if (corsOrigin) {
     const fastifyCors = await import('@fastify/cors');
