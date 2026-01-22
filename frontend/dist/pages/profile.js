@@ -183,22 +183,17 @@ async function uploadAvatar() {
     const formData = new FormData();
     formData.append('avatar', avatarFile);
     try {
-        const response = await fetch('/api/gateway/upload/avatar', {
+        const data = await api('/api/gateway/upload/avatar', {
             method: 'POST',
-            body: formData,
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            }
+            body: formData
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Upload failed');
+        if (!data.success) {
+            throw new Error(data.error || 'Upload failed');
         }
-        const result = await response.json();
-        showProfileMessage(result.message || 'Avatar uploaded successfully', 'success');
+        showProfileMessage(data.message || 'Avatar uploaded successfully', 'success');
         setTimeout(() => {
             loadProfile();
-        }, 1000);
+        }, 500);
     }
     catch (error) {
         console.error('Upload error:', error);

@@ -202,25 +202,21 @@ async function uploadAvatar(): Promise<void> {
   formData.append('avatar', avatarFile);
 
   try {
-const response = await fetch('/api/gateway/upload/avatar', {
-  method: 'POST',
-  body: formData,
-  headers: {
-    'Authorization': `Bearer ${getToken()}`
-  }
-});
+    const data = await api<any>('/api/gateway/upload/avatar', {
+      method: 'POST',
+      body: formData
+    });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
+
+    if (!data.success) {
+      throw new Error(data.error || 'Upload failed');
     }
 
-    const result = await response.json();
-    showProfileMessage(result.message || 'Avatar uploaded successfully', 'success');
+    showProfileMessage(data.message || 'Avatar uploaded successfully', 'success');
 
     setTimeout(() => {
       loadProfile();
-    }, 1000);
+    }, 500);
   } catch (error: any) {
     console.error('Upload error:', error);
     showProfileMessage(error.message || 'Failed to upload avatar', 'error');

@@ -42,9 +42,6 @@ async function startGateway() {
 		getSessionSecret: () => VaultService.getSessionSecret()
 	});
 
-
-
-
   await fastify.register(fastifyMultipart, {
     limits: {
       fileSize: 2 * 1024 * 1024,
@@ -72,9 +69,7 @@ async function startGateway() {
 			'/api/gateway/health',
 			'/api/i18n/',
 			'/api/users/health',
-			'/api/database/players',
-			'/api/gateway/upload/avatar',
-
+			'/api/database/players'
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {

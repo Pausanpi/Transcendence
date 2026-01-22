@@ -60,8 +60,8 @@ export default async function usersRoutes(fastify, options) {
 				`INSERT INTO users (id, username, display_name, email, password_hash, avatar,
 				 oauth_provider, oauth_id, two_factor_enabled, two_factor_secret,
 				 is_active, is_anonymized, login_attempts, created_at, updated_at)
-				 VALUES (?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-				[id, username, email, password_hash, avatar, oauth_provider, oauth_id]
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+				[id, username, display_name, email, password_hash, avatar, oauth_provider, oauth_id]
 			);
 			return { success: true, userId: id };
 		} catch (error) {
