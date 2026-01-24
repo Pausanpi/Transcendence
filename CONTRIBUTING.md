@@ -100,8 +100,6 @@ Clean up references to deleted remote branches:
 git fetch --prune
 ```
 
-
-
 ### 7. Syncing with `dev` and Resolving Conflicts
 
 Before pushing or opening a Pull Request, always update your branch with the latest changes from `dev`. This keeps the codebase clean and avoids merge issues later.
@@ -153,11 +151,14 @@ Before pushing or opening a Pull Request, always update your branch with the lat
    git push origin feature/your-feature
    ```
 
+> **Tip:** If there is an error with non related
+histories, you cna force with
+git merge dev --allow-unrelated-histories
+
+
 > **Tip:** Use `git status` to see which files need attention during a conflict. Repeat the conflict resolution steps for each file as needed.
 
 This process is required by our workflow to keep the codebase healthy and avoid merge issues in Pull Requests.
-
-
 
 ---
 
@@ -210,3 +211,11 @@ git checkout -b feature/my-feature
 # ... work, commit ...
 git push -u origin feature/my-feature
 # → Create PR on GitHub → Get review → Merge → Delete branch
+
+
+---
+### Bruteforce pull
+
+git reset --hard origin/fix/refactor
+git clean -fd
+

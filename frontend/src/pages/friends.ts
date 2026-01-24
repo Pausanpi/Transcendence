@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-
+import { isLoggedIn } from '../gameService.js'; // Añadir esta importación
 interface Friend {
   id: number;
   user_id: string;
@@ -26,24 +26,39 @@ interface FriendRequest {
 let currentTab = 'friends';
 
 export function renderFriends(): string {
+
+ if (!isLoggedIn()) {
+    return `
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center text-cyan-400 mb-8" data-i18n="friends.title">👫 Friends</h2>
+        <div class="card text-center">
+          <div class="text-6xl mb-6">🔒</div>
+          <p class="text-red-400 text-xl mb-6" data-i18n="auth.authenticationRequired">Authentication required</p>
+          <button onclick="navigate('auth')" class="btn btn-blue" data-i18n="auth.login">Login</button>
+        </div>
+      </div>
+    `;
+  }
+
+
   setTimeout(() => loadTab('friends'), 100);
-  
+
   return `
     <div class="max-w-4xl mx-auto">
       <h2 class="text-3xl font-bold text-center text-cyan-400 mb-8" data-i18n="friends.title">👫 Friends</h2>
-      
+
       <!-- Tabs -->
       <div class="flex gap-2 mb-6">
-        <button id="tabFriends" onclick="switchFriendsTab('friends')" 
+        <button id="tabFriends" onclick="switchFriendsTab('friends')"
                 class="btn btn-blue flex-1" data-i18n="friends.myFriends">
           👥 My Friends
         </button>
-        <button id="tabRequests" onclick="switchFriendsTab('requests')" 
+        <button id="tabRequests" onclick="switchFriendsTab('requests')"
                 class="btn btn-gray flex-1 relative" data-i18n="friends.requests">
           📬 Requests
           <span id="requestsBadge" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"></span>
         </button>
-        <button id="tabSent" onclick="switchFriendsTab('sent')" 
+        <button id="tabSent" onclick="switchFriendsTab('sent')"
                 class="btn btn-gray flex-1" data-i18n="friends.sent">
           📤 Sent
         </button>
@@ -62,7 +77,7 @@ export function renderFriends(): string {
 async function loadTab(tab: string): Promise<void> {
   currentTab = tab;
   updateTabStyles();
-  
+
   const container = document.getElementById('friendsContent');
   if (!container) return;
 
@@ -110,7 +125,7 @@ function updateTabStyles(): void {
 }
 
 async function loadFriends(container: HTMLElement): Promise<void> {
-  const response = await api<{ success: boolean; friends: Friend[] }>('/api/friends/me');
+  const response = await api<{ success: boolean; friends: Friend[] }>('/api/database/friends/me');
 
   if (response.success && response.friends && response.friends.length > 0) {
     container.innerHTML = response.friends.map(friend => renderFriendCard(friend)).join('');
@@ -125,7 +140,7 @@ async function loadFriends(container: HTMLElement): Promise<void> {
 }
 
 async function loadRequests(container: HTMLElement): Promise<void> {
-  const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/friends/me/requests');
+  const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/database/friends/me/requests');
 
   if (response.success && response.requests && response.requests.length > 0) {
     container.innerHTML = response.requests.map(request => renderRequestCard(request)).join('');
@@ -139,7 +154,7 @@ async function loadRequests(container: HTMLElement): Promise<void> {
 }
 
 async function loadSentRequests(container: HTMLElement): Promise<void> {
-  const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/friends/me/sent');
+  const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/database/friends/me/sent');
 
   if (response.success && response.requests && response.requests.length > 0) {
     container.innerHTML = response.requests.map(request => renderSentCard(request)).join('');
@@ -159,10 +174,10 @@ function renderFriendCard(friend: Friend): string {
   return `
     <div class="card flex items-center gap-4">
       <div class="relative">
-        <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover" 
-             src="${friend.avatar || '/default-avatar.png'}" 
+        <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
+             src="${friend.avatar || '/avatars/default-avatar.png'}"
              alt="${friend.username}"
-             onerror="this.src='/default-avatar.png'" />
+             onerror="this.src='/avatars/default-avatar.png'" />
         <span class="absolute bottom-0 right-0 w-3 h-3 ${statusColor} rounded-full border-2 border-gray-800"></span>
       </div>
       <div class="flex-1">
@@ -172,11 +187,11 @@ function renderFriendCard(friend: Friend): string {
         </p>
       </div>
       <div class="flex gap-2">
-        <button onclick="viewPlayer('${friend.friend_user_id}')" 
+        <button onclick="viewPlayer('${friend.friend_user_id}')"
                 class="btn btn-blue btn-sm" data-i18n="friends.viewProfile">
           👤 Profile
         </button>
-        <button onclick="removeFriend(${friend.id}, '${friend.username}')" 
+        <button onclick="removeFriend(${friend.id}, '${friend.username}')"
                 class="btn btn-red btn-sm" data-i18n="friends.remove">
           ✖
         </button>
@@ -188,20 +203,20 @@ function renderFriendCard(friend: Friend): string {
 function renderRequestCard(request: FriendRequest): string {
   return `
     <div class="card flex items-center gap-4">
-      <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover" 
-           src="${request.avatar || '/default-avatar.png'}" 
+      <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
+           src="${request.avatar || '/avatars/default-avatar.png'}"
            alt="${request.username}"
-           onerror="this.src='/default-avatar.png'" />
+           onerror="this.src='/avatars/default-avatar.png'" />
       <div class="flex-1">
         <h3 class="text-lg font-bold text-yellow-400">${request.username}</h3>
         <p class="text-sm text-gray-400" data-i18n="friends.wantsToBeYourFriend">wants to be your friend</p>
       </div>
       <div class="flex gap-2">
-        <button onclick="acceptRequest(${request.id})" 
+        <button onclick="acceptRequest(${request.id})"
                 class="btn btn-green btn-sm" data-i18n="friends.accept">
           ✓ Accept
         </button>
-        <button onclick="rejectRequest(${request.id})" 
+        <button onclick="rejectRequest(${request.id})"
                 class="btn btn-red btn-sm" data-i18n="friends.reject">
           ✗ Reject
         </button>
@@ -213,15 +228,15 @@ function renderRequestCard(request: FriendRequest): string {
 function renderSentCard(request: FriendRequest): string {
   return `
     <div class="card flex items-center gap-4">
-      <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover" 
-           src="${request.avatar || '/default-avatar.png'}" 
+      <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
+           src="${request.avatar || '/avatars/default-avatar.png'}"
            alt="${request.username}"
-           onerror="this.src='/default-avatar.png'" />
+           onerror="this.src='/avatars/default-avatar.png'" />
       <div class="flex-1">
         <h3 class="text-lg font-bold text-yellow-400">${request.username}</h3>
         <p class="text-sm text-gray-400" data-i18n="friends.pendingRequest">Request pending...</p>
       </div>
-      <button onclick="cancelRequest(${request.id})" 
+      <button onclick="cancelRequest(${request.id})"
               class="btn btn-gray btn-sm" data-i18n="friends.cancel">
         ✗ Cancel
       </button>
@@ -230,10 +245,19 @@ function renderSentCard(request: FriendRequest): string {
 }
 
 async function updateRequestsBadge(): Promise<void> {
-  try {
-    const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/friends/me/requests');
+
+if (!isLoggedIn()) {
     const badge = document.getElementById('requestsBadge');
-    
+    if (badge) {
+      badge.classList.add('hidden');
+    }
+    return;
+  }
+
+  try {
+    const response = await api<{ success: boolean; requests: FriendRequest[] }>('/api/database/friends/me/requests');
+    const badge = document.getElementById('requestsBadge');
+
     if (badge && response.success && response.requests) {
       const count = response.requests.length;
       if (count > 0) {
@@ -249,8 +273,15 @@ async function updateRequestsBadge(): Promise<void> {
 }
 
 async function acceptRequest(requestId: number): Promise<void> {
+
+
+ if (!isLoggedIn()) {
+    showToast('auth.authenticationRequired', 'error');
+    return;
+  }
+
   try {
-    const response = await api<{ success: boolean }>(`/api/friends/${requestId}`, {
+    const response = await api<{ success: boolean }>(`/api/database/friends/${requestId}`, {
       method: 'PUT',
       body: JSON.stringify({ status: 'accepted' })
     });
@@ -268,8 +299,14 @@ async function acceptRequest(requestId: number): Promise<void> {
 }
 
 async function rejectRequest(requestId: number): Promise<void> {
+
+ if (!isLoggedIn()) {
+    showToast('auth.authenticationRequired', 'error');
+    return;
+  }
+
   try {
-    const response = await api<{ success: boolean }>(`/api/friends/${requestId}`, {
+    const response = await api<{ success: boolean }>(`/api/database/friends/${requestId}`, {
       method: 'PUT',
       body: JSON.stringify({ status: 'rejected' })
     });
@@ -287,8 +324,15 @@ async function rejectRequest(requestId: number): Promise<void> {
 }
 
 async function cancelRequest(requestId: number): Promise<void> {
+
+
+ if (!isLoggedIn()) {
+    showToast('auth.authenticationRequired', 'error');
+    return;
+  }
+
   try {
-    const response = await api<{ success: boolean }>(`/api/friends/${requestId}`, {
+    const response = await api<{ success: boolean }>(`/api/database/friends/${requestId}`, {
       method: 'DELETE'
     });
 
@@ -305,10 +349,16 @@ async function cancelRequest(requestId: number): Promise<void> {
 }
 
 async function removeFriend(friendshipId: number, username: string): Promise<void> {
-  if (!confirm(`Remove ${username} from friends?`)) return;
+
+	 if (!isLoggedIn()) {
+    showToast('auth.authenticationRequired', 'error');
+    return;
+  }
+
+	if (!confirm(`Remove ${username} from friends?`)) return;
 
   try {
-    const response = await api<{ success: boolean }>(`/api/friends/${friendshipId}`, {
+    const response = await api<{ success: boolean }>(`/api/database/friends/${friendshipId}`, {
       method: 'DELETE'
     });
 
@@ -332,13 +382,18 @@ function showToast(messageKey: string, type: 'success' | 'error'): void {
   } text-white`;
   toast.textContent = message;
   document.body.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.remove();
   }, 3000);
 }
 
 function switchFriendsTab(tab: string): void {
+ if (!isLoggedIn()) {
+    showToast('auth.authenticationRequired', 'error');
+    return;
+  }
+
   loadTab(tab);
 }
 

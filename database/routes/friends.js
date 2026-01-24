@@ -2,6 +2,220 @@ import db from '../config/sqlite.js';
 
 export default async function friendsRoutes(fastify, options) {
 
+
+fastify.get('/friends/me/requests', async (request, reply) => {
+    try {
+        const userId = request.headers['x-user-id'] ||
+                      (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+
+        if (!userId) {
+            return reply.status(401).send({
+                success: false,
+                error: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        const requests = await db.all(
+            `SELECT f.*, u.username, u.avatar
+             FROM friendships f
+             LEFT JOIN users u ON f.user_id = u.id
+             WHERE f.friend_id = ? AND f.status = 'pending'
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+        return { success: true, requests };
+    } catch (error) {
+        console.error('Error loading friend requests:', error);
+        return reply.status(500).send({
+            error: 'Database error',
+            success: false,
+            code: 'DB_ERROR'
+        });
+    }
+});
+
+// Añadir después de la ruta anterior
+fastify.get('/friends/me', async (request, reply) => {
+    try {
+        const userId = request.headers['x-user-id'] ||
+                      (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+
+        if (!userId) {
+            return reply.status(401).send({
+                success: false,
+                error: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        const friends = await db.all(
+            `SELECT f.*,
+                CASE
+                    WHEN f.user_id = ? THEN f.friend_id
+                    ELSE f.user_id
+                END as friend_user_id,
+                u.username, u.avatar, u.online_status, u.last_seen
+             FROM friendships f
+             LEFT JOIN users u ON (
+                CASE
+                    WHEN f.user_id = ? THEN f.friend_id
+                    ELSE f.user_id
+                END = u.id
+             )
+             WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = 'accepted'
+             ORDER BY f.created_at DESC`,
+            [userId, userId, userId, userId]
+        );
+        return { success: true, friends };
+    } catch (error) {
+        console.error('Error loading friends:', error);
+        return reply.status(500).send({
+            error: 'Database error',
+            success: false,
+            code: 'DB_ERROR'
+        });
+    }
+});
+
+fastify.get('/friends/me/sent', async (request, reply) => {
+    try {
+        const userId = request.headers['x-user-id'] ||
+                      (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+
+        if (!userId) {
+            return reply.status(401).send({
+                success: false,
+                error: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        const requests = await db.all(
+            `SELECT f.*, u.username, u.avatar
+             FROM friendships f
+             LEFT JOIN users u ON f.friend_id = u.id
+             WHERE f.user_id = ? AND f.status = 'pending'
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+        return { success: true, requests };
+    } catch (error) {
+        console.error('Error loading sent requests:', error);
+        return reply.status(500).send({
+            error: 'Database error',
+            success: false,
+            code: 'DB_ERROR'
+        });
+    }
+});
+
+fastify.get('/friends/me/check/:friendId', async (request, reply) => {
+    try {
+        const userId = request.headers['x-user-id'] ||
+                      (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+        const { friendId } = request.params;
+
+        if (!userId) {
+            return reply.status(401).send({
+                success: false,
+                error: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        const friendship = await db.get(
+            `SELECT * FROM friendships
+             WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)`,
+            [userId, friendId, friendId, userId]
+        );
+
+        if (!friendship) {
+            return { success: true, status: 'none', friendship: null };
+        }
+        return { success: true, status: friendship.status, friendship };
+    } catch (error) {
+        console.error('Error checking friendship:', error);
+        return reply.status(500).send({
+            error: 'Database error',
+            success: false,
+            code: 'DB_ERROR'
+        });
+    }
+});
+
+fastify.post('/friends/me/add', async (request, reply) => {
+    try {
+        const userId = request.headers['x-user-id'] ||
+                      (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
+        const { friend_id } = request.body;
+
+        if (!userId) {
+            return reply.status(401).send({
+                success: false,
+                error: 'Authentication required',
+                code: 'AUTH_REQUIRED'
+            });
+        }
+
+        if (!friend_id) {
+            return reply.status(400).send({
+                error: 'friend_id is required',
+                success: false,
+                code: 'MISSING_FIELDS'
+            });
+        }
+
+        if (userId === friend_id) {
+            return reply.status(400).send({
+                error: 'Cannot add yourself as friend',
+                success: false,
+                code: 'SELF_FRIEND'
+            });
+        }
+
+        const existing = await db.get(
+            `SELECT * FROM friendships
+             WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)`,
+            [userId, friend_id, friend_id, userId]
+        );
+
+        if (existing) {
+            return reply.status(400).send({
+                error: 'Friendship already exists',
+                success: false,
+                code: 'ALREADY_EXISTS',
+                status: existing.status
+            });
+        }
+
+        const result = await db.run(
+            `INSERT INTO friendships (user_id, friend_id, status, created_at)
+             VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)`,
+            [userId, friend_id]
+        );
+
+        return { success: true, friendshipId: result.id };
+    } catch (error) {
+        console.error('Error adding friend:', error);
+        return reply.status(500).send({
+            error: 'Database error',
+            success: false,
+            code: 'DB_ERROR'
+        });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
 	// Send friend request
 	fastify.post('/friends', async (request, reply) => {
 		const { user_id, friend_id } = request.body;
@@ -25,7 +239,7 @@ export default async function friendsRoutes(fastify, options) {
 		try {
 			// Check if friendship already exists (in either direction)
 			const existing = await db.get(
-				`SELECT * FROM friendships 
+				`SELECT * FROM friendships
 				WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)`,
 				[user_id, friend_id, friend_id, user_id]
 			);
@@ -63,17 +277,17 @@ export default async function friendsRoutes(fastify, options) {
 
 		try {
 			const friends = await db.all(
-				`SELECT f.*, 
-					CASE 
-						WHEN f.user_id = ? THEN f.friend_id 
-						ELSE f.user_id 
+				`SELECT f.*,
+					CASE
+						WHEN f.user_id = ? THEN f.friend_id
+						ELSE f.user_id
 					END as friend_user_id,
 					u.username, u.avatar, u.online_status, u.last_seen
 				FROM friendships f
 				LEFT JOIN users u ON (
-					CASE 
-						WHEN f.user_id = ? THEN f.friend_id 
-						ELSE f.user_id 
+					CASE
+						WHEN f.user_id = ? THEN f.friend_id
+						ELSE f.user_id
 					END = u.id
 				)
 				WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = ?
@@ -200,7 +414,7 @@ export default async function friendsRoutes(fastify, options) {
 
 		try {
 			const friendship = await db.get(
-				`SELECT * FROM friendships 
+				`SELECT * FROM friendships
 				WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)`,
 				[userId, friendId, friendId, userId]
 			);

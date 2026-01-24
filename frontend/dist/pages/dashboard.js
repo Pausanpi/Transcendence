@@ -17,12 +17,19 @@ export function renderDashboard() {
       </div>
 
 	  <div class="card">
+
+	  <button onclick="window.open('http://localhost:3003/users/all', '_blank')" class="btn btn-blue mt-4" title="Open Grafana Dashboard">
+                        USERS
+                    </button>
+
+
+
 	  <button onclick="window.open('https://localhost:8445', '_blank')" class="btn btn-blue mt-4" title="Open Grafana Dashboard">
                         📊 Grafana
                     </button>
 
 
-<button onclick="window.open('https://localhost:8444', '_blank')"
+<button onclick="window.open('http://localhost:8444', '_blank')"
                             class="btn btn-blue mt-4" title="Open HashiCorp Vault">
                         🔐 Vault
                     </button>
@@ -32,7 +39,7 @@ export function renderDashboard() {
   `;
 }
 const services = [
-    { name: 'Gateway', url: '/health' },
+    { name: 'Gateway', url: '/api/gateway/health' },
     { name: 'Auth', url: '/api/auth/health' },
     { name: 'Users', url: '/api/users/health' },
     { name: 'Database', url: '/api/database/health' },

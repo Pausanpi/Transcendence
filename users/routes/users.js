@@ -1,35 +1,7 @@
-import { findUserById, getAllUsers, isUserAdmin } from '../models/User.js';
+import { getAllUsers } from '../../auth/services/user.js';
 import { authenticateJWT } from '../../auth/middleware/auth.js';
-import fastifyStatic from '@fastify/static';
-export default async function adminRoutes(fastify, options) {
-	async function requireAdmin(request, reply) {
-		return; // BYPASS TEMPORAL TODO, BORRAR
-		try {
-			const user = await findUserById(request.user.id);
-			if (!user || !isUserAdmin(user)) {
-				return reply.status(403).send({
-					error: 'admin.accessDenied',
-					code: 'ACCESS_DENIED'
-				});
-			}
-		} catch (error) {
-			return reply.status(403).send({
-				error: 'admin.accessDenied',
-				code: 'ACCESS_DENIED'
-			});
-		}
-	}
 
-	fastify.get('/check-status', {
-		preHandler: [authenticateJWT]
-	}, async (request, reply) => {
-		try {
-			const user = await findUserById(request.user.id);
-			return { isAdmin: user ? isUserAdmin(user) : false };
-		} catch (error) {
-			return { isAdmin: false };
-		}
-	});
+export default async function userRoutes(fastify, options) {
 
 	fastify.get('/list', {
 		preHandler: [authenticateJWT]
@@ -39,6 +11,7 @@ export default async function adminRoutes(fastify, options) {
 			const safeUsers = users.map(user => ({
 				id: user.id,
 				username: user.username || 'N/A',
+				displayName: user.display_name || 'N/A',
 				email: user.email || 'N/A',
 				twoFactorEnabled: user.twoFactorEnabled || false,
 				isActive: user.isActive !== false,
@@ -55,4 +28,23 @@ export default async function adminRoutes(fastify, options) {
 			});
 		}
 	});
+
+	fastify.get('/health', async () => {
+		return {
+			service: 'users-service',
+			status: 'OK',
+			timestamp: new Date().toISOString(),
+			endpoints: ['/users']
+		};
+	});
+
+	fastify.get('/users/health', async () => {
+		return {
+			service: 'users-service',
+			status: 'OK',
+			timestamp: new Date().toISOString(),
+			endpoints: ['/users']
+		};
+	});
+
 }

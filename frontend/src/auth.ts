@@ -4,7 +4,23 @@ import { clearUserCache } from './gameService.js';
 
 export function initAuth(): void {
   updateAuthBtn();
+  checkOAuthError();
 }
+
+export function checkOAuthError(): void {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  const message = urlParams.get('message');
+
+  if (error === 'oauth_not_configured') {
+    showResult('loginResult', 'auth.oauthNotConfigured', true);
+
+    //const newUrl = window.location.pathname;
+    //window.history.replaceState({}, document.title, newUrl);
+  }
+}
+
+
 
 export function updateAuthBtn(): void {
   const btn = document.getElementById('authBtn');
@@ -46,13 +62,14 @@ export async function login(): Promise<void> {
 
 export async function register(): Promise<void> {
   const username = (document.getElementById('regUsername') as HTMLInputElement).value;
+  const display_name = (document.getElementById('regUsername') as HTMLInputElement).value;
   const email = (document.getElementById('regEmail') as HTMLInputElement).value;
   const password = (document.getElementById('regPassword') as HTMLInputElement).value;
 
   try {
     const data = await api<any>('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password })
+      body: JSON.stringify({ username, display_name, email, password })
     });
 
     setToken(data.token);
@@ -71,15 +88,22 @@ export function logout(): void {
   navigate('home');
 }
 
+
 function showResult(id: string, message: string, isError: boolean): void {
   const el = document.getElementById(id);
   if (!el) return;
-
   el.classList.remove('hidden', 'success', 'error');
   el.classList.add('result', isError ? 'error' : 'success');
   el.innerHTML = `<span data-i18n="${message}"></span>`;
   window.languageManager?.applyTranslations();
+
+  if (isError) {
+    setTimeout(() => {
+      el.classList.add('hidden');
+    }, 5000);
+  }
 }
+
 
 (window as any).login = login;
 (window as any).register = register;

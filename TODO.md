@@ -97,3 +97,52 @@
 - [ ] AI game: Confirm match saves with AI as player2
 - [ ] Guest vs Guest: Verify match is NOT saved (skipped)
 - [ ] Check database: `curl -s http://localhost:3003/matches | jq .`
+
+
+
+### Elementos borrados (Por si acaso)
+
+FROM redis:7.2-alpine
+
+USER root
+RUN apk add --no-cache bash && mkdir -p /data && chown redis:redis /data
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+USER redis
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+---
+
+#!/bin/bash
+set -e
+
+exec redis-server \
+    --appendonly yes \
+    --save 900 1 \
+    --save 300 10 \
+    --save 60 10000 \
+    --bind 0.0.0.0 \
+    --port 6379
+
+---
+
+  redis:
+    image: redis
+    container_name: redis
+    build:
+      network: host
+      context: redis
+      dockerfile: Dockerfile
+    volumes:
+      - redis-data:/data
+      - logs-data:/var/log/redis
+    networks: [transcendence-net]
+    healthcheck: *redis-healthcheck
+    restart: always
+
+  redis-data:
+    name: redis-data
+
+  redis: &redis-healthcheck
+    test: ["CMD", "redis-cli", "ping"]

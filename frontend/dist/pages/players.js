@@ -4,10 +4,10 @@ export function renderPlayers() {
     return `
     <div class="max-w-4xl mx-auto">
       <h2 class="text-3xl font-bold text-center text-cyan-400 mb-8" data-i18n="players.title">👥 Players</h2>
-      
+
       <div class="card mb-6">
         <div class="flex gap-4">
-          <input id="playerSearch" type="text" placeholder="Search players..." 
+          <input id="playerSearch" type="text" placeholder="Search players..."
                  class="input flex-1" data-i18n-placeholder="players.searchPlaceholder" />
           <button onclick="searchPlayers()" class="btn btn-blue" data-i18n="players.search">🔍 Search</button>
         </div>
@@ -41,7 +41,7 @@ async function loadPlayers(search = '') {
     if (!container)
         return;
     try {
-        const response = await api(`/api/players?search=${encodeURIComponent(search)}&limit=50`);
+        const response = await api(`/api/database/players?search=${encodeURIComponent(search)}&limit=50`);
         if (response.success && response.users.length > 0) {
             container.innerHTML = response.users.map(player => renderPlayerCard(player)).join('');
         }
@@ -70,14 +70,14 @@ function renderPlayerCard(player) {
     const statusColor = player.online_status === 'online' ? 'text-green-400' : 'text-gray-400';
     const statusDot = player.online_status === 'online' ? 'bg-green-400' : 'bg-gray-400';
     return `
-    <div class="card hover:border-yellow-400 cursor-pointer transition-all" 
+    <div class="card hover:border-yellow-400 cursor-pointer transition-all"
          onclick="viewPlayer('${player.id}')">
       <div class="flex items-center gap-4">
         <div class="relative">
-          <img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover" 
-               src="${player.avatar || '/default-avatar.png'}" 
+          <img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+               src="${player.avatar || '/avatars/default-avatar.png'}"
                alt="${player.username}"
-               onerror="this.src='/default-avatar.png'" />
+               onerror="this.src='/avatars/default-avatar.png'" />
           <span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
         </div>
         <div class="flex-1">
@@ -107,7 +107,7 @@ async function viewPlayer(playerId) {
   `;
     modal.classList.remove('hidden');
     try {
-        const response = await api(`/api/players/${playerId}`);
+        const response = await api(`/api/database/players/${playerId}`);
         if (response.success && response.user) {
             const player = response.user;
             const winRate = player.games_played > 0
@@ -115,10 +115,10 @@ async function viewPlayer(playerId) {
                 : 0;
             content.innerHTML = `
         <div class="text-center mb-6">
-          <img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover" 
-               src="${player.avatar || '/default-avatar.png'}" 
+          <img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
+               src="${player.avatar || '/avatars/default-avatar.png'}"
                alt="${player.username}"
-               onerror="this.src='/default-avatar.png'" />
+               onerror="this.src='/avatars/default-avatar.png'" />
           <h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
           <p class="text-gray-400">@${player.username}</p>
           <p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
@@ -174,7 +174,7 @@ async function addFriend(playerId) {
     }
     try {
         // First check if already friends or request pending
-        const checkResponse = await api(`/api/friends/me/check/${playerId}`);
+        const checkResponse = await api(`/api/database/friends/me/check/${playerId}`);
         if (checkResponse.success && checkResponse.status !== 'none') {
             if (btn) {
                 btn.removeAttribute('disabled');
@@ -192,7 +192,7 @@ async function addFriend(playerId) {
             return;
         }
         // Send friend request
-        const response = await api('/api/friends/me/add', {
+        const response = await api('/api/database/friends/me/add', {
             method: 'POST',
             body: JSON.stringify({ friend_id: playerId })
         });

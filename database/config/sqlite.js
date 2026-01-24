@@ -26,6 +26,7 @@ class Database {
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
                 username TEXT NOT NULL,
+                display_name TEXT,
                 email TEXT UNIQUE,
                 password_hash TEXT,
                 oauth_provider TEXT,
@@ -43,7 +44,6 @@ class Database {
                 consent_updated_at DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                display_name TEXT,
                 wins INTEGER DEFAULT 0,
                 losses INTEGER DEFAULT 0,
                 games_played INTEGER DEFAULT 0,
