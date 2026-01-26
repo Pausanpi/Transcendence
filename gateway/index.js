@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import createFastifyApp from '../shared/fastify-config.js';
 import fastifyMultipart from '@fastify/multipart';
 
-//import fastifyStatic from '@fastify/static'; se fue al nginx
+//import fastifyStatic from '@fastify/static';
 import gatewayRoutes from './routes/gateway.js';
 import jwt from 'jsonwebtoken';
 
@@ -42,15 +42,14 @@ async function startGateway() {
 		getSessionSecret: () => VaultService.getSessionSecret()
 	});
 
-	await fastify.register(fastifyMultipart, {
-		limits: {
-			fileSize: 2 * 1024 * 1024,
-			files: 1
-		}
-	});
+  await fastify.register(fastifyMultipart, {
+    limits: {
+      fileSize: 2 * 1024 * 1024,
+      files: 1
+    }
+  });
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
-
 
 	fastify.addHook('onRequest', async (request, reply) => {
 		if (!request.url.startsWith('/api/')) return;
@@ -66,7 +65,10 @@ async function startGateway() {
 			'/api/gateway/health',
 			'/api/i18n/',
 			'/api/users/health',
-			'/api/database/players'
+			'/api/database/players',
+			'/api/gateway/upload/avatar',
+			'/api/gateway/upload/'
+			
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -87,7 +89,7 @@ async function startGateway() {
 			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
 		}
 
-		// Call auth service API for JWT verification
+// Call auth service API for JWT verification
 		try {
 			const response = await fetch('http://auth:3001/auth/jwt/verify', {
 				method: 'POST',
@@ -112,14 +114,9 @@ async function startGateway() {
 		}
 	});
 
-	async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
+	async function proxyAPI(request, reply, upstreamBase) {
 		try {
-			let url = request.url;
-			if (keepPrefix) {
-				url = url.replace(/^\/api/, '');
-			} else {
-				url = url.replace(/^\/api\/[^/]+/, '');
-			}
+			let url = request.url.replace(/^\/api/, '');
 			const target = `${upstreamBase}${url}`;
 			const headers = { 'x-service-token': serviceToken };
 			if (request.headers['content-type']) {
@@ -184,31 +181,34 @@ async function startGateway() {
 		handler: async (request, reply) => {
 			const service = request.params.service;
 			if (service === 'auth') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'oauth') {
-				return proxyAPI(request, reply, authUpstream, false);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === '2fa') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'gdpr') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'i18n') {
-				return proxyAPI(request, reply, i18nUpstream, true);
+				return proxyAPI(request, reply, i18nUpstream);
 			}
 			if (service === 'database') {
-				return proxyAPI(request, reply, databaseUpstream, false);
+				return proxyAPI(request, reply, databaseUpstream);
 			}
 			if (service === 'users') {
-				return proxyAPI(request, reply, usersUpstream, true);
+				return proxyAPI(request, reply, usersUpstream);
 			}
 			if (service === 'gateway') {
-				return proxyAPI(request, reply, gatewayUpstream, true);
+				return proxyAPI(request, reply, gatewayUpstream);
 			}
 			if (service === 'friends') {
-				return proxyAPI(request, reply, databaseUpstream, true);
+				return proxyAPI(request, reply, databaseUpstream);
+			}
+			if (service === 'upload') {
+				return proxyAPI(request, reply, gatewayUpstream);
 			}
 			return reply.status(404).send({
 				success: false,

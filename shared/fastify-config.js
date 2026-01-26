@@ -15,8 +15,6 @@ export default async function createFastifyApp(options = {}) {
 		level: 'warn'
 	};
 
-
-
 	const fastify = Fastify({
 		logger: loggerConfig,
 		trustProxy: true
