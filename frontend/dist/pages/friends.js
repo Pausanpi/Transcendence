@@ -286,7 +286,8 @@ async function cancelRequest(requestId) {
     }
     try {
         const response = await api(`/api/database/friends/${requestId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            body: JSON.stringify({ _dummy: true })
         });
         if (response.success) {
             showToast('friends.requestCancelled', 'success');
@@ -310,7 +311,8 @@ async function removeFriend(friendshipId, username) {
         return;
     try {
         const response = await api(`/api/database/friends/${friendshipId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            body: JSON.stringify({ _dummy: true })
         });
         if (response.success) {
             showToast('friends.friendRemoved', 'success');

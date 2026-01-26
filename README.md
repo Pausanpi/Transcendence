@@ -38,7 +38,9 @@ CHANGES:
 - Añadido display_name como nickname en todos sitios + update profile
 
 5to COMMIT
-
+- demostracion de sublogin torneo
+- fix crear usuarios
+- i18n fetch to api
 
 
 
@@ -47,16 +49,14 @@ CHANGES:
 
   # TODO
 - 2fa con movil
-
 - Después de enable 2fa refrescar perfil y ocultar boton
-
 - Lo de modificar (botón UPDATE) nickname y subir avatar
 - Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
 - si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault)
   Pierdes la ventaja “stateless”
   Necesitas Redis / DB / Vault
 - Hacer que si gateway falla, nginx en vez de 404 muestre estaticos?
-- demostracion de sublogin torneo
+
 - Crear volumem compartido
 - Normalizar rutas apiproxy
 
@@ -64,7 +64,7 @@ CHANGES:
 - Cosas que traducir
 - Mejorar dashboard grafana
 - Dependencias circulares
-
+- Probar a montar el tsc en user
 ---
 
 > [!WARNING]

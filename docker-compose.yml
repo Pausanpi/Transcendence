@@ -21,7 +21,6 @@ x-healthchecks:
   users: &users-healthcheck
     test: ["CMD", "curl", "-f", "http://users:3004/users/health"]
 
-
 services:
 
   gateway:
