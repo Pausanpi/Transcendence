@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import createFastifyApp from '../shared/fastify-config.js';
 import fastifyMultipart from '@fastify/multipart';
 
-import fastifyStatic from '@fastify/static';
+//import fastifyStatic from '@fastify/static';
 import gatewayRoutes from './routes/gateway.js';
 import jwt from 'jsonwebtoken';
 
@@ -50,10 +50,6 @@ async function startGateway() {
   });
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
-	await fastify.register(fastifyStatic, {
-		root: path.join(__dirname, '../frontend'),
-		prefix: '/'
-	});
 
 	fastify.addHook('onRequest', async (request, reply) => {
 		if (!request.url.startsWith('/api/')) return;
@@ -93,16 +89,27 @@ async function startGateway() {
 			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
 		}
 
+// Call auth service API for JWT verification
 		try {
-			request.user = jwt.verify(token, jwtSecret, {
-				issuer: 'auth-service',
-				audience: 'user'
+			const response = await fetch('http://auth:3001/auth/jwt/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token })
 			});
+			const result = await response.json();
+
+			if (!result.success || !result.decoded?.id) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.invalidToken'
+				});
+			}
+			request.user = result.decoded;
 		} catch (err) {
-			fastify.log.error('JWT verification failed:', err.message);
-			return reply.status(401).send({
+			fastify.log.error('JWT verification via auth service failed:', err.message);
+			return reply.status(502).send({
 				success: false,
-				error: 'auth.invalidToken'
+				error: 'auth.verificationFailed'
 			});
 		}
 	});

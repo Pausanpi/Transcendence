@@ -111,32 +111,32 @@ services:
     healthcheck: *i18n-healthcheck
     restart: always
 
-  users:
-    image: users
-    build:
-      network: host
-      context: users
-      dockerfile: Dockerfile
-    container_name: users
-    networks: [transcendence-net]
-    environment:
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: root
-    volumes:
-      - ./database:/app/database
-      - ./gateway:/app/gateway
-      - ./auth:/app/auth
-      - ./users:/app/users
-      - ./shared:/app/shared
-    healthcheck: *users-healthcheck
-    restart: always
+  # users:
+  #   image: users
+  #   build:
+  #     network: host
+  #     context: users
+  #     dockerfile: Dockerfile
+  #   container_name: users
+  #   networks: [transcendence-net]
+  #   environment:
+  #     VAULT_ADDR: http://vault:8200
+  #     VAULT_TOKEN: root
+  #   volumes:
+  #     - ./database:/app/database
+  #     - ./gateway:/app/gateway
+  #     - ./auth:/app/auth
+  #     - ./users:/app/users
+  #     - ./shared:/app/shared
+  #   healthcheck: *users-healthcheck
+  #   restart: always
 
   nginx:
     image: nginx
     build:
       network: host
-      context: nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
     container_name: nginx
     ports: ["8443:443"]
     volumes:
