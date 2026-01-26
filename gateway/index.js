@@ -69,7 +69,10 @@ async function startGateway() {
 			'/api/gateway/health',
 			'/api/i18n/',
 			'/api/users/health',
-			'/api/database/players'
+			'/api/database/players',
+			'/api/gateway/upload/avatar',
+			'/api/gateway/upload/'
+			
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -104,14 +107,9 @@ async function startGateway() {
 		}
 	});
 
-	async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
+	async function proxyAPI(request, reply, upstreamBase) {
 		try {
-			let url = request.url;
-			if (keepPrefix) {
-				url = url.replace(/^\/api/, '');
-			} else {
-				url = url.replace(/^\/api\/[^/]+/, '');
-			}
+			let url = request.url.replace(/^\/api/, '');
 			const target = `${upstreamBase}${url}`;
 			const headers = { 'x-service-token': serviceToken };
 			if (request.headers['content-type']) {
@@ -176,32 +174,35 @@ async function startGateway() {
 		handler: async (request, reply) => {
 			const service = request.params.service;
 			if (service === 'auth') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'oauth') {
-				return proxyAPI(request, reply, authUpstream, false);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === '2fa') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'gdpr') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'i18n') {
-				return proxyAPI(request, reply, i18nUpstream, true);
+				return proxyAPI(request, reply, i18nUpstream);
 			}
 			if (service === 'database') {
-				return proxyAPI(request, reply, databaseUpstream, false);
+				return proxyAPI(request, reply, databaseUpstream);
 			}
 			if (service === 'users') {
-				return proxyAPI(request, reply, usersUpstream, true);
+				return proxyAPI(request, reply, usersUpstream);
 			}
 			if (service === 'gateway') {
-				return proxyAPI(request, reply, gatewayUpstream, true);
+				return proxyAPI(request, reply, gatewayUpstream);
 			}
-if (service === 'friends') {
-    return proxyAPI(request, reply, databaseUpstream, true);
-}
+			if (service === 'friends') {
+				return proxyAPI(request, reply, databaseUpstream);
+			}
+			if (service === 'upload') {
+				return proxyAPI(request, reply, gatewayUpstream);
+			}
 			return reply.status(404).send({
 				success: false,
 				error: 'common.notFound'

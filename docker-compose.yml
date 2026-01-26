@@ -13,7 +13,7 @@ x-healthchecks:
   gateway: &gateway-healthcheck
     test: ["CMD", "curl", "-f", "-s", "http://gateway:3000/gateway/health"]
   database: &database-healthcheck
-    test: ["CMD", "curl", "-f",  "-s", "http://database:3003/health"]
+    test: ["CMD", "curl", "-f",  "-s", "http://database:3003/database/health"]
   auth: &auth-healthcheck
     test: ["CMD", "curl", "-f",  "-s", "http://auth:3001/auth/health"]
   i18n: &i18n-healthcheck
@@ -30,7 +30,6 @@ services:
       context: gateway
       dockerfile: Dockerfile
     container_name: gateway
-    ports: ["3000:3000"]
     networks: [transcendence-net]
     environment:
       VAULT_ADDR: http://vault:8200
@@ -63,7 +62,6 @@ services:
       context: database
       dockerfile: Dockerfile
     container_name: database
-    ports: ["3003:3003"]
     networks: [transcendence-net]
     volumes:
       - ./data:/app/data
@@ -79,7 +77,6 @@ services:
       context: auth
       dockerfile: Dockerfile
     container_name: auth
-    ports: ["3001:3001"]
     networks: [transcendence-net]
     environment:
       VAULT_ADDR: http://vault:8200
@@ -107,7 +104,6 @@ services:
       context: i18n
       dockerfile: Dockerfile
     container_name: i18n
-    ports: ["3002:3002"]
     networks: [transcendence-net]
     volumes:
       - ./i18n:/app/i18n
@@ -122,7 +118,6 @@ services:
       context: users
       dockerfile: Dockerfile
     container_name: users
-    ports: ["3004:3004"]
     networks: [transcendence-net]
     environment:
       VAULT_ADDR: http://vault:8200
@@ -165,7 +160,6 @@ services:
     volumes:
       - ./nginx/ssl:/vault/ssl:ro
       - ./vault/policy.hcl:/vault/policies/policy.hcl:ro
-    ports: ["8444:8200"]
     networks: [transcendence-net]
     healthcheck: *vault-healthcheck
     restart: always

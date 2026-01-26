@@ -20,19 +20,19 @@ export function renderDashboard(): string {
 
 	  <div class="card">
 
-	  <button onclick="window.open('http://localhost:3003/users/all', '_blank')" class="btn btn-blue mt-4" title="Open Grafana Dashboard">
+	  <button onclick="window.open('http://localhost:3003/users/all', '_blank')" disabled class="btn btn-blue mt-4" title="Open Grafana Dashboard">
                         USERS
                     </button>
 
 
 
-	  <button onclick="window.open('https://localhost:8445', '_blank')" class="btn btn-blue mt-4" title="Open Grafana Dashboard">
+	  <button onclick="window.open('https://localhost:8445', '_blank')" disabled class="btn btn-blue mt-4" title="Open Grafana Dashboard">
                         📊 Grafana
                     </button>
 
 
 <button onclick="window.open('http://localhost:8444', '_blank')"
-                            class="btn btn-blue mt-4" title="Open HashiCorp Vault">
+                            class="btn btn-blue mt-4" disabled title="Open HashiCorp Vault">
                         🔐 Vault
                     </button>
 <a target="_blank" href="decode.html" class="btn btn-yellow mt-4">TOOL GEN TOPT</a>

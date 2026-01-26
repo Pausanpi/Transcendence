@@ -1,10 +1,14 @@
-export default async function healthRoutes(fastify, options) {
-	fastify.get('/database/health', async () => {
+import db from '../config/sqlite.js';
+
+export default async function databaseRoutes(fastify, options) {
+
+		fastify.get('/health', async () => {
 		try {
+			await db.get('SELECT 1 as test');
 			return {
 				service: 'database-service',
 				status: 'OK',
-				url: process.env.DATABASE_SERVICE_PORT,
+				url: 'http://database:3003',
 				database: 'connected',
 				timestamp: new Date().toISOString(),
 				endpoints: [
@@ -29,7 +33,4 @@ export default async function healthRoutes(fastify, options) {
 		}
 	});
 
-	
 }
-
-

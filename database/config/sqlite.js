@@ -170,21 +170,21 @@ class Database {
 			console.error('Error creating matches table:', err);
 		});
 
-		// Add new columns to existing users table (for existing databases)
-		const newUserColumns = [
-			'ALTER TABLE users ADD COLUMN display_name TEXT',
-			'ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN games_played INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN online_status TEXT DEFAULT \'offline\'',
-			'ALTER TABLE users ADD COLUMN last_seen DATETIME'
-		];
+		// // Add new columns to existing users table (for existing databases)
+		// const newUserColumns = [
+		// 	'ALTER TABLE users ADD COLUMN display_name TEXT',
+		// 	'ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN games_played INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN online_status TEXT DEFAULT \'offline\'',
+		// 	'ALTER TABLE users ADD COLUMN last_seen DATETIME'
+		// ];
 
-		newUserColumns.forEach(sql => {
-			this.run(sql).catch(() => {
-				// Column already exists, ignore error
-			});
-		});
+		// newUserColumns.forEach(sql => {
+		// 	this.run(sql).catch(() => {
+		// 		// Column already exists, ignore error
+		// 	});
+		// });
 	}
 
 	run(sql, params = []) {

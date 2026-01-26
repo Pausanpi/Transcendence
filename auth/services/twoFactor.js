@@ -61,7 +61,7 @@ class TwoFactorService {
 			);
 
 			const response = await fetch(
-				`http://database:3003/backup-codes`, {
+				`http://database:3003/database/backup-codes`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ user_id: userId, hashedCodes })
@@ -82,7 +82,7 @@ class TwoFactorService {
 		try {
 
 			const response = await fetch(
-				`http://database:3003/backup-codes/user/${userId}`,
+				`http://database:3003/database/backup-codes/user/${userId}`,
 				{ method: 'GET' }
 			);
 
@@ -104,7 +104,7 @@ class TwoFactorService {
 					if (isValid) {
 
 						const response = await fetch(
-							`http://database:3003/backup-codes/${codeId}/use`, {
+							`http://database:3003/database/backup-codes/${codeId}/use`, {
 							method: 'PUT'
 						});
 
@@ -125,7 +125,7 @@ class TwoFactorService {
 	async getRemainingBackupCodes(userId) {
 		try {
 			const response = await fetch(
-				`http://database:3003/backup-codes/user/${userId}`,
+				`http://database:3003/database/backup-codes/user/${userId}`,
 				{ method: 'GET' }
 			);
 

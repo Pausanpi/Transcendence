@@ -46,11 +46,9 @@ async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
     data = {};
   }
 
-  // 🔴 TOKEN INVÁLIDO / EXPIRADO
   if (response.status === 401 && data?.error === 'auth.invalidToken') {
     removeAuthToken();
 
-    // Evento global para mostrar popup + redirect
     window.dispatchEvent(
       new CustomEvent('auth-expired', {
         detail: 'Your session has expired. Please login again.'
