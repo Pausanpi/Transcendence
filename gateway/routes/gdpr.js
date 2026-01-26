@@ -1,6 +1,6 @@
 import gdprService from '../../database/services/gdpr.js';
 import { findUserById } from '../../users/models/User.js';
-import jwtService from '../../auth/services/jwt.js';
+//import jwtService from '../../auth/services/jwt.js';
 
 export default async function gdprRoutes(fastify, options) {
 
@@ -15,16 +15,22 @@ export default async function gdprRoutes(fastify, options) {
 		}
 
 		const token = authHeader.substring(7);
-		const decoded = await jwtService.verifyToken(token);
+		// Call auth service API for JWT verification
+		const response = await fetch('http://auth:3001/auth/jwt/verify', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ token })
+		});
+		const result = await response.json();
 
-		if (!decoded?.id) {
+		if (!result.success || !result.decoded?.id) {
 			return reply.status(401).send({
 				success: false,
 				error: 'auth.invalidToken'
 			});
 		}
 
-		request.user = decoded;
+		request.user = result.decoded;
 	}
 
 	fastify.get('/user-data', {
