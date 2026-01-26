@@ -43,7 +43,7 @@ services:
       - ./database:/app/database
       - ./auth:/app/auth
       - ./shared:/app/shared
-      - ./users:/app/users
+#      - ./users:/app/users
       - logs-data:/app/logs
     depends_on:
       vault:
@@ -92,7 +92,7 @@ services:
       - ./database:/app/database
       - ./gateway:/app/gateway
       - ./shared:/app/shared
-      - ./users:/app/users
+#      - ./users:/app/users
     depends_on:
       vault:
         condition: service_healthy
@@ -116,26 +116,26 @@ services:
     healthcheck: *i18n-healthcheck
     restart: always
 
-  users:
-    image: users
-    build:
-      network: host
-      context: users
-      dockerfile: Dockerfile
-    container_name: users
-    ports: ["3004:3004"]
-    networks: [transcendence-net]
-    environment:
-      VAULT_ADDR: http://vault:8200
-      VAULT_TOKEN: root
-    volumes:
-      - ./database:/app/database
-      - ./gateway:/app/gateway
-      - ./auth:/app/auth
-      - ./users:/app/users
-      - ./shared:/app/shared
-    healthcheck: *users-healthcheck
-    restart: always
+#  users:
+#    image: users
+#    build:
+#      network: host
+#      context: users
+#      dockerfile: Dockerfile
+#    container_name: users
+#    ports: ["3004:3004"]
+#    networks: [transcendence-net]
+#    environment:
+#      VAULT_ADDR: http://vault:8200
+#      VAULT_TOKEN: root
+#    volumes:
+#      - ./database:/app/database
+#      - ./gateway:/app/gateway
+#      - ./auth:/app/auth
+#      - ./users:/app/users
+#      - ./shared:/app/shared
+#    healthcheck: *users-healthcheck
+#    restart: always
 
   nginx:
     image: nginx
