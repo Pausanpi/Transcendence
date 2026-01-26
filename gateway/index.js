@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import createFastifyApp from '../shared/fastify-config.js';
 import fastifyMultipart from '@fastify/multipart';
 
-import fastifyStatic from '@fastify/static';
+//import fastifyStatic from '@fastify/static'; se fue al nginx
 import gatewayRoutes from './routes/gateway.js';
 import jwt from 'jsonwebtoken';
 
@@ -50,10 +50,7 @@ async function startGateway() {
   });
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
-	await fastify.register(fastifyStatic, {
-		root: path.join(__dirname, '../frontend'),
-		prefix: '/'
-	});
+
 
 	fastify.addHook('onRequest', async (request, reply) => {
 		if (!request.url.startsWith('/api/')) return;

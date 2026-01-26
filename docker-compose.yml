@@ -141,8 +141,8 @@ services:
     image: nginx
     build:
       network: host
-      context: nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
     container_name: nginx
     ports: ["8443:443"]
     volumes:
