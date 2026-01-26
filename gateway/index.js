@@ -42,12 +42,12 @@ async function startGateway() {
 		getSessionSecret: () => VaultService.getSessionSecret()
 	});
 
-  await fastify.register(fastifyMultipart, {
-    limits: {
-      fileSize: 2 * 1024 * 1024,
-      files: 1
-    }
-  });
+	await fastify.register(fastifyMultipart, {
+		limits: {
+			fileSize: 2 * 1024 * 1024,
+			files: 1
+		}
+	});
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
 
@@ -87,16 +87,27 @@ async function startGateway() {
 			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
 		}
 
+		// Call auth service API for JWT verification
 		try {
-			request.user = jwt.verify(token, jwtSecret, {
-				issuer: 'auth-service',
-				audience: 'user'
+			const response = await fetch('http://auth:3001/auth/jwt/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token })
 			});
+			const result = await response.json();
+
+			if (!result.success || !result.decoded?.id) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.invalidToken'
+				});
+			}
+			request.user = result.decoded;
 		} catch (err) {
-			fastify.log.error('JWT verification failed:', err.message);
-			return reply.status(401).send({
+			fastify.log.error('JWT verification via auth service failed:', err.message);
+			return reply.status(502).send({
 				success: false,
-				error: 'auth.invalidToken'
+				error: 'auth.verificationFailed'
 			});
 		}
 	});
@@ -196,9 +207,9 @@ async function startGateway() {
 			if (service === 'gateway') {
 				return proxyAPI(request, reply, gatewayUpstream, true);
 			}
-if (service === 'friends') {
-    return proxyAPI(request, reply, databaseUpstream, true);
-}
+			if (service === 'friends') {
+				return proxyAPI(request, reply, databaseUpstream, true);
+			}
 			return reply.status(404).send({
 				success: false,
 				error: 'common.notFound'
