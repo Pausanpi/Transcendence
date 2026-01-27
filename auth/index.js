@@ -6,6 +6,7 @@ import twoFARoutes from './routes/2fa.js';
 import userRoutes from './routes/user.js';
 import gdprRoutes from './routes/gdpr.js';
 import jwtRoutes from './routes/jwt.js';
+import vaultRoutes from './routes/vault.js';
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from './config/oauth.js';
 import VaultService from './services/vault.js';
@@ -26,6 +27,7 @@ async function startAuthService() {
 	await fastify.register(userRoutes, { prefix: '/auth' });
 	await fastify.register(authRoutes, { prefix: '/auth' });
 	await fastify.register(jwtRoutes, { prefix: '/auth' });
+	await fastify.register(vaultRoutes, { prefix: '/vault' });
 	await fastify.register(oauthRoutes);
 	await fastify.register(twoFARoutes, { prefix: '/2fa' });
 	await fastify.register(gdprRoutes, { prefix: '/gdpr' });

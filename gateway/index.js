@@ -8,7 +8,7 @@ import gatewayRoutes from './routes/gateway.js';
 import jwt from 'jsonwebtoken';
 
 import path from 'path';
-import VaultService from '../auth/services/vault.js';
+//import VaultService from '../auth/services/vault.js';
 import fs from 'fs/promises';
 
 
@@ -25,11 +25,18 @@ const usersUpstream = 'http://users:3004';
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const serviceToken = await VaultService.getSecret('service-token/config').then(s => s?.token);
+
+// Fetch secrets from the auth service's vault endpoints directly
+const serviceTokenRes = await fetch(`${authUpstream}/vault/secret/service-token`);
+if (!serviceTokenRes.ok) throw new Error('Service secret not found in Vault');
+const { token: serviceToken } = await serviceTokenRes.json();
 if (!serviceToken) {
 	throw new Error('Service secret not found in Vault');
 }
-const jwtSecret = await VaultService.getJWTSecret();
+
+const jwtSecretRes = await fetch(`${authUpstream}/vault/secret/jwt`);
+if (!jwtSecretRes.ok) throw new Error('JWT secret not found in Vault');
+const { secret: jwtSecret } = await jwtSecretRes.json();
 if (!jwtSecret) {
 	throw new Error('JWT secret not found in Vault');
 }
@@ -39,7 +46,12 @@ async function startGateway() {
 		serviceName: 'api-gateway',
 		enableSessions: true,
 		corsOrigin: true,
-		getSessionSecret: () => VaultService.getSessionSecret()
+		getSessionSecret: async () => {
+			const sessionSecretRes = await fetch(`${authUpstream}/vault/secret/session`);
+			if (!sessionSecretRes.ok) throw new Error('Session secret not found in Vault');
+			const { secret } = await sessionSecretRes.json();
+			return secret;
+		}
 	});
 
   await fastify.register(fastifyMultipart, {
