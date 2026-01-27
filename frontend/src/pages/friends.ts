@@ -333,7 +333,8 @@ async function cancelRequest(requestId: number): Promise<void> {
 
   try {
     const response = await api<{ success: boolean }>(`/api/database/friends/${requestId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      body: JSON.stringify({ _dummy: true })
     });
 
     if (response.success) {
@@ -359,7 +360,8 @@ async function removeFriend(friendshipId: number, username: string): Promise<voi
 
   try {
     const response = await api<{ success: boolean }>(`/api/database/friends/${friendshipId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      body: JSON.stringify({ _dummy: true })
     });
 
     if (response.success) {

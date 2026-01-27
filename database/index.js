@@ -5,6 +5,7 @@ import friendsRoutes from './routes/friends.js';
 import usersRoutes from './routes/users.js';
 import sessionsRoutes from './routes/sessions.js';
 import playersRoutes from './routes/players.js';
+import databaseRoutes from './routes/database.js';
 
 async function startDatabaseService() {
 	const fastify = await createFastifyApp({
@@ -12,12 +13,14 @@ async function startDatabaseService() {
 		corsOrigin: true
 	});
 
-	await fastify.register(usersRoutes);
-	await fastify.register(sessionsRoutes);
-	await fastify.register(matchesRoutes);
-	await fastify.register(tournamentsRoutes);
-	await fastify.register(friendsRoutes);
-	await fastify.register(playersRoutes);
+	await fastify.register(databaseRoutes, { prefix: '/database' });
+	await fastify.register(usersRoutes, { prefix: '/database' });
+	await fastify.register(sessionsRoutes, { prefix: '/database' });
+	await fastify.register(matchesRoutes, { prefix: '/database' });
+	await fastify.register(tournamentsRoutes, { prefix: '/database' });
+	await fastify.register(friendsRoutes, { prefix: '/database' });
+	await fastify.register(friendsRoutes, { prefix: '/database/friends' });
+	await fastify.register(playersRoutes, { prefix: '/database' });
 	await fastify.listen({ host: '0.0.0.0', port: 3003 });
 }
 

@@ -11,52 +11,23 @@ docker logs gateway
 CHANGES:
 
 1er COMMIT
-- Arregladas funciones del GDPR
-- Nginx WAF 403 reparado
-
-2do COMMIT
-- REFACTORING GLOBAL
-- URLS internas hardcodeadas (sin leer de .env)
-- Eliminado databaseApiClient en auth, gateway/gdpr, etc
-- Eliminado shared/http-client.js
-- Servicio user a la espera de ser usado o eliminado
-- Operativa user llevado a auth para evitar conflictos ya que en fronend se está usando /api/auth/profile-data
-	auth/../user.js en el futuro se puede llevar a otro sitio
-- database/routes/query.js ahora se divide en database/routes/users.js y database/routes/sessions.js
-- ***/routes/health.js eliminado
-- Operativa gdpr llevada a auth
-
-3er COMMIT
-- Fix github
-- nginx-waf ahora se llama simplemente nginx (tenga o no waf)
-- Eliminado servicio redis
-- SECRET se guardan y leen en vault
-- Resuelta inversión de dependencias shared
-
-4to COMMIT
-- Ahora oAuth no hace fallar el servicio si las variables de entorno no estan seteadas
-- Añadido display_name como nickname en todos sitios + update profile
-
-5to COMMIT
-
-
-
-
+- Borrado puertos expuestos del docker-compose
+- Eliminado keepPrefix = false de proxyAPI
+- Deshabilitado algunos botones del dashboard
+- Limpieza archivos
 
 ---
 
-  # TODO
+  # TODO AUTH+
 - 2fa con movil
-
 - Después de enable 2fa refrescar perfil y ocultar boton
-
 - Lo de modificar (botón UPDATE) nickname y subir avatar
 - Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
 - si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault)
   Pierdes la ventaja “stateless”
   Necesitas Redis / DB / Vault
 - Hacer que si gateway falla, nginx en vez de 404 muestre estaticos?
-- demostracion de sublogin torneo
+
 - Crear volumem compartido
 - Normalizar rutas apiproxy
 
@@ -64,7 +35,7 @@ CHANGES:
 - Cosas que traducir
 - Mejorar dashboard grafana
 - Dependencias circulares
-
+- Probar a montar el tsc en user
 ---
 
 > [!WARNING]
@@ -81,17 +52,6 @@ evitar errores por incompatibilidades con otras versiones
 
 **Para no tener que andar creando usuarios si accedes a http://localhost:3003/users/all se deben ver todos los ya creados, sus datos, etc**
 
-
-### **Health Checks (ver desde el navegador o curl):**
-```bash
-# Verificar todos los servicios
-curl -k https://localhost:8443/health     # nginx
-curl http://localhost:3000/health         # Gateway
-curl http://localhost:3001/health         # Auth
-curl http://localhost:3002/health         # I18n
-curl http://localhost:3003/health         # Database
-curl http://localhost:3004/health         # Users
-```
 
 ### TOOLS
 
@@ -181,9 +141,6 @@ en https://localhost:8445/a/grafana-metricsdrilldown-app/drilldown vienen muchas
 
 ### URLs de estado de servicios expuestos (todos usan HTTPS)
 No se puede incluir como subpath (8443)/grafana porque no lo permiten (O sí?)
-
-
-
 
 docker exec -it vault sh -c "
 export VAULT_ADDR='https://localhost:8200'

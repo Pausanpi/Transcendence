@@ -12,10 +12,12 @@ function clearToken(): void {
   localStorage.removeItem('auth_token');
 }
 
+function removeAuthToken(): void {
+  clearToken();
+}
+
 function getHeaders(): HeadersInit {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  };
+  const headers: Record<string, string> = {};
 
   const token = getToken();
   if (token) {
@@ -26,21 +28,41 @@ function getHeaders(): HeadersInit {
 }
 
 async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const isFormData = options.body instanceof FormData;
+
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    headers: { ...getHeaders(), ...options.headers }
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...getHeaders(),
+      ...options.headers
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'common.requestFailed');
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
   }
 
-  return response.json();
-}
+  if (response.status === 401 && data?.error === 'auth.invalidToken') {
+    removeAuthToken();
 
-function removeAuthToken(): void {
-  clearToken();
+    window.dispatchEvent(
+      new CustomEvent('auth-expired', {
+        detail: 'Your session has expired. Please login again.'
+      })
+    );
+
+    throw new Error('auth.invalidToken');
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'common.requestFailed');
+  }
+
+  return data as T;
 }
 
 export { api, getToken, setToken, clearToken, removeAuthToken };

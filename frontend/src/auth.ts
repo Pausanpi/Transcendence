@@ -89,6 +89,40 @@ export function logout(): void {
 }
 
 
+export function showGlobalMessage(
+  message: string,
+  type: 'success' | 'error' = 'error',
+  duration = 2500
+): void {
+  let container = document.getElementById('globalMessage');
+
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'globalMessage';
+    container.className =
+      'fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded text-sm shadow-lg transition-opacity';
+
+    document.body.appendChild(container);
+  }
+
+  container.className =
+    `fixed top-50 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded text-sm shadow-lg ${
+      type === 'error'
+        ? 'bg-red-900 text-red-200'
+        : 'bg-green-900 text-green-200'
+    }`;
+
+  container.textContent = message;
+  container.style.opacity = '1';
+
+  setTimeout(() => {
+    container!.style.opacity = '0';
+    container!.style.display = 'none';
+  }, duration);
+}
+
+
+
 function showResult(id: string, message: string, isError: boolean): void {
   const el = document.getElementById(id);
   if (!el) return;
@@ -105,7 +139,9 @@ function showResult(id: string, message: string, isError: boolean): void {
 }
 
 
+
 (window as any).login = login;
 (window as any).register = register;
 (window as any).logout = logout;
 (window as any).updateAuthBtn = updateAuthBtn;
+(window as any).showGlobalMessage = showGlobalMessage;

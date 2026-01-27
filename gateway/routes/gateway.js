@@ -11,7 +11,6 @@ export default async function gatewayRoutes(fastify, options) {
   const avatarsDir = path.join(process.cwd(), 'avatars');
   await fs.mkdir(avatarsDir, { recursive: true });
 
-
 	fastify.post('/upload/avatar', async (request, reply) => {
   if (!request.user) {
     return reply.status(401).send({
@@ -47,7 +46,7 @@ export default async function gatewayRoutes(fastify, options) {
     await pipeline(data.file, createWriteStream(filePath));
 
     try {
-      await fetch('http://database:3003/users/' + user.id, {
+      await fetch('http://database:3003/database/users/' + user.id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ avatar: fileName })

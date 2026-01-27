@@ -71,7 +71,7 @@ export async function findOrCreateOAuthUser(oauthProfile) {
 		};
 
 		const response = await fetch(
-			`http://database:3003/users`, {
+			`http://database:3003/database/users`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(newUser)
@@ -94,7 +94,7 @@ export async function findOrCreateOAuthUser(oauthProfile) {
 export async function updateUser(userId, updateData) {
 	try {
 		const response = await fetch(
-			`http://database:3003/users/${userId}`, {
+			`http://database:3003/database/users/${userId}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(updateData)
@@ -119,7 +119,7 @@ export async function updateUser(userId, updateData) {
 export async function deleteUser(userId) {
 	try {
 		const response = await fetch(
-			`http://database:3003/users/${userId}`, {
+			`http://database:3003/database/users/${userId}`, {
 			method: 'DELETE'
 		});
 
@@ -142,7 +142,7 @@ export async function deleteUser(userId) {
 export async function findUserById(id) {
 	try {
 		const response = await fetch(
-			`http://database:3003/users/${id}`,
+			`http://database:3003/database/users/${id}`,
 			{ method: 'GET' }
 		);
 
@@ -163,7 +163,7 @@ export async function findUserById(id) {
 export async function findUserByEmail(email) {
 	try {
 		const response = await fetch(
-			`http://database:3003/users/email/${encodeURIComponent(email)}`,
+			`http://database:3003/database/users/email/${encodeURIComponent(email)}`,
 			{ method: 'GET' }
 		);
 
@@ -205,7 +205,7 @@ export async function saveUser(userData) {
 		};
 
 		const response = await fetch(
-			`http://database:3003/users`, {
+			`http://database:3003/database/users`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(userToSave)
@@ -230,7 +230,7 @@ export async function getAllUsers() {
 	try {
 
 		const response = await fetch(
-			`http://database:3003/users/all`,
+			`http://database:3003/database/users/all`,
 			{ method: 'GET' }
 		);
 
@@ -252,7 +252,7 @@ export async function getAllUsers() {
 export async function incrementLoginAttempts(userId, increment = true) {
 	try {
 		const response = await fetch(
-			`http://database:3003/users/${userId}/login-attempts`, {
+			`http://database:3003/database/users/${userId}/login-attempts`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(increment)
@@ -273,7 +273,7 @@ export async function incrementLoginAttempts(userId, increment = true) {
 export async function resetLoginAttempts(userId, increment = false) {
 	try {
 			const response = await fetch(
-			`http://database:3003/users/${userId}/login-attempts`, {
+			`http://database:3003/database/users/${userId}/login-attempts`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(increment)
@@ -298,7 +298,7 @@ export async function deleteUserSessions(userId) {
 	try {
 
 			const response = await fetch(
-			`http://database:3003/sessions/user/${userId}`, {
+			`http://database:3003/database/sessions/user/${userId}`, {
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(increment)
@@ -319,7 +319,7 @@ export async function createUserSession(sessionData) {
 	try {
 
 		const response = await fetch(
-			`http://database:3003/sessions`, {
+			`http://database:3003/database/sessions`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(sessionData)
@@ -341,7 +341,7 @@ export async function getUserSessions(userId) {
 	try {
 
 		const response = await fetch(
-			`http://database:3003/sessions/user/${userId}`,
+			`http://database:3003/database/sessions/user/${userId}`,
 			{ method: 'GET' }
 		);
 

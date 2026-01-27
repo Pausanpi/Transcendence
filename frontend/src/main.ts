@@ -5,6 +5,8 @@ import './gdpr.js';
 import './pong.js';
 import './tictactoe.js';
 import './gameService.js';
+import { showGlobalMessage } from './auth.js';
+import { navigate } from './router.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   initRouter();
@@ -20,4 +22,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.updateAuthBtn();
     }
   }, 200);
+});
+
+
+window.addEventListener('auth-expired', (e: any) => {
+  if (typeof showGlobalMessage === 'function') {
+    showGlobalMessage(e.detail, 'error');
+  }
+
+  setTimeout(() => {
+    navigate('auth');
+  }, 2500);
 });
