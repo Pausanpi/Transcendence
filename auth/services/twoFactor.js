@@ -142,14 +142,14 @@ class TwoFactorService {
 		}
 	}
 
-	async clearBackupCodes(userId) {
-		try {
-			const response = await saveBackupCodes(userId, []);
-			return response.data.success;
-		} catch (error) {
-			return false;
-		}
-	}
+async clearBackupCodes(userId) {
+  try {
+    const response = await TwoFactorService.saveBackupCodes(userId, []);
+    return response;
+  } catch (error) {
+    return false;
+  }
+}
 }
 
 

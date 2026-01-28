@@ -37,15 +37,14 @@ CHANGES:
   Pierdes la ventaja “stateless”
   Necesitas Redis / DB / Vault
 - Hacer que si gateway falla, nginx en vez de 404 muestre estaticos?
-
 - Crear volumem compartido
-- Normalizar rutas apiproxy
+
 
 --- (Dejando para el final)
 - Cosas que traducir
 - Mejorar dashboard grafana
 - Dependencias circulares
-- Probar a montar el tsc en user
+- Probar a montar el tsc en un contenedor/makefile
 ---
 
 > [!WARNING]

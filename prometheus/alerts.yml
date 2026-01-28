@@ -1,0 +1,74 @@
+groups:
+  - name: ft_transcendence_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up{job="auth"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="database"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="gateway"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="grafana"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="i18n"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="nginx"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: ServiceDown
+        expr: up{job="vault"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} DOWN"
+          description: "{{ $labels.job }} is not responding"
+
+      - alert: GatewaySlowRoute
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)) > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ruta {{ $labels.route }} lenta"
+          description: "La ruta {{ $labels.route }} tiene latencia > 1s"

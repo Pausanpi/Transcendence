@@ -12,7 +12,7 @@ export default async function gatewayRoutes(fastify, options) {
   const avatarsDir = path.join(process.cwd(), 'avatars');
   await fs.mkdir(avatarsDir, { recursive: true });
 
-	fastify.post('/upload/avatar', async (request, reply) => {
+	fastify.post('/api/gateway/upload/avatar', async (request, reply) => {
   if (!request.user) {
     return reply.status(401).send({
       success: false,

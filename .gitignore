@@ -1,4 +1,5 @@
 *.db
+data/app.db
 vault/config
 vault/data
 frontend/dist

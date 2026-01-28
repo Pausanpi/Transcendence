@@ -59,41 +59,39 @@ async function startGateway() {
 
 
 
-fastify.addHook('onRequest', async (request) => {
-    request._startTime = process.hrtime.bigint();
-  });
-fastify.addHook('onResponse', async (request, reply) => {
-  if (request.routerPath?.endsWith('/metrics')) return;
+	fastify.addHook('onResponse', async (request, reply) => {
+		if (request.routerPath?.endsWith('/metrics')) return;
 
-  const duration =
-    Number(process.hrtime.bigint() - request._startTime) / 1e9;
+		const duration =
+			Number(process.hrtime.bigint() - request._startTime) / 1e9;
 
-  const targetService =
-    request.params?.service || 'gateway';
+		const targetService =
+			request.params?.service || 'gateway';
 
-  httpRequestDuration.observe(
-    {
-      method: request.method,
-      route: targetService,   // 👈 ahora tiene sentido
-      status: reply.statusCode,
-    },
-    duration
-  );
-});
+		httpRequestDuration.observe(
+			{
+				method: request.method,
+				route: targetService,
+				status: reply.statusCode,
+			},
+			duration
+		);
+	});
 
 
 
 
-  await fastify.register(fastifyMultipart, {
-    limits: {
-      fileSize: 2 * 1024 * 1024,
-      files: 1
-    }
-  });
+	await fastify.register(fastifyMultipart, {
+		limits: {
+			fileSize: 2 * 1024 * 1024,
+			files: 1
+		}
+	});
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
 
 	fastify.addHook('onRequest', async (request, reply) => {
+		request._startTime = process.hrtime.bigint();
 		if (!request.url.startsWith('/api/')) return;
 
 		const publicRoutes = [
@@ -107,10 +105,7 @@ fastify.addHook('onResponse', async (request, reply) => {
 			'/api/gateway/health',
 			'/api/i18n/',
 			'/api/users/health',
-			'/api/database/players',
-			'/api/gateway/upload/avatar',
-			'/api/gateway/upload/'
-
+			'/api/database/players'
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -131,7 +126,7 @@ fastify.addHook('onResponse', async (request, reply) => {
 			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
 		}
 
-// Call auth service API for JWT verification
+		// Call auth service API for JWT verification
 		try {
 			const response = await fetch('http://auth:3001/auth/jwt/verify', {
 				method: 'POST',

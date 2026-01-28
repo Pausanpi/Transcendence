@@ -97,12 +97,12 @@ if (!result?.success) {
 				credentials: 'include'
 			});
 
-			if (result?.success) {
-				throw new Error(`HTTP error! status: ${result.status}`);
-			}
+			if (!result?.success) {
+    throw new Error(`HTTP error! status: ${result.status}`);
+}
 
 			this.translations = await result;
-		
+
 		} catch (error) {
 			console.error('Error loading translations:', error);
 			await this.loadFallbackTranslations();

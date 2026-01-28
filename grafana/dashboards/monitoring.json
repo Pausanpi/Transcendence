@@ -1,0 +1,468 @@
+{
+  "uid": "ft-transcendence",
+  "title": "Monitoring Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["ft_transcendence", "prometheus"],
+  "editable": true,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h"]
+  },
+  "panels": [
+
+    {
+      "type": "row",
+      "id": 2,
+      "title": "📊 PROMETHEUS METRICS",
+      "gridPos": { "x": 0, "y": 14, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "id": 20,
+      "title": "Prometheus Status",
+      "gridPos": { "x": 0, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "up{job=\"prometheus\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 1, "color": "green" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 21,
+      "title": "Scraped Targets",
+      "gridPos": { "x": 4, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "count(up)",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 1, "color": "yellow" },
+              { "value": 2, "color": "green" }
+            ]
+          },
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 22,
+      "title": "Total Samples",
+      "gridPos": { "x": 8, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "prometheus_tsdb_head_samples",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 23,
+      "title": "Storage Size",
+      "gridPos": { "x": 12, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "prometheus_tsdb_storage_blocks_bytes / 1024 / 1024",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 24,
+      "title": "Uptime",
+      "gridPos": { "x": 16, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "time() - process_start_time_seconds{job=\"prometheus\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 25,
+      "title": "Scrape Rate",
+      "gridPos": { "x": 20, "y": 15, "w": 4, "h": 4 },
+      "targets": [{
+        "expr": "rate(prometheus_target_interval_length_seconds_count[5m])",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "id": 26,
+      "title": "Prometheus - Ingested Samples Rate",
+      "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "rate(prometheus_tsdb_head_samples_appended_total[5m])",
+        "refId": "A",
+        "legendFormat": "Samples/sec",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "min": 0
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "id": 27,
+      "title": "Prometheus - Memory Usage",
+      "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"prometheus\"} / 1024 / 1024",
+          "refId": "A",
+          "legendFormat": "RSS Memory",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "go_memstats_alloc_bytes{job=\"prometheus\"} / 1024 / 1024",
+          "refId": "B",
+          "legendFormat": "Go Allocated",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ],
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": ["lastNotNull", "mean", "max"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "decmbytes",
+          "min": 0
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 3,
+      "title": "📝 SCRAPE TARGETS STATUS",
+      "gridPos": { "x": 0, "y": 27, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "table",
+      "id": 30,
+      "title": "Targets Overview",
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "up",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "job": 0,
+              "instance": 1,
+              "Value": 2
+            },
+            "renameByName": {
+              "job": "Job",
+              "instance": "Instance",
+              "Value": "Status"
+            }
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Job", "desc": false }]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "❌ DOWN", "color": "red" },
+                      "1": { "text": "✅ UP", "color": "green" }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "value": 0, "color": "red" },
+                    { "value": 1, "color": "green" }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Job" },
+            "properties": [
+              { "id": "custom.width", "value": 200 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "row",
+      "id": 4,
+      "title": "⚙️ GATEWAY SPECIFIC METRICS",
+      "gridPos": { "x": 0, "y": 36, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "id": 40,
+      "title": "Gateway Scrape Status",
+      "gridPos": { "x": 0, "y": 37, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "up{job=\"gateway\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 1, "color": "green" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 41,
+      "title": "Scrape Duration",
+      "gridPos": { "x": 6, "y": 37, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "scrape_duration_seconds{job=\"gateway\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 1, "color": "yellow" },
+              { "value": 5, "color": "red" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 42,
+      "title": "Samples Scraped",
+      "gridPos": { "x": 12, "y": 37, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "scrape_samples_scraped{job=\"gateway\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "area"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 43,
+      "title": "Last Scrape",
+      "gridPos": { "x": 18, "y": 37, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "time() - scrape_samples_post_metric_relabeling{job=\"gateway\"}",
+        "refId": "A",
+        "datasource": { "type": "prometheus", "uid": "prometheus" }
+      }],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "textMode": "value",
+        "colorMode": "none",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": { "text": "Never", "color": "red" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

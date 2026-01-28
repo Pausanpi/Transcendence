@@ -71,7 +71,7 @@ export class LanguageManager {
             const result = await api(`/api/i18n/translations?t=${Date.now()}`, {
                 credentials: 'include'
             });
-            if (result?.success) {
+            if (!result?.success) {
                 throw new Error(`HTTP error! status: ${result.status}`);
             }
             this.translations = await result;

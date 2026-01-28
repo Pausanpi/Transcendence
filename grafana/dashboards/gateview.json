@@ -1,0 +1,94 @@
+{
+  "title": "Gateway Metrics",
+  "uid": "gateway-metrics",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Requests por Ruta",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (route, method)",
+          "legendFormat": "{{route}} - {{method}}",
+          "interval": "",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "req/s",
+          "label": "Requests",
+          "logBase": 1
+        },
+        {
+          "format": "short",
+          "logBase": 1
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Latencia 50/95/99 Percentil",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, route))",
+          "legendFormat": "{{route}} p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, route))",
+          "legendFormat": "{{route}} p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, route))",
+          "legendFormat": "{{route}} p99",
+          "refId": "C"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "s",
+          "label": "Segundos",
+          "logBase": 1
+        },
+        {
+          "format": "short",
+          "logBase": 1
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Errores por Ruta",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count{status=~\"4..\"}[1m])) by (route)",
+          "legendFormat": "{{route}} 4xx",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count{status=~\"5..\"}[1m])) by (route)",
+          "legendFormat": "{{route}} 5xx",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "req/s",
+          "label": "Errores",
+          "logBase": 1
+        },
+        {
+          "format": "short",
+          "logBase": 1
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

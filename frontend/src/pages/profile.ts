@@ -48,8 +48,8 @@ export function renderProfile(): string {
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
 
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
-        <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA">
-        </button>
+  <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA" style="display: none;">
+</button>
         <div id="profileResult" class="hidden"></div>
       </div>
 
@@ -237,26 +237,41 @@ function showProfileMessage(message: string, type: 'success' | 'error'): void {
 }
 
 
-
-
 async function updateProfile(): Promise<void> {
-  const displayName = (document.getElementById('displayName') as HTMLInputElement).value;
-  let avatar = (document.getElementById('avatar') as HTMLInputElement).value;
+  const displayNameInput = document.getElementById('displayName') as HTMLInputElement;
+  const avatarInput = document.getElementById('avatar') as HTMLInputElement;
 
+  const displayName = displayNameInput?.value?.trim() || null;
+  const avatar = avatarInput?.value?.trim() || null;
+
+
+  if (displayName === null && avatar === null) {
+    const resultDiv = document.getElementById('profileResult');
+    if (resultDiv) {
+      resultDiv.classList.remove('hidden');
+      resultDiv.className = 'mt-4 p-3 rounded bg-yellow-900 text-yellow-200';
+      resultDiv.textContent = 'No changes to update';
+      setTimeout(() => {
+        resultDiv.classList.add('hidden');
+      }, 3000);
+    }
+    return;
+  }
 
   try {
     const data = await api<any>('/api/auth/profile-data', {
       method: 'PUT',
       body: JSON.stringify({ displayName, avatar })
     });
-
     const resultDiv = document.getElementById('profileResult');
     if (resultDiv) {
       resultDiv.classList.remove('hidden');
       resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
       resultDiv.textContent = 'Profile updated successfully';
+      setTimeout(() => {
+        resultDiv.classList.add('hidden');
+      }, 3000);
     }
-
     loadProfile();
   } catch (error) {
     const resultDiv = document.getElementById('profileResult');
@@ -264,6 +279,9 @@ async function updateProfile(): Promise<void> {
       resultDiv.classList.remove('hidden');
       resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
       resultDiv.textContent = 'Failed to update profile';
+      setTimeout(() => {
+        resultDiv.classList.add('hidden');
+      }, 5000);
     }
   }
 }

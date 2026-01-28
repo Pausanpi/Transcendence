@@ -44,8 +44,8 @@ export function renderProfile() {
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
 
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
-        <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA">
-        </button>
+  <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA" style="display: none;">
+</button>
         <div id="profileResult" class="hidden"></div>
       </div>
 
@@ -212,8 +212,22 @@ function showProfileMessage(message, type) {
     }
 }
 async function updateProfile() {
-    const displayName = document.getElementById('displayName').value;
-    let avatar = document.getElementById('avatar').value;
+    const displayNameInput = document.getElementById('displayName');
+    const avatarInput = document.getElementById('avatar');
+    const displayName = displayNameInput?.value?.trim() || null;
+    const avatar = avatarInput?.value?.trim() || null;
+    if (displayName === null && avatar === null) {
+        const resultDiv = document.getElementById('profileResult');
+        if (resultDiv) {
+            resultDiv.classList.remove('hidden');
+            resultDiv.className = 'mt-4 p-3 rounded bg-yellow-900 text-yellow-200';
+            resultDiv.textContent = 'No changes to update';
+            setTimeout(() => {
+                resultDiv.classList.add('hidden');
+            }, 3000);
+        }
+        return;
+    }
     try {
         const data = await api('/api/auth/profile-data', {
             method: 'PUT',
@@ -224,6 +238,9 @@ async function updateProfile() {
             resultDiv.classList.remove('hidden');
             resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
             resultDiv.textContent = 'Profile updated successfully';
+            setTimeout(() => {
+                resultDiv.classList.add('hidden');
+            }, 3000);
         }
         loadProfile();
     }
@@ -233,6 +250,9 @@ async function updateProfile() {
             resultDiv.classList.remove('hidden');
             resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
             resultDiv.textContent = 'Failed to update profile';
+            setTimeout(() => {
+                resultDiv.classList.add('hidden');
+            }, 5000);
         }
     }
 }
