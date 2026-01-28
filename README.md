@@ -1,20 +1,30 @@
 # LO NUEVO
 
-docker stop gateway
-docker rm gateway
-docker rmi gateway
+docker stop prometheus
+docker rm prometheus
+docker rmi prometheus
 docker volume prune -f
-docker compose up -d gateway
+docker compose up -d prometheus
 docker ps -a
-docker logs gateway
+docker logs prometheus
+
+docker stop vault
+docker rm vault
+docker rmi vault
+
+docker stop grafana
+docker rm grafana
+docker rmi grafana
+docker volume prune -f
+docker compose up -d grafana
+docker ps -a
+docker logs grafana
 
 CHANGES:
 
 1er COMMIT
-- Borrado puertos expuestos del docker-compose
-- Eliminado keepPrefix = false de proxyAPI
-- Deshabilitado algunos botones del dashboard
-- Limpieza archivos
+- grafana pseudoconfigurado
+
 
 ---
 

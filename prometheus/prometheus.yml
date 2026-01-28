@@ -1,29 +1,52 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - "alert.yml"
 
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-    scrape_interval: 15s
+    scrape_interval: 30s
 
   - job_name: 'gateway'
+    metrics_path: /gateway/metrics
     static_configs:
-      - targets: ['gateway:8443']
-    metrics_path: /metrics
+      - targets: ['gateway:3000']
+
+  - job_name: 'auth'
+    static_configs:
+      - targets: ['auth:3001']
     scrape_interval: 30s
+    metrics_path: /auth/metrics
     scheme: http
 
-  - job_name: 'application-metrics'
+  - job_name: 'database'
     static_configs:
-      - targets: ['gateway:8443']
-    metrics_path: /actuator/prometheus
+      - targets: ['database:3003']
     scrape_interval: 30s
+    metrics_path: /database/metrics
+    scheme: http
 
-  - job_name: 'log-processor'
+  - job_name: 'i18n'
     static_configs:
-      - targets: ['localhost:9100']
-    metrics_path: /metrics
+      - targets: ['i18n:3002']
     scrape_interval: 30s
-    scrape_timeout: 10s
+    metrics_path: /i18n/metrics
+    scheme: http
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:8080']
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: 'vault'
+    static_configs:
+      - targets: ['vault:8200']
+    metrics_path: /metrics
+    scheme: http
+    bearer_token: root
+    scrape_interval: 30s

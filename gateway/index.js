@@ -2,6 +2,8 @@
 import { fileURLToPath } from 'url';
 import createFastifyApp from '../shared/fastify-config.js';
 import fastifyMultipart from '@fastify/multipart';
+// src/observability/metrics-hooks.js
+import { httpRequestDuration } from '../shared/metrics.js';
 
 //import fastifyStatic from '@fastify/static';
 import gatewayRoutes from './routes/gateway.js';
@@ -44,6 +46,7 @@ async function startGateway() {
 
 	const fastify = await createFastifyApp({
 		serviceName: 'api-gateway',
+		logger: true,
 		enableSessions: true,
 		corsOrigin: true,
 		getSessionSecret: async () => {
@@ -53,6 +56,33 @@ async function startGateway() {
 			return secret;
 		}
 	});
+
+
+
+fastify.addHook('onRequest', async (request) => {
+    request._startTime = process.hrtime.bigint();
+  });
+fastify.addHook('onResponse', async (request, reply) => {
+  if (request.routerPath?.endsWith('/metrics')) return;
+
+  const duration =
+    Number(process.hrtime.bigint() - request._startTime) / 1e9;
+
+  const targetService =
+    request.params?.service || 'gateway';
+
+  httpRequestDuration.observe(
+    {
+      method: request.method,
+      route: targetService,   // 👈 ahora tiene sentido
+      status: reply.statusCode,
+    },
+    duration
+  );
+});
+
+
+
 
   await fastify.register(fastifyMultipart, {
     limits: {
@@ -80,7 +110,7 @@ async function startGateway() {
 			'/api/database/players',
 			'/api/gateway/upload/avatar',
 			'/api/gateway/upload/'
-			
+
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {

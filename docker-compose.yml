@@ -5,7 +5,7 @@ x-healthchecks:
   nginx: &nginx-healthcheck
     test: ["CMD", "nginx", "-t"]
   prometheus: &prometheus-healthcheck
-    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://prometheus:9090/-/healthy || exit 1"]
+    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
   vault: &vault-healthcheck
     test: ["CMD-SHELL", "curl -s curl http://vault:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
   grafana: &grafana-healthcheck
@@ -164,41 +164,42 @@ services:
     healthcheck: *vault-healthcheck
     restart: always
 
-  # prometheus:
-  #   image: prometheus
-  #   build:
-  #     network: host
-  #     context: prometheus
-  #     dockerfile: Dockerfile
-  #   container_name: prometheus
-  #   volumes:
-  #     - prometheus-data:/prometheus
-  #     - logs-data:/logs:ro
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-  #   networks: [transcendence-net]
-  #   healthcheck: *prometheus-healthcheck
-  #   restart: always
+  prometheus:
+    image: prometheus
+    build:
+      network: host
+      context: prometheus
+      dockerfile: Dockerfile
+    container_name: prometheus
+    ports: ["9090:9090"]
+    volumes:
+      - prometheus-data:/prometheus
+      - logs-data:/logs:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks: [transcendence-net]
+    healthcheck: *prometheus-healthcheck
+    restart: always
 
-  # grafana:
-  #   image: grafana
-  #   build:
-  #     network: host
-  #     context: grafana
-  #     dockerfile: Dockerfile
-  #   container_name: grafana
-  #   user: root
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
-  #     - logs-data:/var/log/grafana
-  #     - ./nginx/ssl:/etc/grafana/ssl:ro
-  #     - ./grafana/dashboards:/var/lib/grafana/dashboards
-  #   ports: ["8445:3301"]
-  #   networks: [transcendence-net]
-  #   depends_on:
-  #     prometheus:
-  #       condition: service_healthy
-  #   healthcheck: *grafana-healthcheck
-  #   restart: always
+  grafana:
+    image: grafana
+    build:
+      network: host
+      context: grafana
+      dockerfile: Dockerfile
+    container_name: grafana
+    user: root
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - logs-data:/var/log/grafana
+      - ./nginx/ssl:/etc/grafana/ssl:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports: ["8444:3301"]
+    networks: [transcendence-net]
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck: *grafana-healthcheck
+    restart: always
 
 volumes:
   logs-data:

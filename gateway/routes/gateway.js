@@ -4,6 +4,7 @@ import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import VaultService from '../../auth/services/vault.js';
 import fs from 'fs/promises';
+import { register } from '../../shared/metrics.js';
 
 
 export default async function gatewayRoutes(fastify, options) {
@@ -90,6 +91,13 @@ export default async function gatewayRoutes(fastify, options) {
 			'/api/gdpr'
 		]
 	}));
+
+
+  fastify.get('/metrics', async (_request, reply) => {
+    reply
+      .header('Content-Type', register.contentType)
+      .send(await register.metrics());
+  });
 
 
 }

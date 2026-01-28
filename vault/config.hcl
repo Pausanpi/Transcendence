@@ -12,6 +12,11 @@ listener "tcp" {
   tls_key_file = "/vault/ssl/private-key.pem"
 }
 
+telemetry {
+  prometheus_retention_time = "30s"
+  disable_hostname = true
+}
+
 api_addr = "https://localhost:8200"
 cluster_addr = "https://localhost:8201"
 

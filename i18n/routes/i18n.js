@@ -91,4 +91,15 @@ export default async function i18nRoutes(fastify, options) {
 		};
 	});
 
+	fastify.get('/metrics', async (request, reply) => {
+		reply.header('Content-Type', 'text/plain; version=0.0.4');
+		const metrics = `
+	# HELP service_health Service health status (1 = UP, 0 = DOWN)
+	# TYPE service_health gauge
+	service_health{service="auth"} 1
+	`;
+
+		return metrics;
+	});
+
 }
