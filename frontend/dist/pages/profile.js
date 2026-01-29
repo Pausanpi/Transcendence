@@ -144,7 +144,7 @@ async function loadProfile() {
             if (response.success && response.user) {
                 infoDiv.innerHTML = `
         <p><img width='200px' height='200px'  src=/avatars/${response.user.avatar || '/default-avatar.png'} />
-        <p><strong data-i18n="profile.displayName">Nickname:</strong> ${response.user.display_Name || 'N/A'}</p>
+        <p><strong data-i18n="profile.displayName">Nickname:</strong> ${response.user.display_name || 'N/A'}</p>
           <p><strong data-i18n="profile.username">Full Name:</strong> ${response.user.username || 'N/A'}</p>
           <p><strong data-i18n="profile.email">Email:</strong> ${response.user.email || 'N/A'}</p>
           <p><strong data-i18n="profile.id">ID:</strong> ${response.user.id || 'N/A'}</p>
@@ -212,12 +212,12 @@ function showProfileMessage(message, type) {
     }
 }
 async function updateProfile() {
-    const display_Name = document.getElementById('displayName').value;
+    const display_name = document.getElementById('displayName').value;
     let avatar = document.getElementById('avatar').value;
     try {
         const data = await api('/api/auth/profile-data', {
             method: 'PUT',
-            body: JSON.stringify({ display_Name, avatar })
+            body: JSON.stringify({ display_name, avatar })
         });
         const resultDiv = document.getElementById('profileResult');
         if (resultDiv) {
