@@ -39,7 +39,7 @@ class User {
 		return {
 			id: this.id,
 			username: this.username,
-			displayName: this.display_name,
+			display_name: this.display_name,
 			email: this.email,
 			avatar: this.avatar,
 			twoFactorEnabled: Boolean(this.two_factor_enabled),

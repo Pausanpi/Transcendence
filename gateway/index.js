@@ -77,7 +77,7 @@ async function startGateway() {
 			'/api/gateway/health',
 			'/api/i18n/',
 			'/api/users/health',
-			'/api/database/players',
+//			'/api/database/players',
 			'/api/gateway/upload/avatar',
 			'/api/gateway/upload/'
 			

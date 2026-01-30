@@ -272,7 +272,11 @@
     "invalidCredentials": "Invalid credentials",
     "playerVerified": "Player verified",
     "gameStarting": "Game starting with"
-  }
+  },
 
-
+	"players": {
+		"authRequired": "Debes iniciar sesión para ver otros jugadores",
+		"loadError": "No se pudieron cargar los jugadores. Por favor, inténtalo de nuevo más tarde.",
+		"loadErrorProfile": "No se pudo cargar el perfil del jugador. Por favor, inténtalo de nuevo más tarde."
+	}
 }

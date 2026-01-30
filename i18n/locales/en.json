@@ -255,5 +255,10 @@
 		"vaultTooltip": "Open HashiCorp Vault",
 		"accessDenied": "Access denied",
 		"adminRightsRequired": "Administrator rights required"
+	},
+	"players": {
+		"authRequired": "You must be logged in to see other players",
+		"loadError": "Failed to load players. Please try again later.",
+		"loadErrorProfile": "Failed to load player profile. Please try again later."
 	}
 }

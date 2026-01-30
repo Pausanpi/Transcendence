@@ -85,7 +85,8 @@ export default async function userRoutes(fastify, options) {
 		}
 
 		try {
-			const { displayName, avatar } = request.body;
+			// Only accept snake_case for display name // there are ways to accept both
+			const { display_name, avatar } = request.body;
 			const user = await findUserById(userId);
 			if (!user) {
 				return reply.status(404).send({
@@ -94,7 +95,7 @@ export default async function userRoutes(fastify, options) {
 				});
 			}
 			const updateData = {};
-			if (displayName !== undefined) updateData.display_name = displayName;
+			if (display_name !== undefined) updateData.display_name = display_name;
 			if (avatar !== undefined) updateData.avatar = avatar;
 			if (Object.keys(updateData).length > 0) {
 				await updateUser(user.id, updateData);
