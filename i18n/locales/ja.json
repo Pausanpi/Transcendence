@@ -253,5 +253,10 @@
 		"vaultTooltip": "HashiCorp Vault を開く",
 		"accessDenied": "アクセス拒否",
 		"adminRightsRequired": "管理者権限が必要です"
+	},
+	"players": {
+		"authRequired": "他のプレイヤーを見るにはログインが必要です",
+		"loadError": "プレイヤーの読み込みに失敗しました。後でもう一度お試しください。",
+		"loadErrorProfile": "プレイヤープロファイルの読み込みに失敗しました。後でもう一度お試しください。"
 	}
 }

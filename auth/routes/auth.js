@@ -68,6 +68,7 @@ export default async function authRoutes(fastify, options) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
+			console.error('Login error:', error);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'

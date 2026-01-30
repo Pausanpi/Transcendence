@@ -44,6 +44,7 @@ async function loadPlayers(search = '') {
         const response = await api(`/api/database/players?search=${encodeURIComponent(search)}&limit=50`);
         if (response.success && response.users.length > 0) {
             container.innerHTML = response.users.map(player => renderPlayerCard(player)).join('');
+            window.languageManager?.applyTranslations();
         }
         else {
             container.innerHTML = `
@@ -51,16 +52,26 @@ async function loadPlayers(search = '') {
           <p data-i18n="players.noPlayersFound">No players found</p>
         </div>
       `;
+            window.languageManager?.applyTranslations();
         }
-        window.languageManager?.applyTranslations();
     }
     catch (error) {
         console.error('Error loading players:', error);
+        // Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
+        let isAuthError = false;
+        if (error && error.message === 'auth.authenticationRequired') {
+            isAuthError = true;
+        }
+        let message = isAuthError
+            ? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
+            : '<p data-i18n="players.loadError">Failed to load players</p>';
         container.innerHTML = `
-      <div class="card col-span-2 text-center text-red-400">
-        <p data-i18n="players.loadError">Failed to load players</p>
-      </div>
-    `;
+			<div class="card col-span-2 text-center text-red-400">
+				${message}
+			</div>
+		`;
+        window.languageManager?.applyTranslations();
+        // Reminder: Ensure 'players.loadError' and 'players.authRequired' are present in all i18n dictionaries.
     }
 }
 function renderPlayerCard(player) {
@@ -105,45 +116,45 @@ async function viewPlayer(playerId) {
         if (response.success && response.user) {
             const player = response.user;
             content.innerHTML = `
-        <!-- Player Header -->
-        <div class="text-center mb-6">
-          <img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
-               src="${player.avatar || '/avatars/default-avatar.png'}"
-               alt="${player.username}"
-               onerror="this.src='/avatars/default-avatar.png'" />
-          <h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
-          <p class="text-gray-400">@${player.username}</p>
-          <p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
-            ● ${player.online_status || 'offline'}
-          </p>
-        </div>
+				<!-- Player Header -->
+				<div class="text-center mb-6">
+					<img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
+							 src="${player.avatar || '/avatars/default-avatar.png'}"
+							 alt="${player.username}"
+							 onerror="this.src='/avatars/default-avatar.png'" />
+					<h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
+					<p class="text-gray-400">@${player.username}</p>
+					<p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
+						● ${player.online_status || 'offline'}
+					</p>
+				</div>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-4 gap-3 mb-6">
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-green-400">${player.stats.wins}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-red-400">${player.stats.losses}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
-          </div>
-        </div>
+				<!-- Stats Grid -->
+				<div class="grid grid-cols-4 gap-3 mb-6">
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-green-400">${player.stats.wins}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-red-400">${player.stats.losses}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+				</div>
 
-        <!-- Match History -->
-        <div class="mt-6">
-          <h4 class="text-lg font-bold text-cyan-400 mb-3" data-i18n="profile.matchHistory">📜 Match History</h4>
-          ${renderMatchHistory(player.match_history)}
-        </div>
-      `;
+				<!-- Match History -->
+				<div class="mt-6">
+					<h4 class="text-lg font-bold text-cyan-400 mb-3" data-i18n="profile.matchHistory">📜 Match History</h4>
+					${renderMatchHistory(player.match_history)}
+				</div>
+			`;
             // Store player ID for add friend button
             const addFriendBtn = document.getElementById('addFriendBtn');
             if (addFriendBtn) {
@@ -155,9 +166,15 @@ async function viewPlayer(playerId) {
     }
     catch (error) {
         console.error('Error loading player profile:', error);
-        content.innerHTML = `
-      <p class="text-red-400 text-center" data-i18n="players.loadError">Failed to load player profile</p>
-    `;
+        let isAuthError = false;
+        if (error && error.message === 'auth.authenticationRequired') {
+            isAuthError = true;
+        }
+        let message = isAuthError
+            ? '<p class="text-red-400 text-center" data-i18n="players.authRequired">Authentication required</p>'
+            : '<p class="text-red-400 text-center" data-i18n="players.loadError">Failed to load player profile</p>';
+        content.innerHTML = message;
+        window.languageManager?.applyTranslations();
     }
 }
 function renderMatchHistory(matches) {
