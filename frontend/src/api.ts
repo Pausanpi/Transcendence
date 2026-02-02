@@ -1,15 +1,45 @@
 const API_BASE = '';
 
+// Fallback in-memory storage for private browsing mode
+let memoryStorage: { [key: string]: string } = {};
+
+// Check if storage is available
+function isStorageAvailable(type: 'localStorage' | 'sessionStorage'): boolean {
+  try {
+    const storage = window[type];
+    const test = '__storage_test__';
+    storage.setItem(test, test);
+    storage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Use sessionStorage if available, fallback to memory
+const useSessionStorage = isStorageAvailable('sessionStorage');
+
 function getToken(): string | null {
-  return localStorage.getItem('auth_token');
+  if (useSessionStorage) {
+    return sessionStorage.getItem('auth_token');
+  }
+  return memoryStorage['auth_token'] || null;
 }
 
 function setToken(token: string): void {
-  localStorage.setItem('auth_token', token);
+  if (useSessionStorage) {
+    sessionStorage.setItem('auth_token', token);
+  } else {
+    memoryStorage['auth_token'] = token;
+  }
 }
 
 function clearToken(): void {
-  localStorage.removeItem('auth_token');
+  if (useSessionStorage) {
+    sessionStorage.removeItem('auth_token');
+  } else {
+    delete memoryStorage['auth_token'];
+  }
 }
 
 function removeAuthToken(): void {
