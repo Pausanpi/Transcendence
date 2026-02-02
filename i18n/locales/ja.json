@@ -72,7 +72,13 @@
 		],
 		"configure2FA": "2FA を設定",
 		"manage2FA": "2FA を管理",
-		"privacyData": "プライバシーとデータ"
+		"privacyData": "プライバシーとデータ",
+		"gamesPlayed": "対戦数",
+		"wins": "勝利数",
+		"losses": "敗北数",
+		"winRate": "勝率",
+		"matchHistory": "📜 対戦履歴",
+		"noMatchHistory": "まだ対戦履歴がありません"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA が正常に無効化されました",
@@ -276,5 +282,31 @@
 			"online": "オンライン",
 			"offline": "オフライン"
 		}
+	},
+	
+	"friends": {
+		"title": "👫 フレンド",
+		"myFriends": "👥 マイフレンド",
+		"requests": "📬 リクエスト",
+		"sent": "📤 送信済み",
+		"noFriends": "まだフレンドがいません。",
+		"findPlayers": "🔍 プレイヤーを探す",
+		"noRequests": "保留中のフレンドリクエストはありません。",
+		"noSent": "保留中の送信リクエストはありません。",
+		"viewProfile": "👤 プロフィール",
+		"remove": "✖",
+		"wantsToBeYourFriend": "あなたとフレンドになりたい",
+		"accept": "✓ 承認",
+		"reject": "✗ 拒否",
+		"pendingRequest": "リクエスト保留中...",
+		"cancel": "✗ キャンセル",
+		"loadError": "読み込みに失敗しました。もう一度お試しください。",
+		"loadErrorProfile": "プレイヤープロファイルの読み込みに失敗しました",
+		"requestAccepted": "フレンドリクエストが承認されました！",
+		"requestRejected": "フレンドリクエストが拒否されました",
+		"requestCancelled": "フレンドリクエストがキャンセルされました",
+		"friendRemoved": "フレンドが正常に削除されました",
+		"confirmRemove": "{{username}} をフレンドから削除しますか？",
+		"error": "エラーが発生しました。もう一度お試しください。"
 	}
 }

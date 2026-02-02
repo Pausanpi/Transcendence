@@ -125,7 +125,7 @@ async function viewPlayer(playerId) {
 					<h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
 					<p class="text-gray-400">@${player.username}</p>
 					<p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
-						● ${player.online_status || 'offline'}
+						● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span>
 					</p>
 				</div>
 
@@ -310,12 +310,18 @@ function showToast(message, type) {
     // Use i18n for known messages if possible
     let translated = message;
     if (window.languageManager?.t) {
-        if (message === 'Friend request sent!')
-            translated = window.languageManager.t('players.friendRequestSent') || message;
-        if (message === 'Failed to send request')
-            translated = window.languageManager.t('players.failedToSendRequest') || message;
-        if (message === 'Failed to send friend request')
-            translated = window.languageManager.t('players.failedToSendFriendRequest') || message;
+        if (message === 'Friend request sent!') {
+            const t = window.languageManager.t('players.friendRequestSent');
+            translated = t !== null ? t : message;
+        }
+        if (message === 'Failed to send request') {
+            const t = window.languageManager.t('players.failedToSendRequest');
+            translated = t !== null ? t : message;
+        }
+        if (message === 'Failed to send friend request') {
+            const t = window.languageManager.t('players.failedToSendFriendRequest');
+            translated = t !== null ? t : message;
+        }
     }
     const toast = document.createElement('div');
     toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`;

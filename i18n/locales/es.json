@@ -75,7 +75,13 @@
 		],
 		"configure2FA": "Configurar 2FA",
 		"manage2FA": "Gestionar 2FA",
-		"privacyData": "Privacidad y Datos"
+		"privacyData": "Privacidad y Datos",
+		"gamesPlayed": "Partidas",
+		"wins": "Victorias",
+		"losses": "Derrotas",
+		"winRate": "% de victorias",
+		"matchHistory": "📜 Historial de partidas",
+		"noMatchHistory": "Aún no se han jugado partidas"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA deshabilitado correctamente",
@@ -296,5 +302,31 @@
 			"online": "En línea",
 			"offline": "Desconectado"
 		}
+	},
+	
+	"friends": {
+		"title": "👫 Amigos",
+		"myFriends": "👥 Mis amigos",
+		"requests": "📬 Solicitudes",
+		"sent": "📤 Enviadas",
+		"noFriends": "Aún no tienes amigos.",
+		"findPlayers": "🔍 Buscar jugadores",
+		"noRequests": "No hay solicitudes de amistad pendientes.",
+		"noSent": "No hay solicitudes enviadas pendientes.",
+		"viewProfile": "👤 Perfil",
+		"remove": "✖",
+		"wantsToBeYourFriend": "quiere ser tu amigo",
+		"accept": "✓ Aceptar",
+		"reject": "✗ Rechazar",
+		"pendingRequest": "Solicitud pendiente...",
+		"cancel": "✗ Cancelar",
+		"loadError": "No se pudo cargar. Por favor, inténtalo de nuevo.",
+		"loadErrorProfile": "No se pudo cargar el perfil del jugador",
+		"requestAccepted": "¡Solicitud de amistad aceptada!",
+		"requestRejected": "Solicitud de amistad rechazada",
+		"requestCancelled": "Solicitud de amistad cancelada",
+		"friendRemoved": "Amigo eliminado correctamente",
+		"confirmRemove": "¿Eliminar a {{username}} de tus amigos?",
+		"error": "Ocurrió un error. Por favor, inténtalo de nuevo."
 	}
 }

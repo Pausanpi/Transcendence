@@ -8,7 +8,6 @@ export class LanguageManager {
     async init() {
         if (this.initialized)
             return;
-        console.debug('[i18n] init called');
         await this.loadCurrentLanguage();
         await this.loadTranslations();
         this.renderLanguageSelector();
@@ -24,7 +23,6 @@ export class LanguageManager {
             if (target instanceof HTMLSelectElement &&
                 target.id === 'languageSelect') {
                 const lang = target.value;
-                console.debug(`[i18n] languageSelect changed: ${lang}`);
                 if (lang === 'en' || lang === 'es' || lang === 'ja') {
                     this.changeLanguage(lang);
                 }
@@ -47,7 +45,6 @@ export class LanguageManager {
                 }
                 localStorage.setItem('preferredLanguage', this.currentLanguage);
             }
-            console.debug(`[i18n] loadCurrentLanguage: ${this.currentLanguage}`);
             await this.syncWithServer();
         }
         catch (error) {
@@ -62,7 +59,6 @@ export class LanguageManager {
     }
     async syncWithServer() {
         try {
-            console.debug(`[i18n] syncWithServer: POST /api/i18n/change-language ${this.currentLanguage}`);
             const result = await api('/api/i18n/change-language', {
                 method: 'POST',
                 credentials: 'include',
@@ -80,7 +76,6 @@ export class LanguageManager {
     }
     async loadTranslations() {
         try {
-            console.debug(`[i18n] loadTranslations: GET /api/i18n/translations?language=${this.currentLanguage}`);
             const result = await api(`/api/i18n/translations?language=${this.currentLanguage}&t=${Date.now()}`, {
                 credentials: 'include'
             });
@@ -88,7 +83,6 @@ export class LanguageManager {
                 throw new Error(`HTTP error! status: ${result.status}`);
             }
             this.translations = await result;
-            console.debug('[i18n] Translations loaded:', this.translations);
         }
         catch (error) {
             console.error('Error loading translations:', error);
@@ -97,11 +91,9 @@ export class LanguageManager {
     }
     async loadFallbackTranslations() {
         try {
-            console.debug(`[i18n] loadFallbackTranslations: GET /api/i18n/locales/${this.currentLanguage}.json`);
             const result = await api(`/api/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
             if (!result?.success) {
                 this.translations = await result;
-                console.debug('[i18n] Fallback translations loaded:', this.translations);
             }
         }
         catch (error) {
@@ -119,7 +111,8 @@ export class LanguageManager {
             if (!key)
                 return;
             const value = this.getTranslation(key);
-            if (typeof value === 'string') {
+            // Only update if translation exists (not null)
+            if (value !== null && typeof value === 'string') {
                 if (element instanceof HTMLInputElement &&
                     (element.type === 'submit' || element.type === 'button')) {
                     element.value = value;
@@ -128,6 +121,7 @@ export class LanguageManager {
                     element.textContent = value;
                 }
             }
+            // Otherwise, keep the original HTML content (fallback)
         });
         document
             .querySelectorAll('[data-i18n-placeholder]')
@@ -136,7 +130,7 @@ export class LanguageManager {
             if (!key)
                 return;
             const value = this.getTranslation(key);
-            if (typeof value === 'string') {
+            if (value !== null && typeof value === 'string') {
                 element.placeholder = value;
             }
         });
@@ -151,26 +145,22 @@ export class LanguageManager {
             if (typeof current !== 'object' ||
                 current === null ||
                 !(part in current)) {
-                return parts[parts.length - 1];
+                return null; // Translation not found
             }
             current = current[part];
         }
-        return typeof current === 'string'
-            ? current
-            : parts[parts.length - 1];
+        return typeof current === 'string' ? current : null;
     }
     t(key) {
         return this.getTranslation(key);
     }
     async changeLanguage(lang) {
         try {
-            console.debug(`[i18n] changeLanguage called: ${lang}`);
             if (lang !== 'en' && lang !== 'es' && lang !== 'ja') {
                 throw new Error('Unsupported language');
             }
             this.currentLanguage = lang;
             localStorage.setItem('preferredLanguage', lang);
-            console.debug(`[i18n] changeLanguage: POST /api/i18n/change-language ${lang}`);
             const response = await api('/api/i18n/change-language', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

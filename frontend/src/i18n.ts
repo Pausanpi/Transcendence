@@ -142,7 +142,8 @@ if (!result?.success) {
 			if (!key) return;
 
 			const value = this.getTranslation(key);
-			if (typeof value === 'string') {
+			// Only update if translation exists (not null)
+			if (value !== null && typeof value === 'string') {
 				if (
 					element instanceof HTMLInputElement &&
 					(element.type === 'submit' || element.type === 'button')
@@ -152,6 +153,7 @@ if (!result?.success) {
 					element.textContent = value;
 				}
 			}
+			// Otherwise, keep the original HTML content (fallback)
 		});
 
 		document
@@ -161,7 +163,7 @@ if (!result?.success) {
 				if (!key) return;
 
 				const value = this.getTranslation(key);
-				if (typeof value === 'string') {
+				if (value !== null && typeof value === 'string') {
 					element.placeholder = value;
 				}
 			});
@@ -172,7 +174,7 @@ if (!result?.success) {
 		window.dispatchEvent(new CustomEvent('translationsApplied'));
 	}
 
-	private getTranslation(key: string): string {
+	private getTranslation(key: string): string | null {
 		const parts = key.split('.');
 		let current: string | Translations | undefined = this.translations;
 
@@ -182,19 +184,17 @@ if (!result?.success) {
 				current === null ||
 				!(part in current)
 			) {
-				return parts[parts.length - 1];
+				return null; // Translation not found
 			}
 			current = (current as Translations)[part];
 		}
 
-		return typeof current === 'string'
-			? current
-			: parts[parts.length - 1];
+		return typeof current === 'string' ? current : null;
 	}
 
-public t(key: string): string {
-	return this.getTranslation(key);
-}
+	public t(key: string): string | null {
+		return this.getTranslation(key);
+	}
 
 	async changeLanguage(lang: Language): Promise<boolean> {
 		try {
