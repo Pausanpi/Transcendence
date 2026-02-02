@@ -45,6 +45,7 @@
 			"Rate Limiting anti-DDoS"
 		]
 	},
+   
 	"profile": {
 		"adminPanel": "Panel de Administración",
 		"manageUsers": "Gestionar Usuarios",
@@ -277,6 +278,23 @@
 	"players": {
 		"authRequired": "Debes iniciar sesión para ver otros jugadores",
 		"loadError": "No se pudieron cargar los jugadores. Por favor, inténtalo de nuevo más tarde.",
-		"loadErrorProfile": "No se pudo cargar el perfil del jugador. Por favor, inténtalo de nuevo más tarde."
+		"loadErrorProfile": "No se pudo cargar el perfil del jugador. Por favor, inténtalo de nuevo más tarde.",
+		"addFriend": "Agregar amigo",
+		"sendingRequest": "Enviando solicitud...",
+		"requestPending": "Solicitud pendiente",
+		"alreadyFriends": "Ya son amigos",
+		"requestSent": "¡Solicitud enviada!",
+		"victory": "Victoria",
+		"defeat": "Derrota",
+		"tournament": "Torneo",
+		"vs": "vs",
+		"unknown": "Desconocido",
+		"friendRequestSent": "¡Solicitud de amistad enviada!",
+		"failedToSendRequest": "No se pudo enviar la solicitud",
+		"failedToSendFriendRequest": "No se pudo enviar la solicitud de amistad",
+		"status": {
+			"online": "En línea",
+			"offline": "Desconectado"
+		}
 	}
 }

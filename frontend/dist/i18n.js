@@ -8,6 +8,7 @@ export class LanguageManager {
     async init() {
         if (this.initialized)
             return;
+        console.debug('[i18n] init called');
         await this.loadCurrentLanguage();
         await this.loadTranslations();
         this.renderLanguageSelector();
@@ -22,21 +23,31 @@ export class LanguageManager {
             const target = e.target;
             if (target instanceof HTMLSelectElement &&
                 target.id === 'languageSelect') {
-                this.changeLanguage(target.value);
+                const lang = target.value;
+                console.debug(`[i18n] languageSelect changed: ${lang}`);
+                if (lang === 'en' || lang === 'es' || lang === 'ja') {
+                    this.changeLanguage(lang);
+                }
             }
         });
     }
     async loadCurrentLanguage() {
         try {
             const savedLang = localStorage.getItem('preferredLanguage');
-            if (savedLang === 'en' || savedLang === 'es') {
+            if (savedLang === 'en' || savedLang === 'es' || savedLang === 'ja') {
                 this.currentLanguage = savedLang;
             }
             else {
                 const browserLang = navigator.language.split('-')[0];
-                this.currentLanguage = browserLang === 'es' ? 'es' : 'en';
+                if (browserLang === 'es' || browserLang === 'ja') {
+                    this.currentLanguage = browserLang;
+                }
+                else {
+                    this.currentLanguage = 'en';
+                }
                 localStorage.setItem('preferredLanguage', this.currentLanguage);
             }
+            console.debug(`[i18n] loadCurrentLanguage: ${this.currentLanguage}`);
             await this.syncWithServer();
         }
         catch (error) {
@@ -51,6 +62,7 @@ export class LanguageManager {
     }
     async syncWithServer() {
         try {
+            console.debug(`[i18n] syncWithServer: POST /api/i18n/change-language ${this.currentLanguage}`);
             const result = await api('/api/i18n/change-language', {
                 method: 'POST',
                 credentials: 'include',
@@ -68,13 +80,15 @@ export class LanguageManager {
     }
     async loadTranslations() {
         try {
-            const result = await api(`/api/i18n/translations?t=${Date.now()}`, {
+            console.debug(`[i18n] loadTranslations: GET /api/i18n/translations?language=${this.currentLanguage}`);
+            const result = await api(`/api/i18n/translations?language=${this.currentLanguage}&t=${Date.now()}`, {
                 credentials: 'include'
             });
             if (result?.success) {
                 throw new Error(`HTTP error! status: ${result.status}`);
             }
             this.translations = await result;
+            console.debug('[i18n] Translations loaded:', this.translations);
         }
         catch (error) {
             console.error('Error loading translations:', error);
@@ -83,9 +97,11 @@ export class LanguageManager {
     }
     async loadFallbackTranslations() {
         try {
+            console.debug(`[i18n] loadFallbackTranslations: GET /api/i18n/locales/${this.currentLanguage}.json`);
             const result = await api(`/api/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`);
             if (!result?.success) {
                 this.translations = await result;
+                console.debug('[i18n] Fallback translations loaded:', this.translations);
             }
         }
         catch (error) {
@@ -148,8 +164,13 @@ export class LanguageManager {
     }
     async changeLanguage(lang) {
         try {
+            console.debug(`[i18n] changeLanguage called: ${lang}`);
+            if (lang !== 'en' && lang !== 'es' && lang !== 'ja') {
+                throw new Error('Unsupported language');
+            }
             this.currentLanguage = lang;
             localStorage.setItem('preferredLanguage', lang);
+            console.debug(`[i18n] changeLanguage: POST /api/i18n/change-language ${lang}`);
             const response = await api('/api/i18n/change-language', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

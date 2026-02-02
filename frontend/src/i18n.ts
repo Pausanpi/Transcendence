@@ -1,6 +1,6 @@
 import { api } from './api.js';
 
-type Language = 'en' | 'es';
+type Language = 'en' | 'es' | 'ja';
 
 interface Translations {
 	[key: string]: string | Translations;
@@ -42,7 +42,10 @@ export class LanguageManager {
 				target instanceof HTMLSelectElement &&
 				target.id === 'languageSelect'
 			) {
-				this.changeLanguage(target.value as 'en' | 'es');
+				const lang = target.value as Language;
+				if (lang === 'en' || lang === 'es' || lang === 'ja') {
+					this.changeLanguage(lang);
+				}
 			}
 		});
 	}
@@ -52,11 +55,15 @@ export class LanguageManager {
 		try {
 			const savedLang = localStorage.getItem('preferredLanguage') as Language | null;
 
-			if (savedLang === 'en' || savedLang === 'es') {
+			if (savedLang === 'en' || savedLang === 'es' || savedLang === 'ja') {
 				this.currentLanguage = savedLang;
 			} else {
 				const browserLang = navigator.language.split('-')[0];
-				this.currentLanguage = browserLang === 'es' ? 'es' : 'en';
+				if (browserLang === 'es' || browserLang === 'ja') {
+					this.currentLanguage = browserLang as Language;
+				} else {
+					this.currentLanguage = 'en';
+				}
 				localStorage.setItem('preferredLanguage', this.currentLanguage);
 			}
 
@@ -93,7 +100,7 @@ if (!result?.success) {
 
 	private async loadTranslations(): Promise<void> {
 		try {
-			const result = await api<any>(`/api/i18n/translations?t=${Date.now()}`, {
+			const result = await api<any>(`/api/i18n/translations?language=${this.currentLanguage}&t=${Date.now()}`, {
 				credentials: 'include'
 			});
 
@@ -102,7 +109,7 @@ if (!result?.success) {
 			}
 
 			this.translations = await result;
-		
+        
 		} catch (error) {
 			console.error('Error loading translations:', error);
 			await this.loadFallbackTranslations();
@@ -191,6 +198,9 @@ public t(key: string): string {
 
 	async changeLanguage(lang: Language): Promise<boolean> {
 		try {
+			if (lang !== 'en' && lang !== 'es' && lang !== 'ja') {
+				throw new Error('Unsupported language');
+			}
 			this.currentLanguage = lang;
 			localStorage.setItem('preferredLanguage', lang);
 

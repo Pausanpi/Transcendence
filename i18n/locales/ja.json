@@ -45,6 +45,7 @@
 			"DDoS 対策 レート制限"
 		]
 	},
+   
 	"profile": {
 		"adminPanel": "管理パネル",
 		"manageUsers": "ユーザー管理",
@@ -257,6 +258,23 @@
 	"players": {
 		"authRequired": "他のプレイヤーを見るにはログインが必要です",
 		"loadError": "プレイヤーの読み込みに失敗しました。後でもう一度お試しください。",
-		"loadErrorProfile": "プレイヤープロファイルの読み込みに失敗しました。後でもう一度お試しください。"
+		"loadErrorProfile": "プレイヤープロファイルの読み込みに失敗しました。後でもう一度お試しください。",
+		"addFriend": "フレンド追加",
+		"sendingRequest": "リクエスト送信中...",
+		"requestPending": "リクエスト保留中",
+		"alreadyFriends": "すでにフレンドです",
+		"requestSent": "リクエスト送信済み！",
+		"victory": "勝利",
+		"defeat": "敗北",
+		"tournament": "トーナメント",
+		"vs": "vs",
+		"unknown": "不明",
+		"friendRequestSent": "フレンド申請を送りました！",
+		"failedToSendRequest": "リクエストの送信に失敗しました",
+		"failedToSendFriendRequest": "フレンド申請の送信に失敗しました",
+		"status": {
+			"online": "オンライン",
+			"offline": "オフライン"
+		}
 	}
 }

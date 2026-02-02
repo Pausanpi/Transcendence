@@ -101,8 +101,9 @@ async function sendHeartbeat() {
         return;
     }
     try {
-        await api('/api/auth/heartbeat', {
-            method: 'POST'
+        await api('/api/database/heartbeat', {
+            method: 'POST',
+            body: JSON.stringify({}) // <-- send an empty object
         });
     }
     catch (error) {

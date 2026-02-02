@@ -45,6 +45,7 @@
 			"Anti-DDoS Rate Limiting"
 		]
 	},
+
 	"profile": {
 		"adminPanel": "Administration Panel",
 		"manageUsers": "Manage Users",
@@ -259,6 +260,23 @@
 	"players": {
 		"authRequired": "You must be logged in to see other players",
 		"loadError": "Failed to load players. Please try again later.",
-		"loadErrorProfile": "Failed to load player profile. Please try again later."
+		"loadErrorProfile": "Failed to load player profile. Please try again later.",
+		"addFriend": "Add Friend",
+		"sendingRequest": "Sending request...",
+		"requestPending": "Request Pending",
+		"alreadyFriends": "Already Friends",
+		"requestSent": "Request Sent!",
+		"victory": "Victory",
+		"defeat": "Defeat",
+		"tournament": "Tournament",
+		"vs": "vs",
+		"unknown": "Unknown",
+		"friendRequestSent": "Friend request sent!",
+		"failedToSendRequest": "Failed to send request",
+		"failedToSendFriendRequest": "Failed to send friend request",
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		}
 	}
 }
