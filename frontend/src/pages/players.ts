@@ -126,24 +126,24 @@ function renderPlayerCard(player: PlayerListItem): string {
 	const statusDot = player.online_status === 'online' ? 'bg-green-400' : 'bg-gray-400';
 
 	return `
-    <div class="card hover:border-yellow-400 cursor-pointer transition-all"
-         onclick="viewPlayer('${player.id}')">
-      <div class="flex items-center gap-4">
-        <div class="relative">
-          <img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
-               src="${player.avatar || '/avatars/default-avatar.png'}"
-               alt="${player.username}"
-               onerror="this.src='/avatars/default-avatar.png'" />
-          <span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
-          <p class="text-sm text-gray-400">@${player.username}</p>
-          <p class="text-xs ${statusColor} mt-1">● ${player.online_status || 'offline'}</p>
-        </div>
-      </div>
-    </div>
-  `;
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all"
+				 onclick="viewPlayer('${player.id}')">
+			<div class="flex items-center gap-4">
+				<div class="relative">
+					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+							 src="${player.avatar || '/avatars/default-avatar.png'}"
+							 alt="${player.username}"
+							 onerror="this.src='/avatars/default-avatar.png'" />
+					<span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
+				</div>
+				<div class="flex-1">
+					<h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
+					<p class="text-sm text-gray-400">@${player.username}</p>
+					<p class="text-xs ${statusColor} mt-1">● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span></p>
+				</div>
+			</div>
+		</div>
+	`;
 }
 
 async function viewPlayer(playerId: string): Promise<void> {
@@ -178,7 +178,7 @@ async function viewPlayer(playerId: string): Promise<void> {
 					<h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
 					<p class="text-gray-400">@${player.username}</p>
 					<p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
-						● ${player.online_status || 'offline'}
+						● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span>
 					</p>
 				</div>
 
@@ -214,6 +214,9 @@ async function viewPlayer(playerId: string): Promise<void> {
 			if (addFriendBtn) {
 				addFriendBtn.setAttribute('data-player-id', playerId);
 				addFriendBtn.onclick = () => addFriend(playerId);
+				// Set i18n attribute and default text for Add Friend button
+				addFriendBtn.setAttribute('data-i18n', 'players.addFriend');
+				addFriendBtn.innerHTML = '➕ Add Friend';
 			}
 
 			window.languageManager?.applyTranslations();
@@ -235,18 +238,19 @@ async function viewPlayer(playerId: string): Promise<void> {
 function renderMatchHistory(matches: MatchHistoryItem[]): string {
 	if (matches.length === 0) {
 		return `
-      <div class="bg-gray-800 rounded-lg p-4 text-center text-gray-400">
-        <p data-i18n="profile.noMatchHistory">No matches played yet</p>
-      </div>
-    `;
+			<div class="bg-gray-800 rounded-lg p-4 text-center text-gray-400">
+				<p data-i18n="profile.noMatchHistory">No matches played yet</p>
+			</div>
+		`;
 	}
 
 	return `
-    <div class="space-y-2 max-h-96 overflow-y-auto">
-      ${matches.map(match => {
+		<div class="space-y-2 max-h-96 overflow-y-auto">
+			${matches.map(match => {
 		const resultColor = match.won ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600';
-		const resultText = match.won ? 'Victory' : 'Defeat';
 		const resultIcon = match.won ? '🏆' : '💔';
+		const resultKey = match.won ? 'players.victory' : 'players.defeat';
+		const resultDefault = match.won ? 'Victory' : 'Defeat';
 		const date = new Date(match.playedAt).toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
@@ -254,32 +258,32 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 		});
 
 		return `
-          <div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-lg">${resultIcon}</span>
-                  <span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}">${resultText}</span>
-                  ${match.tournamentId ? '<span class="text-xs bg-purple-600 px-2 py-0.5 rounded">Tournament</span>' : ''}
-                </div>
-                <div class="text-sm text-gray-400">
-                  <span>vs ${match.opponent.name || 'Unknown'}</span>
-                  <span class="mx-2">•</span>
-                  <span>${date}</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="text-2xl font-bold ${match.won ? 'text-green-400' : 'text-red-400'}">
-                  ${match.playerScore} - ${match.opponentScore}
-                </div>
-                ${match.duration ? `<div class="text-xs text-gray-500">${formatDuration(match.duration)}</div>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
+					<div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
+						<div class="flex items-center justify-between">
+							<div class="flex-1">
+								<div class="flex items-center gap-2 mb-1">
+									<span class="text-lg">${resultIcon}</span>
+									<span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+									${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
+								</div>
+								<div class="text-sm text-gray-400">
+									<span data-i18n="players.vs">vs</span> <span>${match.opponent.name ? match.opponent.name : '<span data-i18n="players.unknown">Unknown</span>'}</span>
+									<span class="mx-2">•</span>
+									<span>${date}</span>
+								</div>
+							</div>
+							<div class="text-right">
+								<div class="text-2xl font-bold ${match.won ? 'text-green-400' : 'text-red-400'}">
+									${match.playerScore} - ${match.opponentScore}
+								</div>
+								${match.duration ? `<div class="text-xs text-gray-500">${formatDuration(match.duration)}</div>` : ''}
+							</div>
+						</div>
+					</div>
+				`;
 	}).join('')}
-    </div>
-  `;
+		</div>
+	`;
 }
 
 function formatDuration(seconds: number): string {
@@ -299,7 +303,9 @@ async function addFriend(playerId: string): Promise<void> {
 	const btn = document.getElementById('addFriendBtn');
 	if (btn) {
 		btn.setAttribute('disabled', 'true');
+		btn.setAttribute('data-i18n', 'players.sendingRequest');
 		btn.innerHTML = '⏳ Sending...';
+		window.languageManager?.applyTranslations();
 	}
 
 	try {
@@ -311,13 +317,17 @@ async function addFriend(playerId: string): Promise<void> {
 			if (btn) {
 				btn.removeAttribute('disabled');
 				if (checkResponse.status === 'pending') {
+					btn.setAttribute('data-i18n', 'players.requestPending');
 					btn.innerHTML = '⏳ Request Pending';
 					btn.classList.remove('btn-green');
 					btn.classList.add('btn-gray');
+					window.languageManager?.applyTranslations();
 				} else if (checkResponse.status === 'accepted') {
+					btn.setAttribute('data-i18n', 'players.alreadyFriends');
 					btn.innerHTML = '✓ Already Friends';
 					btn.classList.remove('btn-green');
 					btn.classList.add('btn-gray');
+					window.languageManager?.applyTranslations();
 				}
 			}
 			return;
@@ -331,15 +341,19 @@ async function addFriend(playerId: string): Promise<void> {
 
 		if (response.success) {
 			if (btn) {
+				btn.setAttribute('data-i18n', 'players.requestSent');
 				btn.innerHTML = '✓ Request Sent!';
 				btn.classList.remove('btn-green');
 				btn.classList.add('btn-gray');
+				window.languageManager?.applyTranslations();
 			}
 			showToast('Friend request sent!', 'success');
 		} else {
 			if (btn) {
 				btn.removeAttribute('disabled');
+				btn.setAttribute('data-i18n', 'players.addFriend');
 				btn.innerHTML = '➕ Add Friend';
+				window.languageManager?.applyTranslations();
 			}
 			showToast(response.error || 'Failed to send request', 'error');
 		}
@@ -347,17 +361,34 @@ async function addFriend(playerId: string): Promise<void> {
 		console.error('Error adding friend:', error);
 		if (btn) {
 			btn.removeAttribute('disabled');
+			btn.setAttribute('data-i18n', 'players.addFriend');
 			btn.innerHTML = '➕ Add Friend';
+			window.languageManager?.applyTranslations();
 		}
 		showToast('Failed to send friend request', 'error');
 	}
 }
 
 function showToast(message: string, type: 'success' | 'error'): void {
+	// Use i18n for known messages if possible
+	let translated = message;
+	if (window.languageManager?.t) {
+		if (message === 'Friend request sent!') {
+			const t = window.languageManager.t('players.friendRequestSent');
+			translated = t !== null ? t : message;
+		}
+		if (message === 'Failed to send request') {
+			const t = window.languageManager.t('players.failedToSendRequest');
+			translated = t !== null ? t : message;
+		}
+		if (message === 'Failed to send friend request') {
+			const t = window.languageManager.t('players.failedToSendFriendRequest');
+			translated = t !== null ? t : message;
+		}
+	}
 	const toast = document.createElement('div');
-	toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'
-		} text-white`;
-	toast.textContent = message;
+	toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`;
+	toast.textContent = translated;
 	document.body.appendChild(toast);
 
 	setTimeout(() => {
