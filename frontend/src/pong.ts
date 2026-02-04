@@ -13,6 +13,22 @@ import {
   type GameSession
 } from './gameService.js';
 
+interface Paddle {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  dy: number;
+}
+
+interface Ball {
+  x: number;
+  y: number;
+  r: number;
+  dx: number;
+  dy: number;
+}
+
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 let animationId: number;
@@ -24,11 +40,24 @@ let difficulty = 3;
 let player1: Player;
 let player2: Player;
 
-const paddle1 = { x: 10, y: 250, w: 10, h: 100 };
-const paddle2 = { x: 780, y: 250, w: 10, h: 100 };
-const ball = { x: 400, y: 300, r: 10, dx: 5, dy: 5 };
+const paddle1: Paddle = { x: 10, y: 250, w: 10, h: 100, dy: 0 };
+const paddle2: Paddle = { x: 780, y: 250, w: 10, h: 100, dy: 0 };
+const ball: Ball = { x: 400, y: 300, r: 10, dx: 5, dy: 5 };
 let score1 = 0, score2 = 0;
 const keys: Record<string, boolean> = {};
+
+// Game constants
+const INITIAL_BALL_SPEED = 5;
+const MAX_BALL_SPEED = 15;
+const SPEED_INCREMENT = 0.05;
+const PADDLE_SPEED = 5;
+const COLLISION_MARGIN = 6;
+const IMPACT_ANGLE_FACTOR = 8;
+
+// AI state variables - decision with prediction
+let aiLastUpdate = 0;
+let aiDecision: 'up' | 'down' | '' = '';
+let aiTargetY: number = 250;
 
 export function startPong(ai: boolean, diff = 3): void {
   // This is called after players are set up
@@ -51,9 +80,23 @@ export function startPong(ai: boolean, diff = 3): void {
     canvas.width = 800;
     canvas.height = 600;
 
+    // Reset game state
+    gameOn = false;
     score1 = score2 = 0;
     paddle1.y = paddle2.y = 250;
+    paddle1.dy = paddle2.dy = 0;
     resetBall();
+    
+    // Reset AI state
+    aiLastUpdate = 0;
+    aiDecision = '';
+    aiTargetY = 250;
+    Object.keys(keys).forEach(key => keys[key] = false);
+    
+    // Show exit button
+    const exitContainer = document.getElementById('exitGameContainer');
+    if (exitContainer) exitContainer.classList.remove('hidden');
+    
     countdown(() => { gameOn = true; loop(); });
   }, 50);
 }
@@ -196,9 +239,66 @@ async function confirmPlayerSetup(): Promise<void> {
 }
 
 function resetBall(): void {
-  ball.x = 400; ball.y = 300;
-  ball.dx = (Math.random() > 0.5 ? 1 : -1) * 5;
-  ball.dy = (Math.random() > 0.5 ? 1 : -1) * 5;
+  ball.x = 400;
+  ball.y = 300;
+  ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  ball.dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  
+  // Update AI target on ball reset
+  if (isAI) {
+    updateAITarget();
+  }
+}
+
+/**
+ * Predice dónde estará la bola cuando llegue al paddle de la IA
+ * Considera rebotes en paredes superior e inferior con simulación física
+ */
+function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
+  // Copiar estado para no modificar el original
+  let x = ballState.x;
+  let y = ballState.y;
+  let dx = ballState.dx;
+  let dy = ballState.dy;
+
+  // Si la bola no se dirige hacia la IA, retornar posición actual
+  if (dx <= 0) return y;
+
+  // Simular el movimiento de la bola hasta que alcance la posición X del paddle
+  while (x < paddleX - ballState.r) {
+    x += dx;
+    y += dy;
+
+    // Simular rebotes en paredes superior e inferior
+    if (y - ballState.r < 0) {
+      y = ballState.r;
+      dy = -dy;
+    } else if (y + ballState.r > canvas.height) {
+      y = canvas.height - ballState.r;
+      dy = -dy;
+    }
+  }
+  
+  return y;
+}
+
+/**
+ * Actualiza el objetivo de la IA con predicción mejorada y margen de error
+ */
+function updateAITarget(): void {
+  const predictedY = predictBallYAtPaddle(ball, paddle2.x);
+  
+  // Agregar margen de error aleatorio basado en la dificultad
+  const errorMargin = difficulty === 2 ? 60 : difficulty === 3 ? 40 : 20;
+  const randomOffset = (Math.random() - 0.5) * errorMargin;
+  
+  aiTargetY = predictedY - paddle2.h / 2 + randomOffset;
+  
+  // Mantener dentro de los límites
+  if (aiTargetY < 0) aiTargetY = 0;
+  if (aiTargetY > canvas.height - paddle2.h) {
+    aiTargetY = canvas.height - paddle2.h;
+  }
 }
 
 function loop(): void {
@@ -209,31 +309,101 @@ function loop(): void {
 }
 
 function update(): void {
-  // Paddles
-  if (keys['w'] && paddle1.y > 0) paddle1.y -= 5;
-  if (keys['s'] && paddle1.y < 500) paddle1.y += 5;
+  // Player 1 paddle (W/S keys)
+  paddle1.dy = 0;
+  if (keys['w'] && paddle1.y > 0) paddle1.dy = -PADDLE_SPEED;
+  if (keys['s'] && paddle1.y < canvas.height - paddle1.h) paddle1.dy = PADDLE_SPEED;
+  paddle1.y += paddle1.dy;
+  
+  // Clamp paddle1 position
+  if (paddle1.y < 0) paddle1.y = 0;
+  if (paddle1.y > canvas.height - paddle1.h) paddle1.y = canvas.height - paddle1.h;
 
+  // Player 2 / AI paddle
   if (isAI) {
-    const center = paddle2.y + 50;
-    if (center < ball.y - 10) paddle2.y += difficulty;
-    else if (center > ball.y + 10) paddle2.y -= difficulty;
-    paddle2.y = Math.max(0, Math.min(500, paddle2.y));
-  } else {
-    if (keys['ArrowUp'] && paddle2.y > 0) paddle2.y -= 5;
-    if (keys['ArrowDown'] && paddle2.y < 500) paddle2.y += 5;
+    // AI decision update - ONLY ONCE PER SECOND (requirement)
+    const now = Date.now();
+    if (now - aiLastUpdate >= 1000) {
+      aiLastUpdate = now;
+      updateAITarget();
+      
+      // Calculate AI decision based on prediction
+      const paddleCenter = paddle2.y + paddle2.h / 2;
+      const threshold = 10; // Small margin to avoid oscillation
+      
+      if (paddleCenter < aiTargetY - threshold) {
+        aiDecision = 'down';
+      } else if (paddleCenter > aiTargetY + threshold) {
+        aiDecision = 'up';
+      } else {
+        aiDecision = ''; // Centered, don't move
+      }
+    }
+    
+    // Simulate keyboard input (replicate human behavior - requirement)
+    keys['ArrowUp'] = aiDecision === 'up';
+    keys['ArrowDown'] = aiDecision === 'down';
+  }
+  
+  // Apply arrow key movement for paddle2 (both AI and human use same logic)
+  paddle2.dy = 0;
+  if (keys['ArrowUp'] && paddle2.y > 0) paddle2.dy = -PADDLE_SPEED;
+  if (keys['ArrowDown'] && paddle2.y < canvas.height - paddle2.h) paddle2.dy = PADDLE_SPEED;
+  paddle2.y += paddle2.dy;
+  
+  // Clamp paddle2 position
+  if (paddle2.y < 0) paddle2.y = 0;
+  if (paddle2.y > canvas.height - paddle2.h) paddle2.y = canvas.height - paddle2.h;
+
+  // Progressive ball speed increase
+  if (Math.abs(ball.dx) < MAX_BALL_SPEED) {
+    ball.dx += ball.dx > 0 ? SPEED_INCREMENT : -SPEED_INCREMENT;
   }
 
-  // Ball
+  // Ball movement
   ball.x += ball.dx;
   ball.y += ball.dy;
 
-  if (ball.y < 10 || ball.y > 590) ball.dy = -ball.dy;
-
-  if (ball.x < 20 && ball.y > paddle1.y && ball.y < paddle1.y + 100) {
-    ball.dx = Math.abs(ball.dx) * 1.05;
+  // Wall collision (top and bottom)
+  if (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) {
+    ball.dy = -ball.dy;
+    // Correct position to prevent ball from getting stuck
+    if (ball.y - ball.r < 0) ball.y = ball.r;
+    if (ball.y + ball.r > canvas.height) ball.y = canvas.height - ball.r;
   }
-  if (ball.x > 770 && ball.y > paddle2.y && ball.y < paddle2.y + 100) {
-    ball.dx = -Math.abs(ball.dx) * 1.05;
+
+  // Paddle collision detection with improved physics
+  // Left paddle (Player 1)
+  if (ball.x - ball.r < paddle1.x + paddle1.w + COLLISION_MARGIN &&
+      ball.x - ball.r > paddle1.x - COLLISION_MARGIN &&
+      ball.y > paddle1.y - COLLISION_MARGIN && 
+      ball.y < paddle1.y + paddle1.h + COLLISION_MARGIN) {
+    ball.dx = Math.abs(ball.dx); // Ensure ball goes right
+    
+    // Calculate impact position (0 to 1) for angle variation
+    const impactPosition = (ball.y - paddle1.y) / paddle1.h;
+    ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
+    
+    // Correct position to prevent ball from getting stuck
+    ball.x = paddle1.x + paddle1.w + ball.r;
+    
+    // Update AI target on paddle hit
+    if (isAI) updateAITarget();
+  }
+  
+  // Right paddle (Player 2 / AI)
+  if (ball.x + ball.r > paddle2.x - COLLISION_MARGIN &&
+      ball.x + ball.r < paddle2.x + paddle2.w + COLLISION_MARGIN &&
+      ball.y > paddle2.y - COLLISION_MARGIN && 
+      ball.y < paddle2.y + paddle2.h + COLLISION_MARGIN) {
+    ball.dx = -Math.abs(ball.dx); // Ensure ball goes left
+    
+    // Calculate impact position (0 to 1) for angle variation
+    const impactPosition = (ball.y - paddle2.y) / paddle2.h;
+    ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
+    
+    // Correct position to prevent ball from getting stuck
+    ball.x = paddle2.x - ball.r;
   }
 
   if (ball.x < 0) { score2++; checkWin(); resetBall(); }
@@ -307,11 +477,54 @@ function showWinner(winner: string): void {
   txt.textContent = `🎉 ${winner} Wins!`;
   txt.className = 'text-5xl font-bold text-yellow-300';
 
+  // Hide exit button when game ends
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+
   setTimeout(() => {
     el.classList.add('hidden');
     txt.className = 'text-9xl font-extrabold text-yellow-300';
     navigate('games');
   }, 3000);
+}
+
+/**
+ * Exit game without finishing
+ * Cancels the game session and stops the game loop
+ */
+export function exitGame(): void {
+  // Stop the game loop immediately
+  gameOn = false;
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+  
+  // Reset game state
+  Object.keys(keys).forEach(key => keys[key] = false);
+  
+  // Reset AI state
+  aiLastUpdate = 0;
+  aiDecision = '';
+  aiTargetY = 250;
+  
+  // Reset ball and paddles
+  ball.x = 400;
+  ball.y = 300;
+  ball.dx = INITIAL_BALL_SPEED;
+  ball.dy = INITIAL_BALL_SPEED;
+  paddle1.y = paddle2.y = 250;
+  paddle1.dy = paddle2.dy = 0;
+  score1 = score2 = 0;
+  
+  // Cancel the game session (player quit early)
+  cancelGameSession();
+  
+  // Hide exit button
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+  
+  // Navigate back to games page
+  navigate('games');
 }
 
 function showDifficulty(): void {
@@ -348,3 +561,4 @@ window.addEventListener('keyup', e => keys[e.key] = false);
 (window as any).showDifficulty = showDifficulty;
 (window as any).hideModal = hideModal;
 (window as any).confirmPlayerSetup = confirmPlayerSetup;
+(window as any).exitGame = exitGame;

@@ -16,8 +16,9 @@
 
 # 1️⃣ MAJOR MODULE: AI OPPONENT
 
-**Estado actual:** ❌ **NO CUMPLE** completamente  
+**Estado actual:** ✅ **CUMPLE COMPLETAMENTE**  
 **Archivo afectado:** [`frontend/src/pong.ts`](frontend/src/pong.ts)
+**Última actualización:** 2026-02-02
 
 ---
 
@@ -33,26 +34,43 @@ El módulo requiere incorporar un jugador de IA al juego con las siguientes cara
 - **Estado:** CUMPLIDO
 - El código usa seguimiento simple de posición, no A*
 
-### 3. ❌ La IA debe replicar comportamiento humano
+### 3. ✅ La IA debe replicar comportamiento humano
 **CRÍTICO:** La IA debe simular entrada de teclado, NO modificar directamente la posición del paddle.
 
-- **Estado:** ❌ **NO CUMPLIDO**
-- **Problema actual:** La IA modifica `paddle2.y` directamente
-- **Requerido:** La IA debe usar `keys['ArrowUp']` y `keys['ArrowDown']` como lo haría un humano
+- **Estado:** ✅ **CUMPLIDO** (2026-02-02)
+- **Implementación:** La IA ahora establece `keys['ArrowUp']` y `keys['ArrowDown']` en lugar de modificar `paddle2.y`
+- **Método:** El movimiento del paddle se aplica igual que para un jugador humano
 
-### 4. ❌ Restricción de actualización: 1 vez por segundo
+### 4. ✅ Restricción de actualización: 1 vez por segundo
 **CRÍTICO:** La IA solo puede refrescar su vista del juego una vez por segundo.
 
-- **Estado:** ❌ **NO CUMPLIDO**
-- **Problema actual:** La IA tiene acceso continuo a `ball.y` en cada frame (~60 FPS)
-- **Requerido:** La IA debe actualizar su decisión solo cada 1000ms
+- **Estado:** ✅ **CUMPLIDO** (2026-02-02)
+- **Implementación:** Se agregaron variables `aiLastUpdate` y `aiDecision` para guardar la última decisión
+- **Lógica:** La IA solo calcula una nueva decisión cada 1000ms, usando la anterior en los frames intermedios
+- **Variables:** `aiLastUpdate` (timestamp) y `aiDecision` ('up' | 'down' | '')
 
-### 5. ❌ Anticipación de rebotes
+### 5. ✅ Anticipación de rebotes
 **CRÍTICO:** La IA debe anticipar la trayectoria de la bola considerando rebotes.
 
-- **Estado:** ❌ **NO CUMPLIDO**
-- **Problema actual:** La IA simplemente persigue `ball.y` de forma reactiva
-- **Requerido:** Calcular dónde estará la bola después de rebotar en paredes superiores/inferiores
+- **Estado:** ✅ **CUMPLIDO** (2026-02-02)
+- **Implementación:** Función `predictBallPosition()` que calcula dónde estará la bola cuando llegue al paddle
+- **Lógica:** 
+  - Calcula el tiempo que tarda la bola en alcanzar x=780 (posición del paddle)
+  - Proyecta la posición Y futura considerando rebotes en paredes superior/inferior
+  - Simula rebotes hasta encontrar la posición final válida dentro de los límites del juego
+- **Uso:** La IA usa esta predicción en lugar de perseguir reactivamente `ball.y`
+
+---
+
+## 🎮 MEJORAS ADICIONALES (2026-02-02)
+
+### Exit Game Button
+**Problema:** No había forma de salir del juego sin terminar la partida; la bola seguía funcionando
+**Solución:** Implementado botón "Exit Game" que aparece durante la partida
+- **Función:** `exitGame()` - Cancela animationFrame, detiene el juego y navega a games
+- **UI:** Botón flotante en esquina inferior derecha
+- **Comportamiento:** Se muestra al iniciar juego, se oculta al terminar
+- **Archivo:** [`frontend/src/pong.ts`](frontend/src/pong.ts) y [`frontend/index.html`](frontend/index.html)
 
 ---
 
