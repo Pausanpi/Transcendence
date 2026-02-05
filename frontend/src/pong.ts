@@ -232,50 +232,63 @@ function update(): void {
     ball.dx += ball.dx > 0 ? SPEED_INCREMENT : -SPEED_INCREMENT;
   }
 
+  // Store previous position for collision detection
+  const prevX = ball.x;
+  const prevY = ball.y;
+
   // Ball movement
   ball.x += ball.dx;
   ball.y += ball.dy;
 
-  // Wall collision (top and bottom)
-  if (ball.y - ball.r < 0 || ball.y + ball.r > canvas.height) {
-    ball.dy = -ball.dy;
-    // Correct position to prevent ball from getting stuck
-    if (ball.y - ball.r < 0) ball.y = ball.r;
-    if (ball.y + ball.r > canvas.height) ball.y = canvas.height - ball.r;
+  // Wall collision (top and bottom) - check first to prevent sticking
+  if (ball.y - ball.r <= 0) {
+    ball.y = ball.r;
+    ball.dy = Math.abs(ball.dy); // Ensure ball goes down
+  } else if (ball.y + ball.r >= canvas.height) {
+    ball.y = canvas.height - ball.r;
+    ball.dy = -Math.abs(ball.dy); // Ensure ball goes up
   }
 
-  // Paddle collision detection with improved physics
-  // Left paddle (Player 1)
-  if (ball.x - ball.r < paddle1.x + paddle1.w + COLLISION_MARGIN &&
-      ball.x - ball.r > paddle1.x - COLLISION_MARGIN &&
-      ball.y > paddle1.y - COLLISION_MARGIN && 
-      ball.y < paddle1.y + paddle1.h + COLLISION_MARGIN) {
-    ball.dx = Math.abs(ball.dx); // Ensure ball goes right
+  // Paddle collision detection with continuous collision detection
+  // Left paddle (Player 1) - check if ball is moving left and crossing paddle
+  const leftPaddleRight = paddle1.x + paddle1.w;
+  if (ball.dx < 0 && // Ball moving left
+      ball.x - ball.r <= leftPaddleRight && // Ball reached paddle
+      prevX - ball.r > leftPaddleRight && // Ball was past paddle in previous frame
+      ball.y + ball.r > paddle1.y && // Ball within paddle height
+      ball.y - ball.r < paddle1.y + paddle1.h) {
+    
+    // Collision detected - reflect ball
+    ball.dx = Math.abs(ball.dx);
     
     // Calculate impact position (0 to 1) for angle variation
     const impactPosition = (ball.y - paddle1.y) / paddle1.h;
     ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
     
-    // Correct position to prevent ball from getting stuck
-    ball.x = paddle1.x + paddle1.w + ball.r;
+    // Position ball exactly at paddle edge to prevent penetration
+    ball.x = leftPaddleRight + ball.r;
     
     // Update AI target on paddle hit
     if (isAI) updateAITarget();
   }
   
-  // Right paddle (Player 2 / AI)
-  if (ball.x + ball.r > paddle2.x - COLLISION_MARGIN &&
-      ball.x + ball.r < paddle2.x + paddle2.w + COLLISION_MARGIN &&
-      ball.y > paddle2.y - COLLISION_MARGIN && 
-      ball.y < paddle2.y + paddle2.h + COLLISION_MARGIN) {
-    ball.dx = -Math.abs(ball.dx); // Ensure ball goes left
+  // Right paddle (Player 2 / AI) - check if ball is moving right and crossing paddle
+  const rightPaddleLeft = paddle2.x;
+  if (ball.dx > 0 && // Ball moving right
+      ball.x + ball.r >= rightPaddleLeft && // Ball reached paddle
+      prevX + ball.r < rightPaddleLeft && // Ball was before paddle in previous frame
+      ball.y + ball.r > paddle2.y && // Ball within paddle height
+      ball.y - ball.r < paddle2.y + paddle2.h) {
+    
+    // Collision detected - reflect ball
+    ball.dx = -Math.abs(ball.dx);
     
     // Calculate impact position (0 to 1) for angle variation
     const impactPosition = (ball.y - paddle2.y) / paddle2.h;
     ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
     
-    // Correct position to prevent ball from getting stuck
-    ball.x = paddle2.x - ball.r;
+    // Position ball exactly at paddle edge to prevent penetration
+    ball.x = rightPaddleLeft - ball.r;
   }
 
   if (ball.x < 0) { score2++; checkWin(); resetBall(); }
