@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { loadAvatar } from '../imageUtils.js';
 export function renderPlayers() {
     setTimeout(loadPlayers, 100);
     return `
@@ -21,7 +22,7 @@ export function renderPlayers() {
 
       <!-- Player Profile Modal -->
       <div id="playerModal" class="modal hidden">
-        <div class="modal-content card max-w-lg">
+        <div class="modal-content card max-w-3xl max-h-[90vh] overflow-y-auto">
           <div id="playerModalContent"></div>
           <div class="flex gap-4 mt-6">
             <button id="addFriendBtn" class="btn btn-green flex-1" data-i18n="players.addFriend">
@@ -43,7 +44,23 @@ async function loadPlayers(search = '') {
     try {
         const response = await api(`/api/database/players?search=${encodeURIComponent(search)}&limit=50`);
         if (response.success && response.users.length > 0) {
+            // Render immediately with default avatars for speed
             container.innerHTML = response.users.map(player => renderPlayerCard(player)).join('');
+            window.languageManager?.applyTranslations();
+            // Load avatars progressively in background
+            response.users.forEach(async (player, index) => {
+                try {
+                    const avatarUrl = await loadAvatar(player.avatar);
+                    const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
+                    if (imgElement && avatarUrl) {
+                        imgElement.src = avatarUrl;
+                    }
+                }
+                catch (error) {
+                    console.error(`Failed to load avatar for player ${player.id}:`, error);
+                    // Avatar will remain as default
+                }
+            });
         }
         else {
             container.innerHTML = `
@@ -51,53 +68,57 @@ async function loadPlayers(search = '') {
           <p data-i18n="players.noPlayersFound">No players found</p>
         </div>
       `;
+            window.languageManager?.applyTranslations();
         }
-        window.languageManager?.applyTranslations();
     }
     catch (error) {
         console.error('Error loading players:', error);
+        // Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
+        let isAuthError = false;
+        if (error && error.message === 'auth.authenticationRequired') {
+            isAuthError = true;
+        }
+        let message = isAuthError
+            ? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
+            : '<p data-i18n="players.loadError">Failed to load players</p>';
         container.innerHTML = `
-      <div class="card col-span-2 text-center text-red-400">
-        <p data-i18n="players.loadError">Failed to load players</p>
-      </div>
-    `;
+			<div class="card col-span-2 text-center text-red-400">
+				${message}
+			</div>
+		`;
+        window.languageManager?.applyTranslations();
+        // Reminder: Ensure 'players.loadError' and 'players.authRequired' are present in all i18n dictionaries.
     }
 }
 function renderPlayerCard(player) {
-    const winRate = player.games_played > 0
-        ? Math.round((player.wins / player.games_played) * 100)
-        : 0;
     const statusColor = player.online_status === 'online' ? 'text-green-400' : 'text-gray-400';
     const statusDot = player.online_status === 'online' ? 'bg-green-400' : 'bg-gray-400';
     return `
-    <div class="card hover:border-yellow-400 cursor-pointer transition-all"
-         onclick="viewPlayer('${player.id}')">
-      <div class="flex items-center gap-4">
-        <div class="relative">
-          <img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
-               src="${player.avatar || '/avatars/default-avatar.png'}"
-               alt="${player.username}"
-               onerror="this.src='/avatars/default-avatar.png'" />
-          <span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
-          <p class="text-sm text-gray-400">@${player.username}</p>
-          <div class="flex gap-4 mt-1 text-sm">
-            <span class="text-green-400">W: ${player.wins}</span>
-            <span class="text-red-400">L: ${player.losses}</span>
-            <span class="text-blue-400">${winRate}%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}"
+				 onclick="viewPlayer('${player.id}')">
+			<div class="flex items-center gap-4">
+				<div class="relative">
+					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+							 src="/default-avatar.png"
+							 alt="${player.username}"
+							 onerror="this.src='/default-avatar.png'" />
+					<span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
+				</div>
+				<div class="flex-1">
+					<h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
+					<p class="text-sm text-gray-400">@${player.username}</p>
+					<p class="text-xs ${statusColor} mt-1">● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span></p>
+				</div>
+			</div>
+		</div>
+	`;
 }
 async function viewPlayer(playerId) {
     const modal = document.getElementById('playerModal');
     const content = document.getElementById('playerModalContent');
     if (!modal || !content)
         return;
+    // Show loading state
     content.innerHTML = `
     <div class="animate-pulse">
       <div class="h-32 bg-gray-700 rounded mb-4"></div>
@@ -110,55 +131,124 @@ async function viewPlayer(playerId) {
         const response = await api(`/api/database/players/${playerId}`);
         if (response.success && response.user) {
             const player = response.user;
-            const winRate = player.games_played > 0
-                ? Math.round((player.wins / player.games_played) * 100)
-                : 0;
+            const avatarUrl = await loadAvatar(player.avatar);
             content.innerHTML = `
-        <div class="text-center mb-6">
-          <img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
-               src="${player.avatar || '/avatars/default-avatar.png'}"
-               alt="${player.username}"
-               onerror="this.src='/avatars/default-avatar.png'" />
-          <h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
-          <p class="text-gray-400">@${player.username}</p>
-          <p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
-            ● ${player.online_status || 'offline'}
-          </p>
-        </div>
+				<!-- Player Header -->
+				<div class="text-center mb-6">
+					<img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
+							 src="${avatarUrl}"
+							 alt="${player.username}"
+							 onerror="this.src='/default-avatar.png'" />
+					<h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
+					<p class="text-gray-400">@${player.username}</p>
+					<p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
+						● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span>
+					</p>
+				</div>
 
-        <div class="grid grid-cols-4 gap-3">
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-yellow-400">${player.games_played || 0}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-green-400">${player.wins || 0}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-red-400">${player.losses || 0}</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
-          </div>
-          <div class="bg-gray-800 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-blue-400">${winRate}%</p>
-            <p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
-          </div>
-        </div>
-      `;
+				<!-- Stats Grid -->
+				<div class="grid grid-cols-4 gap-3 mb-6">
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-green-400">${player.stats.wins}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-red-400">${player.stats.losses}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+				</div>
+
+				<!-- Match History -->
+				<div class="mt-6">
+					<h4 class="text-lg font-bold text-cyan-400 mb-3" data-i18n="profile.matchHistory">📜 Match History</h4>
+					${renderMatchHistory(player.match_history)}
+				</div>
+			`;
             // Store player ID for add friend button
             const addFriendBtn = document.getElementById('addFriendBtn');
             if (addFriendBtn) {
                 addFriendBtn.setAttribute('data-player-id', playerId);
                 addFriendBtn.onclick = () => addFriend(playerId);
+                // Set i18n attribute and default text for Add Friend button
+                addFriendBtn.setAttribute('data-i18n', 'players.addFriend');
+                addFriendBtn.innerHTML = '➕ Add Friend';
             }
             window.languageManager?.applyTranslations();
         }
     }
     catch (error) {
-        content.innerHTML = `
-      <p class="text-red-400 text-center" data-i18n="players.loadError">Failed to load player profile</p>
-    `;
+        console.error('Error loading player profile:', error);
+        let isAuthError = false;
+        if (error && error.message === 'auth.authenticationRequired') {
+            isAuthError = true;
+        }
+        let message = isAuthError
+            ? '<p class="text-red-400 text-center" data-i18n="players.authRequired">Authentication required</p>'
+            : '<p class="text-red-400 text-center" data-i18n="players.loadError">Failed to load player profile</p>';
+        content.innerHTML = message;
+        window.languageManager?.applyTranslations();
     }
+}
+function renderMatchHistory(matches) {
+    if (matches.length === 0) {
+        return `
+			<div class="bg-gray-800 rounded-lg p-4 text-center text-gray-400">
+				<p data-i18n="profile.noMatchHistory">No matches played yet</p>
+			</div>
+		`;
+    }
+    return `
+		<div class="space-y-2 max-h-96 overflow-y-auto">
+			${matches.map(match => {
+        const resultColor = match.won ? 'bg-green-900/30 border-green-600' : 'bg-red-900/30 border-red-600';
+        const resultIcon = match.won ? '🏆' : '💔';
+        const resultKey = match.won ? 'players.victory' : 'players.defeat';
+        const resultDefault = match.won ? 'Victory' : 'Defeat';
+        const date = new Date(match.playedAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        return `
+					<div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
+						<div class="flex items-center justify-between">
+							<div class="flex-1">
+								<div class="flex items-center gap-2 mb-1">
+									<span class="text-lg">${resultIcon}</span>
+									<span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+									${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
+								</div>
+								<div class="text-sm text-gray-400">
+									<span data-i18n="players.vs">vs</span> <span>${match.opponent.name ? match.opponent.name : '<span data-i18n="players.unknown">Unknown</span>'}</span>
+									<span class="mx-2">•</span>
+									<span>${date}</span>
+								</div>
+							</div>
+							<div class="text-right">
+								<div class="text-2xl font-bold ${match.won ? 'text-green-400' : 'text-red-400'}">
+									${match.playerScore} - ${match.opponentScore}
+								</div>
+								${match.duration ? `<div class="text-xs text-gray-500">${formatDuration(match.duration)}</div>` : ''}
+							</div>
+						</div>
+					</div>
+				`;
+    }).join('')}
+		</div>
+	`;
+}
+function formatDuration(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}m ${secs}s`;
 }
 function closePlayerModal() {
     const modal = document.getElementById('playerModal');
@@ -170,7 +260,9 @@ async function addFriend(playerId) {
     const btn = document.getElementById('addFriendBtn');
     if (btn) {
         btn.setAttribute('disabled', 'true');
+        btn.setAttribute('data-i18n', 'players.sendingRequest');
         btn.innerHTML = '⏳ Sending...';
+        window.languageManager?.applyTranslations();
     }
     try {
         // First check if already friends or request pending
@@ -179,14 +271,18 @@ async function addFriend(playerId) {
             if (btn) {
                 btn.removeAttribute('disabled');
                 if (checkResponse.status === 'pending') {
+                    btn.setAttribute('data-i18n', 'players.requestPending');
                     btn.innerHTML = '⏳ Request Pending';
                     btn.classList.remove('btn-green');
                     btn.classList.add('btn-gray');
+                    window.languageManager?.applyTranslations();
                 }
                 else if (checkResponse.status === 'accepted') {
+                    btn.setAttribute('data-i18n', 'players.alreadyFriends');
                     btn.innerHTML = '✓ Already Friends';
                     btn.classList.remove('btn-green');
                     btn.classList.add('btn-gray');
+                    window.languageManager?.applyTranslations();
                 }
             }
             return;
@@ -198,16 +294,20 @@ async function addFriend(playerId) {
         });
         if (response.success) {
             if (btn) {
+                btn.setAttribute('data-i18n', 'players.requestSent');
                 btn.innerHTML = '✓ Request Sent!';
                 btn.classList.remove('btn-green');
                 btn.classList.add('btn-gray');
+                window.languageManager?.applyTranslations();
             }
             showToast('Friend request sent!', 'success');
         }
         else {
             if (btn) {
                 btn.removeAttribute('disabled');
+                btn.setAttribute('data-i18n', 'players.addFriend');
                 btn.innerHTML = '➕ Add Friend';
+                window.languageManager?.applyTranslations();
             }
             showToast(response.error || 'Failed to send request', 'error');
         }
@@ -216,15 +316,33 @@ async function addFriend(playerId) {
         console.error('Error adding friend:', error);
         if (btn) {
             btn.removeAttribute('disabled');
+            btn.setAttribute('data-i18n', 'players.addFriend');
             btn.innerHTML = '➕ Add Friend';
+            window.languageManager?.applyTranslations();
         }
         showToast('Failed to send friend request', 'error');
     }
 }
 function showToast(message, type) {
+    // Use i18n for known messages if possible
+    let translated = message;
+    if (window.languageManager?.t) {
+        if (message === 'Friend request sent!') {
+            const t = window.languageManager.t('players.friendRequestSent');
+            translated = t !== null ? t : message;
+        }
+        if (message === 'Failed to send request') {
+            const t = window.languageManager.t('players.failedToSendRequest');
+            translated = t !== null ? t : message;
+        }
+        if (message === 'Failed to send friend request') {
+            const t = window.languageManager.t('players.failedToSendFriendRequest');
+            translated = t !== null ? t : message;
+        }
+    }
     const toast = document.createElement('div');
     toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`;
-    toast.textContent = message;
+    toast.textContent = translated;
     document.body.appendChild(toast);
     setTimeout(() => {
         toast.remove();

@@ -32,20 +32,6 @@ status:
 	@docker volume ls
 	@docker network ls
 
-health:
-	@echo "\n --- GATEWAY ---\n"
-	curl http://localhost:3000/health
-	@echo "\n --- AUTH ---\n"
-	curl http://localhost:3001/health
-	@echo "\n --- I18N ---\n"
-	curl http://localhost:3002/health
-	@echo "\n --- DATABASE ---\n"
-	curl http://localhost:3003/health
-	@echo "\n --- USERS ---\n"
-	curl http://localhost:3004/health
-	@echo "\n --- OTHERS ---\n"
-	curl -k https://localhost:8443/health
-
 tails:
 	@echo "\n --- GATEWAY ---\n"
 	docker logs gateway | tail -n 20
@@ -61,4 +47,4 @@ tails:
 tsc:
 	gnome-terminal -- bash -c "cd frontend && npx tsc --watch; exec bash"
 
-.PHONY: all build up down fclean re logs ps clean destroy health tails tsc
+.PHONY: all build up down fclean re logs ps clean destroy tails tsc

@@ -1,20 +1,11 @@
-
 import { fileURLToPath } from 'url';
 import createFastifyApp from '../shared/fastify-config.js';
 import fastifyMultipart from '@fastify/multipart';
-
-import fastifyStatic from '@fastify/static';
 import gatewayRoutes from './routes/gateway.js';
 import jwt from 'jsonwebtoken';
-
 import path from 'path';
-import VaultService from '../auth/services/vault.js';
 import fs from 'fs/promises';
-
-
-
-const avatarsDir = '../frontend/avatars';
-await fs.mkdir(avatarsDir, { recursive: true });
+import axios from 'axios';
 
 const gatewayUpstream = 'http://gateway:3000';
 const authUpstream = 'http://auth:3001';
@@ -25,36 +16,44 @@ const usersUpstream = 'http://users:3004';
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const serviceToken = await VaultService.getSecret('service-token/config').then(s => s?.token);
+// Fetch secrets from the auth service's vault endpoints directly
+const serviceTokenRes = await fetch(`${authUpstream}/vault/secret/service-token`);
+if (!serviceTokenRes.ok) throw new Error('Service secret not found in Vault');
+const { token: serviceToken } = await serviceTokenRes.json();
 if (!serviceToken) {
 	throw new Error('Service secret not found in Vault');
 }
-const jwtSecret = await VaultService.getJWTSecret();
+
+const jwtSecretRes = await fetch(`${authUpstream}/vault/secret/jwt`);
+if (!jwtSecretRes.ok) throw new Error('JWT secret not found in Vault');
+const { secret: jwtSecret } = await jwtSecretRes.json();
 if (!jwtSecret) {
 	throw new Error('JWT secret not found in Vault');
 }
-async function startGateway() {
 
+async function startGateway() {
 	const fastify = await createFastifyApp({
 		serviceName: 'api-gateway',
 		enableSessions: true,
 		corsOrigin: true,
-		getSessionSecret: () => VaultService.getSessionSecret()
+		getSessionSecret: async () => {
+			const sessionSecretRes = await fetch(`${authUpstream}/vault/secret/session`);
+			if (!sessionSecretRes.ok) throw new Error('Session secret not found in Vault');
+			const { secret } = await sessionSecretRes.json();
+			return secret;
+		}
 	});
 
-  await fastify.register(fastifyMultipart, {
-    limits: {
-      fileSize: 2 * 1024 * 1024,
-      files: 1
-    }
-  });
+	await fastify.register(fastifyMultipart, {
+		limits: {
+			fileSize: 2 * 1024 * 1024,
+			files: 1
+		}
+	});
 
 	await fastify.register(gatewayRoutes, { prefix: '/gateway' });
-	await fastify.register(fastifyStatic, {
-		root: path.join(__dirname, '../frontend'),
-		prefix: '/'
-	});
 
+	// Authentication hook
 	fastify.addHook('onRequest', async (request, reply) => {
 		if (!request.url.startsWith('/api/')) return;
 
@@ -68,8 +67,7 @@ async function startGateway() {
 			'/api/database/health',
 			'/api/gateway/health',
 			'/api/i18n/',
-			'/api/users/health',
-			'/api/database/players'
+			'/api/users/health'
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -91,31 +89,166 @@ async function startGateway() {
 		}
 
 		try {
-			request.user = jwt.verify(token, jwtSecret, {
-				issuer: 'auth-service',
-				audience: 'user'
+			const response = await fetch('http://auth:3001/auth/jwt/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token })
 			});
+			const result = await response.json();
+
+			if (!result.success || !result.decoded?.id) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.invalidToken'
+				});
+			}
+			request.user = result.decoded;
 		} catch (err) {
-			fastify.log.error('JWT verification failed:', err.message);
-			return reply.status(401).send({
+			fastify.log.error('JWT verification via auth service failed:', err.message);
+			return reply.status(502).send({
 				success: false,
-				error: 'auth.invalidToken'
+				error: 'auth.verificationFailed'
 			});
 		}
 	});
 
-	async function proxyAPI(request, reply, upstreamBase, keepPrefix = false) {
+	// Special route for avatar upload - MUST come before generic proxy
+	fastify.post('/api/database/avatar/upload', async (request, reply) => {
+		console.log('🔵 Gateway: Avatar upload route hit');
+		console.log('🔵 Gateway: Content-Type:', request.headers['content-type']);
+		console.log('🔵 Gateway: User:', request.user?.id);
+		
 		try {
-			let url = request.url;
-			if (keepPrefix) {
-				url = url.replace(/^\/api/, '');
-			} else {
-				url = url.replace(/^\/api\/[^/]+/, '');
+			// User is already authenticated by onRequest hook
+			if (!request.user) {
+				console.log('❌ Gateway: No user found');
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.authenticationRequired'
+				});
 			}
+
+			console.log('🔵 Gateway: Attempting to read file...');
+			
+			// Get the file from the multipart request
+			const data = await request.file();
+			
+			console.log('🔵 Gateway: File data:', data ? {
+				filename: data.filename,
+				mimetype: data.mimetype,
+				encoding: data.encoding,
+			} : 'NULL');
+
+			if (!data) {
+				console.log('❌ Gateway: No file data received');
+				return reply.status(400).send({
+					success: false,
+					error: 'No file uploaded at gateway'
+				});
+			}
+
+			// Validate file type
+			if (data.mimetype !== 'image/jpeg' && data.mimetype !== 'image/jpg') {
+				console.log('❌ Gateway: Invalid mimetype:', data.mimetype);
+				return reply.status(400).send({
+					success: false,
+					error: 'Only JPG/JPEG files are allowed'
+				});
+			}
+
+			console.log('🔵 Gateway: Converting to buffer...');
+			const buffer = await data.toBuffer();
+			console.log('🔵 Gateway: Buffer size:', buffer.length, 'bytes');
+
+			// Create FormData to forward to database service
+			console.log('🔵 Gateway: Creating FormData...');
+			const FormData = (await import('form-data')).default;
+			const form = new FormData();
+
+			form.append('avatar', buffer, {
+				filename: data.filename,
+				contentType: data.mimetype
+			});
+
+			const formHeaders = form.getHeaders();
+			console.log('🔵 Gateway: FormData headers:', formHeaders);
+
+			// Forward to database service with proper headers using axios
+			console.log('🔵 Gateway: Forwarding to database service with axios...');
+			const response = await axios.post('http://database:3003/database/avatar/upload', form, {
+				headers: {
+					'x-service-token': serviceToken,
+					'x-user-id': request.user.id,
+					...formHeaders
+				},
+				validateStatus: () => true // Accept all status codes
+			});
+
+			console.log('🔵 Gateway: Database response status:', response.status);
+			const result = response.data;
+			console.log('🔵 Gateway: Database response:', result);
+			
+			return reply.status(response.status).send(result);
+
+		} catch (error) {
+			console.error('❌ Gateway: Avatar upload error:', error);
+			fastify.log.error('Avatar upload error:', error);
+			return reply.status(500).send({
+				success: false,
+				error: 'Failed to upload avatar: ' + error.message
+			});
+		}
+	});
+
+	// Special route for avatar retrieval - preserves binary data and content-type
+	fastify.get('/api/database/avatar/:userId', async (request, reply) => {
+		try {
+			// User is already authenticated by onRequest hook
+			if (!request.user) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.authenticationRequired'
+				});
+			}
+
+			const { userId } = request.params;
+			
+			// Forward request to database service with axios
+			const response = await axios.get(`http://database:3003/database/avatar/${userId}`, {
+				headers: {
+					'x-service-token': serviceToken,
+					'x-user-id': request.user.id
+				},
+				responseType: 'arraybuffer', // Get binary data
+				validateStatus: () => true // Accept all status codes
+			});
+
+			// Forward the response with proper content-type
+			reply.code(response.status);
+			if (response.headers['content-type']) {
+				reply.type(response.headers['content-type']);
+			}
+			return reply.send(Buffer.from(response.data));
+
+		} catch (error) {
+			fastify.log.error('Avatar retrieval error:', error);
+			return reply.status(500).send({
+				success: false,
+				error: 'Failed to retrieve avatar'
+			});
+		}
+	});
+
+	// Generic proxy function for non-multipart requests
+	async function proxyAPI(request, reply, upstreamBase) {
+		try {
+			let url = request.url.replace(/^\/api/, '');
 			const target = `${upstreamBase}${url}`;
 			const headers = { 'x-service-token': serviceToken };
-			if (request.headers['content-type']) {
-				headers['content-type'] = request.headers['content-type'];
+
+			const contentType = request.headers['content-type'];
+			if (contentType) {
+				headers['content-type'] = contentType;
 			}
 
 			const authHeader = request.headers.authorization;
@@ -126,10 +259,7 @@ async function startGateway() {
 			}
 
 			let body;
-			if (
-				!['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
-				request.body !== undefined
-			) {
+			if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method) && request.body !== undefined) {
 				body = typeof request.body === 'string'
 					? request.body
 					: JSON.stringify(request.body);
@@ -170,38 +300,39 @@ async function startGateway() {
 		}
 	}
 
+	// Generic service router
 	fastify.route({
 		method: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		url: '/api/:service/*',
 		handler: async (request, reply) => {
 			const service = request.params.service;
 			if (service === 'auth') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'oauth') {
-				return proxyAPI(request, reply, authUpstream, false);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === '2fa') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'gdpr') {
-				return proxyAPI(request, reply, authUpstream, true);
+				return proxyAPI(request, reply, authUpstream);
 			}
 			if (service === 'i18n') {
-				return proxyAPI(request, reply, i18nUpstream, true);
+				return proxyAPI(request, reply, i18nUpstream);
 			}
 			if (service === 'database') {
-				return proxyAPI(request, reply, databaseUpstream, false);
+				return proxyAPI(request, reply, databaseUpstream);
 			}
 			if (service === 'users') {
-				return proxyAPI(request, reply, usersUpstream, true);
+				return proxyAPI(request, reply, usersUpstream);
 			}
 			if (service === 'gateway') {
-				return proxyAPI(request, reply, gatewayUpstream, true);
+				return proxyAPI(request, reply, gatewayUpstream);
 			}
-if (service === 'friends') {
-    return proxyAPI(request, reply, databaseUpstream, true);
-}
+			if (service === 'friends') {
+				return proxyAPI(request, reply, databaseUpstream);
+			}
 			return reply.status(404).send({
 				success: false,
 				error: 'common.notFound'

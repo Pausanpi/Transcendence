@@ -44,9 +44,9 @@ class Database {
                 consent_updated_at DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                wins INTEGER DEFAULT 0,
-                losses INTEGER DEFAULT 0,
-                games_played INTEGER DEFAULT 0,
+				-- wins INTEGER DEFAULT 0,
+				-- losses INTEGER DEFAULT 0,
+				-- games_played INTEGER DEFAULT 0,
                 online_status TEXT DEFAULT 'offline',
                 last_seen DATETIME,
                 UNIQUE(oauth_provider, oauth_id)
@@ -122,25 +122,26 @@ class Database {
         `;
 
 		const matchesTable = `
-            CREATE TABLE IF NOT EXISTS matches (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                player1_id TEXT,
-                player1_name TEXT NOT NULL,
-                player2_id TEXT,
-                player2_name TEXT NOT NULL,
-                player1_score INTEGER NOT NULL,
-                player2_score INTEGER NOT NULL,
-                winner_id TEXT,
-                winner_name TEXT NOT NULL,
-                game_type TEXT DEFAULT 'pong',
-                tournament_id INTEGER,
-                match_duration INTEGER,
-                played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE SET NULL,
-                FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,
-                FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL
-            )
-        `;
+			CREATE TABLE IF NOT EXISTS matches (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				player1_id TEXT,
+                player1_name TEXT,
+				player2_id TEXT,
+                player2_name TEXT,
+				player1_score INTEGER NOT NULL,
+				player2_score INTEGER NOT NULL,
+				winner_id TEXT,
+                winner_name TEXT,
+				game_type TEXT DEFAULT 'pong',
+				tournament_id INTEGER DEFAULT NULL,
+				match_duration INTEGER,
+				played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE SET NULL,
+				FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE SET NULL,
+				FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL,
+				FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL
+    )
+`;
 
 		this.run(usersTable).catch(err => {
 			console.error('Error creating users table:', err);
@@ -170,21 +171,21 @@ class Database {
 			console.error('Error creating matches table:', err);
 		});
 
-		// Add new columns to existing users table (for existing databases)
-		const newUserColumns = [
-			'ALTER TABLE users ADD COLUMN display_name TEXT',
-			'ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN games_played INTEGER DEFAULT 0',
-			'ALTER TABLE users ADD COLUMN online_status TEXT DEFAULT \'offline\'',
-			'ALTER TABLE users ADD COLUMN last_seen DATETIME'
-		];
+		// // Add new columns to existing users table (for existing databases)
+		// const newUserColumns = [
+		// 	'ALTER TABLE users ADD COLUMN display_name TEXT',
+		// 	'ALTER TABLE users ADD COLUMN wins INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN losses INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN games_played INTEGER DEFAULT 0',
+		// 	'ALTER TABLE users ADD COLUMN online_status TEXT DEFAULT \'offline\'',
+		// 	'ALTER TABLE users ADD COLUMN last_seen DATETIME'
+		// ];
 
-		newUserColumns.forEach(sql => {
-			this.run(sql).catch(() => {
-				// Column already exists, ignore error
-			});
-		});
+		// newUserColumns.forEach(sql => {
+		// 	this.run(sql).catch(() => {
+		// 		// Column already exists, ignore error
+		// 	});
+		// });
 	}
 
 	run(sql, params = []) {

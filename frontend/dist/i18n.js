@@ -22,19 +22,27 @@ export class LanguageManager {
             const target = e.target;
             if (target instanceof HTMLSelectElement &&
                 target.id === 'languageSelect') {
-                this.changeLanguage(target.value);
+                const lang = target.value;
+                if (lang === 'en' || lang === 'es' || lang === 'ja') {
+                    this.changeLanguage(lang);
+                }
             }
         });
     }
     async loadCurrentLanguage() {
         try {
             const savedLang = localStorage.getItem('preferredLanguage');
-            if (savedLang === 'en' || savedLang === 'es') {
+            if (savedLang === 'en' || savedLang === 'es' || savedLang === 'ja') {
                 this.currentLanguage = savedLang;
             }
             else {
                 const browserLang = navigator.language.split('-')[0];
-                this.currentLanguage = browserLang === 'es' ? 'es' : 'en';
+                if (browserLang === 'es' || browserLang === 'ja') {
+                    this.currentLanguage = browserLang;
+                }
+                else {
+                    this.currentLanguage = 'en';
+                }
                 localStorage.setItem('preferredLanguage', this.currentLanguage);
             }
             await this.syncWithServer();
@@ -68,7 +76,7 @@ export class LanguageManager {
     }
     async loadTranslations() {
         try {
-            const result = await api(`/api/i18n/translations?t=${Date.now()}`, {
+            const result = await api(`/api/i18n/translations?language=${this.currentLanguage}&t=${Date.now()}`, {
                 credentials: 'include'
             });
             if (result?.success) {
@@ -103,7 +111,8 @@ export class LanguageManager {
             if (!key)
                 return;
             const value = this.getTranslation(key);
-            if (typeof value === 'string') {
+            // Only update if translation exists (not null)
+            if (value !== null && typeof value === 'string') {
                 if (element instanceof HTMLInputElement &&
                     (element.type === 'submit' || element.type === 'button')) {
                     element.value = value;
@@ -112,6 +121,7 @@ export class LanguageManager {
                     element.textContent = value;
                 }
             }
+            // Otherwise, keep the original HTML content (fallback)
         });
         document
             .querySelectorAll('[data-i18n-placeholder]')
@@ -120,7 +130,7 @@ export class LanguageManager {
             if (!key)
                 return;
             const value = this.getTranslation(key);
-            if (typeof value === 'string') {
+            if (value !== null && typeof value === 'string') {
                 element.placeholder = value;
             }
         });
@@ -135,19 +145,20 @@ export class LanguageManager {
             if (typeof current !== 'object' ||
                 current === null ||
                 !(part in current)) {
-                return parts[parts.length - 1];
+                return null; // Translation not found
             }
             current = current[part];
         }
-        return typeof current === 'string'
-            ? current
-            : parts[parts.length - 1];
+        return typeof current === 'string' ? current : null;
     }
     t(key) {
         return this.getTranslation(key);
     }
     async changeLanguage(lang) {
         try {
+            if (lang !== 'en' && lang !== 'es' && lang !== 'ja') {
+                throw new Error('Unsupported language');
+            }
             this.currentLanguage = lang;
             localStorage.setItem('preferredLanguage', lang);
             const response = await api('/api/i18n/change-language', {
