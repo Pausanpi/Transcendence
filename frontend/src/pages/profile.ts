@@ -362,9 +362,10 @@ async function deleteAvatar(): Promise<void> {
 
 		const userId = profileResponse.user.id;
 
-		// Call DELETE endpoint
+		// Call DELETE endpoint with empty JSON body
 		const data = await api<any>(`/api/database/avatar/${userId}`, {
-			method: 'DELETE'
+			method: 'DELETE',
+			body: JSON.stringify({})
 		});
 
 		if (!data.success) {

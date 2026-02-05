@@ -39,6 +39,7 @@ export function renderProfile() {
         </div>
 
         <button onclick="uploadAvatar()" class="btn btn-blue mt-4">Upload Avatar</button>
+        <button onclick="deleteAvatar()" class="btn btn-red mt-4" data-i18n="profile.deleteAvatar">🗑️ Remove Avatar</button>
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
 
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
@@ -314,7 +315,42 @@ async function deleteAcc() {
         }
     }
 }
+async function deleteAvatar() {
+    if (!confirm('Are you sure you want to remove your avatar?'))
+        return;
+    try {
+        const token = getToken();
+        if (!token) {
+            showProfileMessage('Please login first', 'error');
+            return;
+        }
+        // Get current user ID from profile data
+        const profileResponse = await api('/api/auth/profile-data');
+        if (!profileResponse.success || !profileResponse.user) {
+            throw new Error('Failed to get user ID');
+        }
+        const userId = profileResponse.user.id;
+        // Call DELETE endpoint with empty JSON body
+        const data = await api(`/api/database/avatar/${userId}`, {
+            method: 'DELETE',
+            body: JSON.stringify({})
+        });
+        if (!data.success) {
+            throw new Error(data.error || 'Delete failed');
+        }
+        showProfileMessage(data.message || 'Avatar removed successfully', 'success');
+        // Reload profile to show default avatar
+        setTimeout(() => {
+            loadProfile();
+        }, 500);
+    }
+    catch (error) {
+        console.error('Delete avatar error:', error);
+        showProfileMessage(error.message || 'Failed to remove avatar', 'error');
+    }
+}
 window.updateProfile = updateProfile;
 window.anonymize = anonymize;
 window.deleteAcc = deleteAcc;
 window.uploadAvatar = uploadAvatar;
+window.deleteAvatar = deleteAvatar;
