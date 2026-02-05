@@ -65,6 +65,7 @@ services:
     networks: [transcendence-net]
     volumes:
       - ./data:/app/data
+      - media-data:/app/media
       - ./database:/app/database
       - ./shared:/app/shared
     healthcheck: *database-healthcheck
@@ -203,6 +204,8 @@ services:
 volumes:
   logs-data:
     name: logs-data
+  media-data:          # NEW - for avatars
+    name: media-data
   grafana-data:
     name: grafana-data
   prometheus-data:

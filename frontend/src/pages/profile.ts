@@ -2,12 +2,13 @@ import { api, getToken } from '../api.js';
 import { TwoFAManager } from '../twofa.js';
 import { navigate } from '../router.js';
 import { removeAuthToken } from '../api.js';
+import { loadAvatar } from '../imageUtils.js';
 
 export function renderProfile(): string {
-  const token = getToken();
+	const token = getToken();
 
-  if (!token) {
-    return `
+	if (!token) {
+		return `
       <div class="max-w-2xl mx-auto space-y-6">
         <div class="card text-center">
           <div class="text-6xl mb-6">🔒</div>
@@ -17,14 +18,11 @@ export function renderProfile(): string {
         </div>
       </div>
     `;
-  }
+	}
 
-  setTimeout(initTwoFA, 100);
-  setTimeout(loadProfile, 100);
-  return `
-
-
-
+	setTimeout(initTwoFA, 100);
+	setTimeout(loadProfile, 100);
+	return `
     <div class="max-w-2xl mx-auto space-y-6">
       <div class="card">
         <h3 class="text-2xl font-bold mb-4" data-i18n="profile.title">Profile</h3>
@@ -39,12 +37,13 @@ export function renderProfile(): string {
           <input id="avatar" placeholder="Avatar URL" class="input" data-i18n-placeholder="profile.avatarUrl" />
         </div>
 
-<div class="col-span-2">
-            <label class="block text-sm text-gray-400 mb-2" data-i18n="profile.uploadAvatar">Upload Avatar (PNG only, max 2MB)</label>
-            <input type="file" id="avatarFile" accept=".png" class="w-full p-2 rounded bg-gray-700 text-white">
-          </div>
+        <div class="col-span-2 mt-4">
+          <label class="block text-sm text-gray-400 mb-2" data-i18n="profile.uploadAvatar">Upload Avatar (JPG only, max 2MB)</label>
+          <input type="file" id="avatarFile" accept=".jpg,.jpeg,image/jpeg" class="w-full p-2 rounded bg-gray-700 text-white">
+        </div>
 
-        <button onclick="uploadAvatar()" class="btn btn-blue mt-4">UP Avatar</button>
+        <button onclick="uploadAvatar()" class="btn btn-blue mt-4">Upload Avatar</button>
+        <button onclick="deleteAvatar()" class="btn btn-red mt-4" data-i18n="profile.deleteAvatar">🗑️ Remove Avatar</button>
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
 
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
@@ -127,208 +126,266 @@ export function renderProfile(): string {
 }
 
 async function initTwoFA(): Promise<void> {
-  const manager = new TwoFAManager();
-  await manager.init();
-  window.languageManager?.applyTranslations();
-  (window as any).twoFAManager = manager;
+	const manager = new TwoFAManager();
+	await manager.init();
+	window.languageManager?.applyTranslations();
+	(window as any).twoFAManager = manager;
 }
 
-
 async function loadProfile(): Promise<void> {
-  const token = getToken();
-  if (!token) {
-    const infoDiv = document.getElementById('profileInfo');
-    if (infoDiv) {
-      infoDiv.innerHTML = '<p class="text-red-400" data-i18n="auth.authenticationRequired">Please login</p>';
-      window.languageManager?.applyTranslations();
-    }
-    return;
-  }
+	const token = getToken();
+	if (!token) {
+		const infoDiv = document.getElementById('profileInfo');
+		if (infoDiv) {
+			infoDiv.innerHTML = '<p class="text-red-400" data-i18n="auth.authenticationRequired">Please login</p>';
+			window.languageManager?.applyTranslations();
+		}
+		return;
+	}
 
-  try {
-    const response = await api<any>('/api/auth/profile-data');
+	try {
+		const response = await api<any>('/api/auth/profile-data');
 
+		const infoDiv = document.getElementById('profileInfo');
+		if (infoDiv) {
+			if (response.success && response.user) {
+				// Fetch avatar with authentication if it exists
+				const avatarUrl = await loadAvatar(response.user.avatar);
 
-    const infoDiv = document.getElementById('profileInfo');
-    if (infoDiv) {
-      if (response.success && response.user) {
-        infoDiv.innerHTML = `
-        <p><img width='200px' height='200px'  src=/avatars/${response.user.avatar || '/default-avatar.png'} />
-        <p><strong data-i18n="profile.displayName">Nickname:</strong> ${response.user.display_name || 'N/A'}</p>
+				infoDiv.innerHTML = `
+          <div class="mb-4">
+            <img 
+              width="200" 
+              height="200" 
+              class="rounded-full mx-auto border-4 border-gray-700"
+              src="${avatarUrl}" 
+              onerror="this.src='/default-avatar.png'"
+              alt="User avatar"
+            />
+          </div>
+          <p><strong data-i18n="profile.displayName">Nickname:</strong> ${response.user.display_name || 'N/A'}</p>
           <p><strong data-i18n="profile.username">Full Name:</strong> ${response.user.username || 'N/A'}</p>
           <p><strong data-i18n="profile.email">Email:</strong> ${response.user.email || 'N/A'}</p>
           <p><strong data-i18n="profile.id">ID:</strong> ${response.user.id || 'N/A'}</p>
           <p><strong data-i18n="profile.2fa">2FA:</strong> <span class="${response.user.twoFactorEnabled ? 'text-green-400' : 'text-yellow-400'}">${response.user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span></p>
         `;
-
-
-
-
-      } else {
-        infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
-      }
-      window.languageManager?.applyTranslations();
-    }
-  } catch (error) {
-    console.error('Error loading profile:', error);
-    const infoDiv = document.getElementById('profileInfo');
-    if (infoDiv) {
-      infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
-      window.languageManager?.applyTranslations();
-    }
-  }
+			} else {
+				infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
+			}
+			window.languageManager?.applyTranslations();
+		}
+	} catch (error) {
+		console.error('Error loading profile:', error);
+		const infoDiv = document.getElementById('profileInfo');
+		if (infoDiv) {
+			infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
+			window.languageManager?.applyTranslations();
+		}
+	}
 }
 
-
 async function uploadAvatar(): Promise<void> {
-  const avatarFile = (document.getElementById('avatarFile') as HTMLInputElement).files?.[0];
+	const fileInput = document.getElementById('avatarFile') as HTMLInputElement;
+	const avatarFile = fileInput?.files?.[0];
 
-  if (!avatarFile) {
-    showProfileMessage('Please select a file', 'error');
-    return;
-  }
+	if (!avatarFile) {
+		showProfileMessage('Please select a file', 'error');
+		return;
+	}
 
-  if (avatarFile.type !== 'image/png') {
-    showProfileMessage('Only PNG files are allowed', 'error');
-    return;
-  }
+	// Validate file type - check both MIME type and extension
+	const validTypes = ['image/jpeg', 'image/jpg'];
+	const validExtensions = ['.jpg', '.jpeg'];
+	const fileName = avatarFile.name.toLowerCase();
+	const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
 
-  if (avatarFile.size > 2 * 1024 * 1024) {
-    showProfileMessage('File size must be less than 2MB', 'error');
-    return;
-  }
+	if (!validTypes.includes(avatarFile.type) && !hasValidExtension) {
+		showProfileMessage('Only JPG/JPEG files are allowed', 'error');
+		return;
+	}
 
-  const formData = new FormData();
-  formData.append('avatar', avatarFile);
+	// Validate file size (2MB)
+	if (avatarFile.size > 2 * 1024 * 1024) {
+		showProfileMessage('File size must be less than 2MB', 'error');
+		return;
+	}
 
-  try {
-    const data = await api<any>('/api/gateway/upload/avatar', {
-      method: 'POST',
-      body: formData
-    });
+	// Create FormData and append file
+	const formData = new FormData();
+	formData.append('avatar', avatarFile);
 
+	try {
+		showProfileMessage('Uploading...', 'success');
 
-    if (!data.success) {
-      throw new Error(data.error || 'Upload failed');
-    }
+		// Call the upload endpoint
+		const data = await api<any>('/api/database/avatar/upload', {
+			method: 'POST',
+			body: formData
+		});
 
-    showProfileMessage(data.message || 'Avatar uploaded successfully', 'success');
+		if (!data.success) {
+			throw new Error(data.error || 'Upload failed');
+		}
 
-    setTimeout(() => {
-      loadProfile();
-    }, 500);
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    showProfileMessage(error.message || 'Failed to upload avatar', 'error');
-  }
+		showProfileMessage(data.message || 'Avatar uploaded successfully', 'success');
+
+		// Clear the file input
+		if (fileInput) {
+			fileInput.value = '';
+		}
+
+		// Reload profile to show new avatar
+		setTimeout(() => {
+			loadProfile();
+		}, 500);
+	} catch (error: any) {
+		console.error('Upload error:', error);
+		showProfileMessage(error.message || 'Failed to upload avatar', 'error');
+	}
 }
 
 function showProfileMessage(message: string, type: 'success' | 'error'): void {
-  const resultDiv = document.getElementById('profileResult');
-  if (resultDiv) {
-    resultDiv.classList.remove('hidden');
-    resultDiv.className = `mt-4 p-3 rounded ${type === 'success' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`;
-    resultDiv.textContent = message;
+	const resultDiv = document.getElementById('profileResult');
+	if (resultDiv) {
+		resultDiv.classList.remove('hidden');
+		resultDiv.className = `mt-4 p-3 rounded ${type === 'success' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`;
+		resultDiv.textContent = message;
 
-    setTimeout(() => {
-      resultDiv.classList.add('hidden');
-    }, 5000);
-  }
+		setTimeout(() => {
+			resultDiv.classList.add('hidden');
+		}, 5000);
+	}
 }
 
-
-
-
 async function updateProfile(): Promise<void> {
-  const display_name = (document.getElementById('displayName') as HTMLInputElement).value;
-  let avatar = (document.getElementById('avatar') as HTMLInputElement).value;
+	const display_name = (document.getElementById('displayName') as HTMLInputElement).value;
+	let avatar = (document.getElementById('avatar') as HTMLInputElement).value;
 
+	try {
+		const data = await api<any>('/api/auth/profile-data', {
+			method: 'PUT',
+			body: JSON.stringify({ display_name, avatar })
+		});
 
-  try {
-    const data = await api<any>('/api/auth/profile-data', {
-      method: 'PUT',
-      body: JSON.stringify({ display_name, avatar })
-    });
+		const resultDiv = document.getElementById('profileResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
+			resultDiv.textContent = 'Profile updated successfully';
+		}
 
-    const resultDiv = document.getElementById('profileResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
-      resultDiv.textContent = 'Profile updated successfully';
-    }
-
-    loadProfile();
-  } catch (error) {
-    const resultDiv = document.getElementById('profileResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
-      resultDiv.textContent = 'Failed to update profile';
-    }
-  }
+		loadProfile();
+	} catch (error) {
+		const resultDiv = document.getElementById('profileResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
+			resultDiv.textContent = 'Failed to update profile';
+		}
+	}
 }
 
 async function anonymize(): Promise<void> {
-  if (!confirm('Are you sure you want to anonymize your account?')) return;
+	if (!confirm('Are you sure you want to anonymize your account?')) return;
 
-  const confirmPassword = (document.getElementById('confirmPwd') as HTMLInputElement).value;
+	const confirmPassword = (document.getElementById('confirmPwd') as HTMLInputElement).value;
 
-  try {
-    const data = await api<any>('/api/users/gdpr/anonymize', {
-      method: 'POST',
-      body: JSON.stringify({ confirmPassword })
-    });
+	try {
+		const data = await api<any>('/api/users/gdpr/anonymize', {
+			method: 'POST',
+			body: JSON.stringify({ confirmPassword })
+		});
 
-    const resultDiv = document.getElementById('dangerResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
-      resultDiv.textContent = 'Account anonymized successfully';
-    }
-  } catch (error) {
-    const resultDiv = document.getElementById('dangerResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
-      resultDiv.textContent = 'Failed to anonymize account';
-    }
-  }
+		const resultDiv = document.getElementById('dangerResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
+			resultDiv.textContent = 'Account anonymized successfully';
+		}
+	} catch (error) {
+		const resultDiv = document.getElementById('dangerResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
+			resultDiv.textContent = 'Failed to anonymize account';
+		}
+	}
 }
 
 async function deleteAcc(): Promise<void> {
-  if (!confirm('DELETE account permanently? This cannot be undone!')) return;
+	if (!confirm('DELETE account permanently? This cannot be undone!')) return;
 
-  const confirmPassword = (document.getElementById('confirmPwd') as HTMLInputElement).value;
+	const confirmPassword = (document.getElementById('confirmPwd') as HTMLInputElement).value;
 
-  try {
-    const data = await api<any>('/api/users/gdpr/delete', {
-      method: 'DELETE',
-      body: JSON.stringify({ confirmPassword })
-    });
+	try {
+		const data = await api<any>('/api/users/gdpr/delete', {
+			method: 'DELETE',
+			body: JSON.stringify({ confirmPassword })
+		});
 
-    const resultDiv = document.getElementById('dangerResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
-      resultDiv.textContent = 'Account deleted successfully';
-    }
+		const resultDiv = document.getElementById('dangerResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
+			resultDiv.textContent = 'Account deleted successfully';
+		}
 
-    setTimeout(() => {
- removeAuthToken();
+		setTimeout(() => {
+			removeAuthToken();
+			window.location.href = '/';
+		}, 2000);
+	} catch (error) {
+		const resultDiv = document.getElementById('dangerResult');
+		if (resultDiv) {
+			resultDiv.classList.remove('hidden');
+			resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
+			resultDiv.textContent = 'Failed to delete account';
+		}
+	}
+}
 
-      window.location.href = '/';
-    }, 2000);
-  } catch (error) {
-    const resultDiv = document.getElementById('dangerResult');
-    if (resultDiv) {
-      resultDiv.classList.remove('hidden');
-      resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
-      resultDiv.textContent = 'Failed to delete account';
-    }
-  }
+async function deleteAvatar(): Promise<void> {
+	if (!confirm('Are you sure you want to remove your avatar?')) return;
+
+	try {
+		const token = getToken();
+		if (!token) {
+			showProfileMessage('Please login first', 'error');
+			return;
+		}
+
+		// Get current user ID from profile data
+		const profileResponse = await api<any>('/api/auth/profile-data');
+		if (!profileResponse.success || !profileResponse.user) {
+			throw new Error('Failed to get user ID');
+		}
+
+		const userId = profileResponse.user.id;
+
+		// Call DELETE endpoint with empty JSON body
+		const data = await api<any>(`/api/database/avatar/${userId}`, {
+			method: 'DELETE',
+			body: JSON.stringify({})
+		});
+
+		if (!data.success) {
+			throw new Error(data.error || 'Delete failed');
+		}
+
+		showProfileMessage(data.message || 'Avatar removed successfully', 'success');
+
+		// Reload profile to show default avatar
+		setTimeout(() => {
+			loadProfile();
+		}, 500);
+	} catch (error: any) {
+		console.error('Delete avatar error:', error);
+		showProfileMessage(error.message || 'Failed to remove avatar', 'error');
+	}
 }
 
 (window as any).updateProfile = updateProfile;
 (window as any).anonymize = anonymize;
 (window as any).deleteAcc = deleteAcc;
 (window as any).uploadAvatar = uploadAvatar;
+(window as any).deleteAvatar = deleteAvatar;
