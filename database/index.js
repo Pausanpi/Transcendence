@@ -8,11 +8,21 @@ import playersRoutes from './routes/players.js';
 import databaseRoutes from './routes/database.js';
 import heartbeatRoutes from './routes/heartbeat.js';
 import { markInactiveUsersOffline } from './routes/heartbeat.js';
+import avatarRoutes from './routes/avatars.js';
+import fastifyMultipart from '@fastify/multipart';
 
 async function startDatabaseService() {
 	const fastify = await createFastifyApp({
 		serviceName: 'database-service',
 		corsOrigin: true
+	});
+
+	// Register multipart BEFORE routes
+	await fastify.register(fastifyMultipart, {
+		limits: {
+			fileSize: 2 * 1024 * 1024, // 2MB
+			files: 1
+		}
 	});
 
 	await fastify.register(databaseRoutes, { prefix: '/database' });
@@ -24,6 +34,7 @@ async function startDatabaseService() {
 	await fastify.register(friendsRoutes, { prefix: '/database/friends' });
 	await fastify.register(playersRoutes, { prefix: '/database' });
 	await fastify.register(heartbeatRoutes, { prefix: '/database' });
+	await fastify.register(avatarRoutes, { prefix: '/database' });
 
 	await fastify.listen({ host: '0.0.0.0', port: 3003 });
 

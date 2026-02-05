@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { isLoggedIn } from '../gameService.js';
+import { loadAvatar } from '../imageUtils.js';
 let currentTab = 'friends';
 export function renderFriends() {
     if (!isLoggedIn()) {
@@ -110,8 +111,22 @@ function updateTabStyles() {
 async function loadFriends(container) {
     const response = await api('/api/database/friends/me');
     if (response.success && response.friends && response.friends.length > 0) {
+        // Render immediately for speed
         container.innerHTML = response.friends.map(friend => renderFriendCard(friend)).join('');
         window.languageManager?.applyTranslations();
+        // Load avatars progressively in background
+        response.friends.forEach(async (friend) => {
+            try {
+                const avatarUrl = await loadAvatar(friend.avatar);
+                const imgElement = container.querySelector(`[data-friend-id="${friend.id}"] img`);
+                if (imgElement && avatarUrl) {
+                    imgElement.src = avatarUrl;
+                }
+            }
+            catch (error) {
+                console.error(`Failed to load avatar for friend ${friend.id}:`, error);
+            }
+        });
     }
     else {
         container.innerHTML = `
@@ -126,8 +141,22 @@ async function loadFriends(container) {
 async function loadRequests(container) {
     const response = await api('/api/database/friends/me/requests');
     if (response.success && response.requests && response.requests.length > 0) {
+        // Render immediately for speed
         container.innerHTML = response.requests.map(request => renderRequestCard(request)).join('');
         window.languageManager?.applyTranslations();
+        // Load avatars progressively in background
+        response.requests.forEach(async (request) => {
+            try {
+                const avatarUrl = await loadAvatar(request.avatar);
+                const imgElement = container.querySelector(`[data-request-id="${request.id}"] img`);
+                if (imgElement && avatarUrl) {
+                    imgElement.src = avatarUrl;
+                }
+            }
+            catch (error) {
+                console.error(`Failed to load avatar for request ${request.id}:`, error);
+            }
+        });
     }
     else {
         container.innerHTML = `
@@ -141,8 +170,22 @@ async function loadRequests(container) {
 async function loadSentRequests(container) {
     const response = await api('/api/database/friends/me/sent');
     if (response.success && response.requests && response.requests.length > 0) {
+        // Render immediately for speed
         container.innerHTML = response.requests.map(request => renderSentCard(request)).join('');
         window.languageManager?.applyTranslations();
+        // Load avatars progressively in background
+        response.requests.forEach(async (request) => {
+            try {
+                const avatarUrl = await loadAvatar(request.avatar);
+                const imgElement = container.querySelector(`[data-sent-id="${request.id}"] img`);
+                if (imgElement && avatarUrl) {
+                    imgElement.src = avatarUrl;
+                }
+            }
+            catch (error) {
+                console.error(`Failed to load avatar for sent request ${request.id}:`, error);
+            }
+        });
     }
     else {
         container.innerHTML = `
@@ -158,12 +201,12 @@ function renderFriendCard(friend) {
     const statusTextKey = friend.online_status === 'online' ? 'players.status.online' : 'players.status.offline';
     const statusTextDefault = friend.online_status === 'online' ? 'Online' : 'Offline';
     return `
-    <div class="card flex items-center gap-4">
+    <div class="card flex items-center gap-4" data-friend-id="${friend.id}">
       <div class="relative">
         <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
-             src="${friend.avatar || '/avatars/default-avatar.png'}"
+             src="/default-avatar.png"
              alt="${friend.username}"
-             onerror="this.src='/avatars/default-avatar.png'" />
+             onerror="this.src='/default-avatar.png'" />
         <span class="absolute bottom-0 right-0 w-3 h-3 ${statusColor} rounded-full border-2 border-gray-800"></span>
       </div>
       <div class="flex-1">
@@ -187,11 +230,11 @@ function renderFriendCard(friend) {
 }
 function renderRequestCard(request) {
     return `
-    <div class="card flex items-center gap-4">
+    <div class="card flex items-center gap-4" data-request-id="${request.id}">
       <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
-           src="${request.avatar || '/avatars/default-avatar.png'}"
+           src="/default-avatar.png"
            alt="${request.username}"
-           onerror="this.src='/avatars/default-avatar.png'" />
+           onerror="this.src='/default-avatar.png'}" />
       <div class="flex-1">
         <h3 class="text-lg font-bold text-yellow-400">${request.username}</h3>
         <p class="text-sm text-gray-400" data-i18n="friends.wantsToBeYourFriend">wants to be your friend</p>
@@ -211,11 +254,11 @@ function renderRequestCard(request) {
 }
 function renderSentCard(request) {
     return `
-    <div class="card flex items-center gap-4">
+    <div class="card flex items-center gap-4" data-sent-id="${request.id}">
       <img class="w-14 h-14 rounded-full border-2 border-gray-600 object-cover"
-           src="${request.avatar || '/avatars/default-avatar.png'}"
+           src="/default-avatar.png"
            alt="${request.username}"
-           onerror="this.src='/avatars/default-avatar.png'" />
+           onerror="this.src='/default-avatar.png'" />
       <div class="flex-1">
         <h3 class="text-lg font-bold text-yellow-400">${request.username}</h3>
         <p class="text-sm text-gray-400" data-i18n="friends.pendingRequest">Request pending...</p>
@@ -271,13 +314,14 @@ async function viewPlayer(playerId) {
         const response = await api(`/api/database/players/${playerId}`);
         if (response.success && response.user) {
             const player = response.user;
+            const avatarUrl = await loadAvatar(player.avatar);
             content.innerHTML = `
         <!-- Player Header -->
         <div class="text-center mb-6">
           <img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
-               src="${player.avatar || '/avatars/default-avatar.png'}"
+               src="${avatarUrl}"
                alt="${player.username}"
-               onerror="this.src='/avatars/default-avatar.png'" />
+               onerror="this.src='/default-avatar.png'" />
           <h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
           <p class="text-gray-400">@${player.username}</p>
           <p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">

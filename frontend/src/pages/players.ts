@@ -1,4 +1,5 @@
 import { api } from '../api.js';
+import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
 	id: string;
@@ -91,8 +92,23 @@ async function loadPlayers(search: string = ''): Promise<void> {
 		);
 
 		if (response.success && response.users.length > 0) {
+			// Render immediately with default avatars for speed
 			container.innerHTML = response.users.map(player => renderPlayerCard(player)).join('');
 			window.languageManager?.applyTranslations();
+			
+			// Load avatars progressively in background
+			response.users.forEach(async (player, index) => {
+				try {
+					const avatarUrl = await loadAvatar(player.avatar);
+					const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
+					if (imgElement && avatarUrl) {
+						(imgElement as HTMLImageElement).src = avatarUrl;
+					}
+				} catch (error) {
+					console.error(`Failed to load avatar for player ${player.id}:`, error);
+					// Avatar will remain as default
+				}
+			});
 		} else {
 			container.innerHTML = `
         <div class="card col-span-2 text-center text-gray-400">
@@ -126,14 +142,14 @@ function renderPlayerCard(player: PlayerListItem): string {
 	const statusDot = player.online_status === 'online' ? 'bg-green-400' : 'bg-gray-400';
 
 	return `
-		<div class="card hover:border-yellow-400 cursor-pointer transition-all"
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}"
 				 onclick="viewPlayer('${player.id}')">
 			<div class="flex items-center gap-4">
 				<div class="relative">
 					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
-							 src="${player.avatar || '/avatars/default-avatar.png'}"
+							 src="/default-avatar.png"
 							 alt="${player.username}"
-							 onerror="this.src='/avatars/default-avatar.png'" />
+							 onerror="this.src='/default-avatar.png'" />
 					<span class="absolute bottom-0 right-0 w-4 h-4 ${statusDot} rounded-full border-2 border-gray-800"></span>
 				</div>
 				<div class="flex-1">
@@ -167,14 +183,15 @@ async function viewPlayer(playerId: string): Promise<void> {
 
 		if (response.success && response.user) {
 			const player = response.user;
+			const avatarUrl = await loadAvatar(player.avatar);
 
 			content.innerHTML = `
 				<!-- Player Header -->
 				<div class="text-center mb-6">
 					<img class="w-24 h-24 rounded-full border-4 border-yellow-400 mx-auto object-cover"
-							 src="${player.avatar || '/avatars/default-avatar.png'}"
+							 src="${avatarUrl}"
 							 alt="${player.username}"
-							 onerror="this.src='/avatars/default-avatar.png'" />
+							 onerror="this.src='/default-avatar.png'" />
 					<h3 class="text-2xl font-bold text-yellow-400 mt-4">${player.display_name || player.username}</h3>
 					<p class="text-gray-400">@${player.username}</p>
 					<p class="text-sm ${player.online_status === 'online' ? 'text-green-400' : 'text-gray-400'} mt-1">
