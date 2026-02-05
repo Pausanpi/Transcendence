@@ -1,17 +1,22 @@
 import { navigate } from './router.js';
 import {
-  getCurrentUser,
-  isLoggedIn,
-  createRegisteredPlayer,
-  createGuestPlayer,
-  createAIPlayer,
-  startGameSession,
-  endGameSession,
-  getGameSession,
-  cancelGameSession,
-  type Player,
-  type GameSession
+  type Player
 } from './gameService.js';
+
+// Game end callback for external handling
+let onGameEndCallback: ((result: MatchResult) => void) | null = null;
+
+export function setOnGameEnd(callback: (result: MatchResult) => void): void {
+  onGameEndCallback = callback;
+}
+
+interface MatchResult {
+  player1: Player;
+  player2: Player;
+  player1Score: number;
+  player2Score: number;
+  winner: Player;
+}
 
 interface Paddle {
   x: number;
@@ -59,18 +64,16 @@ let aiLastUpdate = 0;
 let aiDecision: 'up' | 'down' | '' = '';
 let aiTargetY: number = 250;
 
-export function startPong(ai: boolean, diff = 3): void {
-  // This is called after players are set up
-  const session = getGameSession();
-  if (!session) {
-    console.error('No game session - call setupPongGame first');
-    return;
-  }
-
-  player1 = session.player1;
-  player2 = session.player2;
-  isAI = session.isAI;
-  difficulty = session.difficulty || diff;
+export function initPongGame(config: {
+  player1: Player;
+  player2: Player;
+  isAI: boolean;
+  difficulty?: number;
+}): void {
+  player1 = config.player1;
+  player2 = config.player2;
+  isAI = config.isAI;
+  difficulty = config.difficulty || 3;
 
   navigate('game');
 
@@ -101,142 +104,11 @@ export function startPong(ai: boolean, diff = 3): void {
   }, 50);
 }
 
-/**
- * Setup game with player names, then start
- */
-export async function setupPongGame(ai: boolean, diff = 3): Promise<void> {
-  const currentUser = await getCurrentUser();
 
-  // Create player 1 (always the local user or guest)
-  if (currentUser) {
-    player1 = createRegisteredPlayer(currentUser);
-  } else {
-    // Will be set from modal
-    player1 = createGuestPlayer('Player 1');
-  }
 
-  if (ai) {
-    // AI game - player 2 is AI
-    player2 = createAIPlayer(diff);
 
-    // Start session
-    startGameSession({
-      player1,
-      player2,
-      gameType: 'pong',
-      isAI: true,
-      difficulty: diff,
-      startTime: Date.now()
-    });
 
-    startPong(true, diff);
-  } else {
-    // PvP - show modal for player names
-    showPlayerSetupModal(currentUser);
-  }
-}
 
-/**
- * Show modal to enter player names for PvP
- */
-function showPlayerSetupModal(currentUser: any, onConfirm?: Function): void {
-  const modal = document.getElementById('modal')!;
-  modal.classList.remove('hidden');
-  const player1Default = currentUser ? currentUser.display_name || currentUser.username : '';
-  const player1Disabled = currentUser ? 'disabled' : '';
-  const player1Class = currentUser ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-700';
-  modal.innerHTML = `
-    <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="players.enterNames">Enter Player Names</h2>
-      <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player1Keys">Player 1 (W/S keys)</label>
-        <input
-          type="text"
-          id="player1Name"
-          value="${player1Default}"
-          placeholder="Enter name..."
-          ${player1Disabled}
-          class="w-full p-3 rounded ${player1Class} text-white"
-          maxlength="20"
-        />
-    ${currentUser ? `<p class="text-xs text-green-400 mt-1" data-i18n="players.loggedInAs">✓ Logged in as ${player1Default}</p>` : '<p class="text-xs text-gray-500 mt-1" data-i18n="players.guestPlaying">Playing as guest</p>'}
-      </div>
-      <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player2Keys">Player 2 (↑/↓ keys)</label>
-        <input
-          type="text"
-          id="player2Name"
-          placeholder="Enter name..."
-          class="w-full p-3 rounded bg-gray-700 text-white"
-          maxlength="20"
-        />
-        <div id="player2Status" class="mt-1"></div>
-      </div>
-      <div class="flex gap-4 mt-6">
-        <button onclick="hideModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
-        <button id="confirmPlayerSetupBtn" class="btn btn-green flex-1" data-i18n="players.startGame">Start Game</button>
-      </div>
-    </div>
-  `;
-
-  // Si hay un callback personalizado, lo usamos
-  if (onConfirm) {
-    document.getElementById('confirmPlayerSetupBtn')!.onclick = () => onConfirm();
-  } else {
-    document.getElementById('confirmPlayerSetupBtn')!.onclick = confirmPlayerSetup;
-  }
-
-  // Aplicar traducciones
-  if (window.languageManager?.isReady()) {
-    window.languageManager.applyTranslations();
-  }
-
-  setTimeout(() => {
-    const input = currentUser
-      ? document.getElementById('player2Name') as HTMLInputElement
-      : document.getElementById('player1Name') as HTMLInputElement;
-    input?.focus();
-  }, 100);
-}
-
-/**
- * Confirm player names and start PvP game
- */
-async function confirmPlayerSetup(): Promise<void> {
-  const currentUser = await getCurrentUser();
-
-  const p1Input = document.getElementById('player1Name') as HTMLInputElement;
-  const p2Input = document.getElementById('player2Name') as HTMLInputElement;
-
-  const p1Name = p1Input.value.trim() || 'Player 1';
-  const p2Name = p2Input.value.trim() || 'Player 2';
-
-  // Validate names are different
-  if (p1Name.toLowerCase() === p2Name.toLowerCase()) {
-    alert('Players must have different names!');
-    return;
-  }
-
-  // Create players
-  if (currentUser) {
-    player1 = createRegisteredPlayer(currentUser);
-  } else {
-    player1 = createGuestPlayer(p1Name);
-  }
-  player2 = createGuestPlayer(p2Name);
-
-  // Start session
-  startGameSession({
-    player1,
-    player2,
-    gameType: 'pong',
-    isAI: false,
-    startTime: Date.now()
-  });
-
-  hideModal();
-  startPong(false);
-}
 
 function resetBall(): void {
   ball.x = 400;
@@ -415,16 +287,22 @@ function checkWin(): void {
     gameOn = false;
     const winner = score1 >= 5 ? player1 : player2;
 
-    // Save match to database
-    endGameSession(score1, score2).then(result => {
-      if (result.success) {
-        console.log('Match saved with ID:', result.matchId);
-      } else {
-        console.warn('Failed to save match - may be offline or API error');
-      }
-    });
+    // Create match result
+    const result: MatchResult = {
+      player1,
+      player2,
+      player1Score: score1,
+      player2Score: score2,
+      winner
+    };
 
-    showWinner(winner.name);
+    // Call external callback if set
+    if (onGameEndCallback) {
+      onGameEndCallback(result);
+    } else {
+      // Fallback to old behavior
+      showWinner(winner.name);
+    }
   }
 }
 
@@ -470,11 +348,11 @@ function countdown(cb: () => void): void {
   }, 1000);
 }
 
-function showWinner(winner: string): void {
+export function showWinnerOverlay(winnerName: string, onContinue: () => void): void {
   const el = document.getElementById('countdown')!;
   const txt = document.getElementById('countdownText')!;
   el.classList.remove('hidden');
-  txt.textContent = `🎉 ${winner} Wins!`;
+  txt.textContent = `🎉 ${winnerName} Wins!`;
   txt.className = 'text-5xl font-bold text-yellow-300';
 
   // Hide exit button when game ends
@@ -484,16 +362,11 @@ function showWinner(winner: string): void {
   setTimeout(() => {
     el.classList.add('hidden');
     txt.className = 'text-9xl font-extrabold text-yellow-300';
-    navigate('games');
+    onContinue();
   }, 3000);
 }
 
-/**
- * Exit game without finishing
- * Cancels the game session and stops the game loop
- */
-export function exitGame(): void {
-  // Stop the game loop immediately
+export function stopPongGame(): void {
   gameOn = false;
   if (animationId) {
     cancelAnimationFrame(animationId);
@@ -516,49 +389,46 @@ export function exitGame(): void {
   paddle1.dy = paddle2.dy = 0;
   score1 = score2 = 0;
   
-  // Cancel the game session (player quit early)
-  cancelGameSession();
-  
   // Hide exit button
   const exitContainer = document.getElementById('exitGameContainer');
   if (exitContainer) exitContainer.classList.add('hidden');
+}
+
+function showWinner(winner: string): void {
+  const el = document.getElementById('countdown')!;
+  const txt = document.getElementById('countdownText')!;
+  el.classList.remove('hidden');
+  txt.textContent = `🎉 ${winner} Wins!`;
+  txt.className = 'text-5xl font-bold text-yellow-300';
+
+  // Hide exit button when game ends
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+
+  setTimeout(() => {
+    el.classList.add('hidden');
+    txt.className = 'text-9xl font-extrabold text-yellow-300';
+    navigate('games');
+  }, 3000);
+}
+
+/**
+ * Exit game without finishing
+ * Stops the game loop and resets state
+ */
+export function exitGame(): void {
+  // Use the stopPongGame function
+  stopPongGame();
   
   // Navigate back to games page
   navigate('games');
 }
 
-function showDifficulty(): void {
-  const modal = document.getElementById('modal')!;
-  modal.classList.remove('hidden');
-  modal.innerHTML = `
-    <div class="card text-center space-y-4">
-      <h2 class="text-2xl font-bold text-yellow-400">Difficulty</h2>
-      <button onclick="setupAIGame(2)" class="btn btn-green w-full">Easy</button>
-      <button onclick="setupAIGame(3)" class="btn btn-yellow w-full">Medium</button>
-      <button onclick="setupAIGame(4)" class="btn btn-red w-full">Hard</button>
-      <button onclick="hideModal()" class="btn btn-gray w-full">Cancel</button>
-    </div>
-  `;
-}
 
-async function setupAIGame(diff: number): Promise<void> {
-  hideModal();
-  await setupPongGame(true, diff);
-}
-
-function hideModal(): void {
-  document.getElementById('modal')!.classList.add('hidden');
-}
 
 // Keyboard
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
-// Global
-(window as any).startPong = startPong;
-(window as any).setupPongGame = setupPongGame;
-(window as any).setupAIGame = setupAIGame;
-(window as any).showDifficulty = showDifficulty;
-(window as any).hideModal = hideModal;
-(window as any).confirmPlayerSetup = confirmPlayerSetup;
+// Global exports (only keep what's still needed)
 (window as any).exitGame = exitGame;
