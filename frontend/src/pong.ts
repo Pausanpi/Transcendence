@@ -104,6 +104,12 @@ export function initPongGame(config: {
   }, 50);
 }
 
+
+
+
+
+
+
 function resetBall(): void {
   ball.x = 400;
   ball.y = 300;
@@ -430,6 +436,8 @@ export function exitGame(): void {
   // Navigate back to games page
   navigate('games');
 }
+
+
 
 // Keyboard
 window.addEventListener('keydown', e => keys[e.key] = true);
