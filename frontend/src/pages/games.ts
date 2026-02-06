@@ -12,6 +12,7 @@ import {
 	type UserProfile
 } from '../gameService.js';
 import { initPongGame, setOnGameEnd, showWinnerOverlay, stopPongGame } from '../pong.js';
+import { startTicTacToe, setupTicTacToe } from '../tictactoe.js';
 
 // ===== PLAYER SETUP STATE =====
 
@@ -374,10 +375,10 @@ function showDifficultySelect(): void {
 
 // ===== TIC-TAC-TOE PLACEHOLDER =====
 
-function startTicTacToe(): void {
+/* function startTicTacToe(): void {
 	console.log('Tic-Tac-Toe not implemented yet');
 	// TODO: Implement similar flow to Pong
-}
+} */
 
 // ===== UTILITY FUNCTIONS =====
 
