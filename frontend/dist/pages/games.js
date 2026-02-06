@@ -1,7 +1,6 @@
 import { navigate } from '../router.js';
 import { getCurrentUser, createRegisteredPlayer, createGuestPlayer, createAIPlayer, startGameSession, endGameSession, loginPlayer } from '../gameService.js';
 import { initPongGame, setOnGameEnd, showWinnerOverlay } from '../pong.js';
-import { setupTicTacToe } from '../tictactoe.js';
 // ===== PLAYER SETUP STATE =====
 let verifiedPlayer2 = null;
 // ===== GAME SELECTION PAGE =====
@@ -63,7 +62,6 @@ async function startPongPvP() {
     }
 }
 async function startPongAI(difficulty) {
-    hideModal(); // Close difficulty modal
     const currentUser = await getCurrentUser();
     let player1;
     if (currentUser) {
@@ -319,44 +317,10 @@ function showDifficultySelect() {
     </div>
   `);
 }
-// ===== TIC-TAC-TOE =====
+// ===== TIC-TAC-TOE PLACEHOLDER =====
 function startTicTacToe() {
-    showModal(`
-		<div class="card text-center space-y-4">
-			<h2 class="text-2xl font-bold text-yellow-400">Tic-Tac-Toe</h2>
-			<p class="text-gray-400">Choose game mode</p>
-			
-			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToePvP()" class="btn btn-green w-full">👥 Player vs Player</button>
-				<button onclick="window.gameUI.showTicTacToeDifficulty()" class="btn btn-yellow w-full">🤖 Player vs AI</button>
-			</div>
-			
-			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full">Cancel</button>
-		</div>
-	`);
-}
-async function startTicTacToePvP() {
-    hideModal();
-    await setupTicTacToe(false);
-}
-function showTicTacToeDifficulty() {
-    showModal(`
-		<div class="card text-center space-y-4">
-			<h2 class="text-2xl font-bold text-yellow-400">Select AI Difficulty</h2>
-			
-			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToeAI(2)" class="btn btn-green w-full">😊 Easy</button>
-				<button onclick="window.gameUI.startTicTacToeAI(3)" class="btn btn-yellow w-full">😐 Medium</button>
-				<button onclick="window.gameUI.startTicTacToeAI(4)" class="btn btn-red w-full">😈 Hard</button>
-			</div>
-			
-			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full">Cancel</button>
-		</div>
-	`);
-}
-async function startTicTacToeAI(difficulty) {
-    hideModal();
-    await setupTicTacToe(true, difficulty);
+    console.log('Tic-Tac-Toe not implemented yet');
+    // TODO: Implement similar flow to Pong
 }
 // ===== UTILITY FUNCTIONS =====
 function applyTranslations() {
@@ -383,9 +347,6 @@ window.gameUI = {
     startPongAI,
     showDifficultySelect,
     startTicTacToe,
-    startTicTacToePvP,
-    showTicTacToeDifficulty,
-    startTicTacToeAI,
     // Modal controls
     hideModal,
     // Player setup

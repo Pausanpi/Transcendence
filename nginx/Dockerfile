@@ -20,8 +20,6 @@ COPY nginx/proxy-headers.conf /etc/nginx/conf.d/proxy-headers.conf
 COPY nginx/00-log-formats.conf /etc/nginx/conf.d/00-log-formats.conf
 COPY nginx/00-nginx.conf /etc/nginx/conf.d/00-nginx.conf
 
-COPY --from=frontend-build --chown=nginx:nginx /app/dist /usr/share/nginx/html
-RUN chmod -R 755 /usr/share/nginx/html && \
-    chown -R nginx:nginx /usr/share/nginx/html
+COPY --from=frontend-build /app /usr/share/nginx/html
 
 CMD ["nginx", "-g", "daemon off;"]

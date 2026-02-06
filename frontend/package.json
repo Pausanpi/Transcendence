@@ -1,8 +1,6 @@
 {
   "scripts": {
-    "build": "tsc && node build-copy.js",
-    "clean": "node -e \"const fs=require('fs');if(fs.existsSync('dist'))fs.rmSync('dist',{recursive:true});\"",
-    "rebuild": "npm run clean && npm run build"
+    "build": "tsc"
   },
   "dependencies": {
     "typescript": "^5.9.3"
