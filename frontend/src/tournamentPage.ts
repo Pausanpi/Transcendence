@@ -1,12 +1,12 @@
 import { loadTournament } from "./tournamentEngine.js";
 import { startCurrentMatch } from "./tournamentController.js";
 
-export function renderTournamentPage(): void {
+export function renderTournamentPage(): string {
   const tournament = loadTournament();
-  if (!tournament) return;
+  if (!tournament) return "<p>No tournament found</p>";
 
-  const app = document.getElementById("app");
-  if (!app) return;
+  //const app = document.getElementById("app");
+  //if (!app) return "<p>FATAL ERROR</p>";
 
   let html = "<h1>Pong Tournament</h1>";
 
@@ -22,7 +22,11 @@ export function renderTournamentPage(): void {
   });
 
   html += `<button id="play">Play next match</button>`;
-  app.innerHTML = html;
+  
+  // Añadir event listener después del render
+  setTimeout(() => {
+    document.getElementById("play")?.addEventListener("click", startCurrentMatch);
+  }, 0);
 
-  document.getElementById("play")?.addEventListener("click", startCurrentMatch);
+  return html;
 }

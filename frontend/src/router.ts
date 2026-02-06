@@ -5,6 +5,7 @@ import { renderAuth } from './pages/auth.js';
 import { renderProfile } from './pages/profile.js';
 import { renderGame } from './pages/game.js';
 import { renderTournament } from './pages/tournament.js';
+import { renderTournamentPage } from './tournamentPage.js';
 import { renderGdpr } from './pages/gdpr.js';
 import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
@@ -28,6 +29,7 @@ const routes: Record<string, () => string> = {
   profile: renderProfile,
   game: renderGame,
   tournament: renderTournament,
+  tournament_game: renderTournamentPage,
   gdpr: renderGdpr,
   twofaverify: renderTwoFAVerify,
 };

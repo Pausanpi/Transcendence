@@ -17,7 +17,7 @@ export function startCurrentMatch(): void {
   if (!match) return;
 
   sessionStorage.setItem("currentMatch", JSON.stringify(match));
-  navigate("/game");
+  navigate("game");
 }
 
 export function finishMatch(winner: Player): void {
@@ -29,7 +29,7 @@ export function finishMatch(winner: Player): void {
   saveTournament(tournament);
 
   const champion = getChampion(tournament);
-  champion ? showChampion(champion) : navigate("/tournament");
+  champion ? showChampion(champion) : navigate("tournament_game");
 }
 
 function showChampion(player: Player): void {

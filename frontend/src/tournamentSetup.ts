@@ -13,7 +13,7 @@ import {
 const USERS_TOUR_NUM = 8;
 
 function askName(index: number): string | null {
-    const name = prompt('Name for player ${index + 1}');
+    const name = prompt(`Name for player ${index + 1}`);
     return(name);
 }
 
@@ -33,7 +33,7 @@ export async function setupPongTournament(ai: boolean, diff = 3): Promise<void> 
 
       if (ai && players.length === USERS_TOUR_NUM - 1) {
         players.push({
-          name: 'AI (diff ${diff})',
+          name: `AI (diff ${diff})`,
           id: "AI",
           isGuest: false
         });
@@ -43,12 +43,12 @@ export async function setupPongTournament(ai: boolean, diff = 3): Promise<void> 
       const name = askName(players.length);
 
       if (!name || name.trim() === "") {
-        //alert("Invalid name");
+        alert("Invalid name");
         continue;
       }
 
       if (players.some(p => p.name === name.trim())) {
-        //alert("Duplicated name");
+        alert("Duplicated name");
         continue;
       }
 
@@ -62,5 +62,5 @@ export async function setupPongTournament(ai: boolean, diff = 3): Promise<void> 
     const tournament = createTournament(players);
     saveTournament(tournament);
 
-    navigate("/tournament");
+    navigate("tournament_game");
 }

@@ -1,10 +1,18 @@
 import { initRouter } from './router.js';
 import { initAuth } from './auth.js';
+import { setupPongTournament } from './tournamentSetup.js';
 import './i18n.js';
 import './gdpr.js';
 import './pong.js';
 import './tictactoe.js';
 import './gameService.js';
+import './tournamentSetup.js';
+import './tournamentController.js';
+import './tournamentEngine.js';
+import './tournamentPage.js';
+
+// Exponer funciones globalmente para onclick handlers
+(window as any).setupPongTournament = setupPongTournament;
 
 document.addEventListener('DOMContentLoaded', async () => {
   initRouter();

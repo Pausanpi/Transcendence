@@ -1,0 +1,46 @@
+import { navigate } from './router.js';
+import { getCurrentUser } from './gameService.js';
+import { createTournament, saveTournament } from "./tournamentEngine.js";
+const USERS_TOUR_NUM = 8;
+function askName(index) {
+    const name = prompt(`Name for player ${index + 1}`);
+    return (name);
+}
+export async function setupPongTournament(ai, diff = 3) {
+    const currentUser = await getCurrentUser();
+    const players = [];
+    if (currentUser) {
+        players.push({
+            name: currentUser.username,
+            id: currentUser.id,
+            isGuest: false
+        });
+    }
+    while (players.length < USERS_TOUR_NUM) {
+        if (ai && players.length === USERS_TOUR_NUM - 1) {
+            players.push({
+                name: `AI (diff ${diff})`,
+                id: "AI",
+                isGuest: false
+            });
+            break;
+        }
+        const name = askName(players.length);
+        if (!name || name.trim() === "") {
+            alert("Invalid name");
+            continue;
+        }
+        if (players.some(p => p.name === name.trim())) {
+            alert("Duplicated name");
+            continue;
+        }
+        players.push({
+            id: null,
+            name: name.trim(),
+            isGuest: true
+        });
+    }
+    const tournament = createTournament(players);
+    saveTournament(tournament);
+    navigate("tournament_game");
+}
