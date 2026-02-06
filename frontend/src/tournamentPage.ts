@@ -1,0 +1,28 @@
+import { loadTournament } from "./tournamentEngine.js";
+import { startCurrentMatch } from "./tournamentController.js";
+
+export function renderTournamentPage(): void {
+  const tournament = loadTournament();
+  if (!tournament) return;
+
+  const app = document.getElementById("app");
+  if (!app) return;
+
+  let html = "<h1>Pong Tournament</h1>";
+
+  tournament.rounds.forEach((round, r) => {
+    html += `<h2>Round ${r + 1}</h2>`;
+    round.matches.forEach(match => {
+      html += `
+        <div>
+          ${match.player1.name} vs ${match.player2.name}
+          ${match.winner ? `➡️ ${match.winner.name}` : ""}
+        </div>`;
+    });
+  });
+
+  html += `<button id="play">Play next match</button>`;
+  app.innerHTML = html;
+
+  document.getElementById("play")?.addEventListener("click", startCurrentMatch);
+}
