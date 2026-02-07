@@ -42,6 +42,10 @@ export function navigate(page) {
         if (typeof window.updateAuthBtn === 'function') {
             window.updateAuthBtn();
         }
+        // Para el torneo:
+        if (page === 'tournament_game') {
+            renderTournamentPage();
+        }
         window.dispatchEvent(new CustomEvent('pagechange', { detail: page }));
     }
 }

@@ -1,6 +1,7 @@
 import { initRouter } from './router.js';
 import { initAuth } from './auth.js';
 import { setupPongTournament } from './tournamentSetup.js';
+import { startCurrentMatch } from './tournamentController.js';
 import './i18n.js';
 import './gdpr.js';
 import './pong.js';
@@ -12,6 +13,7 @@ import './tournamentEngine.js';
 import './tournamentPage.js';
 // Exponer funciones globalmente para onclick handlers
 window.setupPongTournament = setupPongTournament;
+window.startCurrentMatch = startCurrentMatch;
 document.addEventListener('DOMContentLoaded', async () => {
     initRouter();
     initAuth();
