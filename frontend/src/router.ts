@@ -45,6 +45,12 @@ export function navigate(page: string): void {
       window.languageManager.applyTranslations();
     }
 
+    // Hide TicTacToe settings when leaving the game page
+    const tictactoeSettings = document.getElementById('tictactoeSettings');
+    if (tictactoeSettings && page !== 'game') {
+      tictactoeSettings.classList.add('hidden');
+    }
+
     currentPage = page;
     updateNav();
     document.getElementById('navbar')?.classList.remove('hidden');

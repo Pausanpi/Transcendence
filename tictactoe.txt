@@ -135,10 +135,7 @@ export function startTicTacToe(): void {
       settingsMenu.classList.remove('hidden');
     }
     
-    // Remove previous event listener if any
-    canvas.onclick = null;
-    // Add new event listener
-    canvas.addEventListener('click', handleClick);
+    canvas.onclick = handleClick;
     draw();
   }, 50);
 }

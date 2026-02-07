@@ -36,7 +36,7 @@ git add .
 git commit -m "descriptive message"
 ```
 
-Remember that not every commit needs a push, you can keep working with commit to stablis points and then push when you are done
+Remember that not every commit needs a push, you can keep working with commit to stablis points and then push when you are done.
 
 
 ### 3. Push your branch
