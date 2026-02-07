@@ -44,7 +44,11 @@ interface PlayerProfile {
 }
 
 export function renderPlayers(): string {
-	setTimeout(loadPlayers, 100);
+	console.log('[DEBUG] renderPlayers called');
+	setTimeout(() => {
+		loadPlayers();
+		setupPlayerCardClickHandlers();
+	}, 100);
 
 	return `
     <div class="max-w-4xl mx-auto">
@@ -54,7 +58,7 @@ export function renderPlayers(): string {
         <div class="flex gap-4">
           <input id="playerSearch" type="text" placeholder="Search players..."
                  class="input flex-1" data-i18n-placeholder="players.searchPlaceholder" />
-          <button onclick="searchPlayers()" class="btn btn-blue" data-i18n="players.search">🔍 Search</button>
+          <button id="searchPlayersBtn" class="btn btn-blue" data-i18n="players.search">🔍 Search</button>
         </div>
       </div>
 
@@ -72,7 +76,7 @@ export function renderPlayers(): string {
             <button id="addFriendBtn" class="btn btn-green flex-1" data-i18n="players.addFriend">
               ➕ Add Friend
             </button>
-            <button onclick="closePlayerModal()" class="btn btn-gray flex-1" data-i18n="common.close">
+            <button id="closeModalBtn" class="btn btn-gray flex-1" data-i18n="common.close">
               Close
             </button>
           </div>
@@ -82,14 +86,65 @@ export function renderPlayers(): string {
   `;
 }
 
+function setupPlayerCardClickHandlers(): void {
+	console.log('[DEBUG] Setting up player card click handlers');
+	
+	// Event delegation for player cards
+	const playersList = document.getElementById('playersList');
+	if (playersList) {
+		playersList.addEventListener('click', (e) => {
+			const card = (e.target as HTMLElement).closest('[data-player-id]');
+			if (card) {
+				const playerId = card.getAttribute('data-player-id');
+				console.log('[DEBUG] Player card clicked, playerId:', playerId);
+				if (playerId) {
+					viewPlayer(playerId);
+				}
+			}
+		});
+		console.log('[DEBUG] Player card click handler attached');
+	}
+	
+	// Search button
+	const searchBtn = document.getElementById('searchPlayersBtn');
+	if (searchBtn) {
+		searchBtn.addEventListener('click', searchPlayers);
+		console.log('[DEBUG] Search button handler attached');
+	}
+	
+	// Search on Enter key
+	const searchInput = document.getElementById('playerSearch') as HTMLInputElement;
+	if (searchInput) {
+		searchInput.addEventListener('keypress', (e) => {
+			if (e.key === 'Enter') {
+				searchPlayers();
+			}
+		});
+		console.log('[DEBUG] Search input Enter key handler attached');
+	}
+	
+	// Close modal button
+	const closeBtn = document.getElementById('closeModalBtn');
+	if (closeBtn) {
+		closeBtn.addEventListener('click', closePlayerModal);
+		console.log('[DEBUG] Close modal button handler attached');
+	}
+}
+
 async function loadPlayers(search: string = ''): Promise<void> {
+	console.log('[DEBUG] loadPlayers called with search:', search);
 	const container = document.getElementById('playersList');
-	if (!container) return;
+	if (!container) {
+		console.error('[DEBUG] playersList container not found!');
+		return;
+	}
 
 	try {
 		const response = await api<{ success: boolean; users: PlayerListItem[] }>(
 			`/api/database/players?search=${encodeURIComponent(search)}&limit=50`
 		);
+
+		console.log('[DEBUG] loadPlayers response:', response);
 
 		if (response.success && response.users.length > 0) {
 			// Render immediately with default avatars for speed
@@ -133,7 +188,6 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			</div>
 		`;
 		window.languageManager?.applyTranslations();
-		// Reminder: Ensure 'players.loadError' and 'players.authRequired' are present in all i18n dictionaries.
 	}
 }
 
@@ -141,9 +195,9 @@ function renderPlayerCard(player: PlayerListItem): string {
 	const statusColor = player.online_status === 'online' ? 'text-green-400' : 'text-gray-400';
 	const statusDot = player.online_status === 'online' ? 'bg-green-400' : 'bg-gray-400';
 
+	// REMOVED inline onclick - using event delegation instead
 	return `
-		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}"
-				 onclick="viewPlayer('${player.id}')">
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}">
 			<div class="flex items-center gap-4">
 				<div class="relative">
 					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
@@ -163,23 +217,36 @@ function renderPlayerCard(player: PlayerListItem): string {
 }
 
 async function viewPlayer(playerId: string): Promise<void> {
+	console.log('[DEBUG] viewPlayer called for playerId:', playerId);
 	const modal = document.getElementById('playerModal');
 	const content = document.getElementById('playerModalContent');
+	const addFriendBtn = document.getElementById('addFriendBtn');
 
-	if (!modal || !content) return;
+	console.log('[DEBUG] DOM elements:', { 
+		modal: modal ? 'found' : 'NOT FOUND', 
+		content: content ? 'found' : 'NOT FOUND',
+		addFriendBtn: addFriendBtn ? 'found' : 'NOT FOUND'
+	});
+
+	if (!modal || !content) {
+		console.error('[DEBUG] Required DOM elements not found!');
+		return;
+	}
 
 	// Show loading state
 	content.innerHTML = `
-    <div class="animate-pulse">
-      <div class="h-32 bg-gray-700 rounded mb-4"></div>
-      <div class="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-      <div class="h-4 bg-gray-700 rounded w-1/2"></div>
-    </div>
-  `;
+		<div class="animate-pulse">
+			<div class="h-32 bg-gray-700 rounded mb-4"></div>
+			<div class="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+			<div class="h-4 bg-gray-700 rounded w-1/2"></div>
+		</div>
+	`;
 	modal.classList.remove('hidden');
+	console.log('[DEBUG] Modal shown, loading player data...');
 
 	try {
 		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${playerId}`);
+		console.log('[DEBUG] Player profile response:', response);
 
 		if (response.success && response.user) {
 			const player = response.user;
@@ -226,20 +293,48 @@ async function viewPlayer(playerId: string): Promise<void> {
 				</div>
 			`;
 
-			// Store player ID for add friend button
-			const addFriendBtn = document.getElementById('addFriendBtn');
-			if (addFriendBtn) {
-				addFriendBtn.setAttribute('data-player-id', playerId);
-				addFriendBtn.onclick = () => addFriend(playerId);
-				// Set i18n attribute and default text for Add Friend button
-				addFriendBtn.setAttribute('data-i18n', 'players.addFriend');
-				addFriendBtn.innerHTML = '➕ Add Friend';
+			console.log('[DEBUG] Content updated, applying translations...');
+			
+			// Apply translations first
+			if (window.languageManager) {
+				window.languageManager.applyTranslations();
+				console.log('[DEBUG] Translations applied');
+			} else {
+				console.warn('[DEBUG] languageManager not available');
 			}
-
-			window.languageManager?.applyTranslations();
+			
+			// Set up the Add Friend button handler
+			setTimeout(() => {
+				const btn = document.getElementById('addFriendBtn');
+				console.log('[DEBUG] Setting up Add Friend button handler, button found:', btn ? 'YES' : 'NO');
+				
+				if (btn) {
+					console.log('[DEBUG] Button current state:', {
+						innerHTML: btn.innerHTML,
+						disabled: btn.hasAttribute('disabled'),
+						classes: btn.className
+					});
+					
+					// Remove any existing click handler
+					const newBtn = btn.cloneNode(true) as HTMLButtonElement;
+					btn.parentNode?.replaceChild(newBtn, btn);
+					
+					// Set up the click handler on the fresh button
+					newBtn.setAttribute('data-player-id', playerId);
+					newBtn.addEventListener('click', () => {
+						console.log('[DEBUG] Add Friend button clicked!');
+						addFriend(playerId);
+					});
+					
+					console.log('[DEBUG] Add Friend button handler attached successfully');
+				} else {
+					console.error('[DEBUG] addFriendBtn not found in DOM!');
+					console.log('[DEBUG] All buttons in modal:', document.querySelectorAll('#playerModal button'));
+				}
+			}, 50);
 		}
 	} catch (error: any) {
-		console.error('Error loading player profile:', error);
+		console.error('[DEBUG] Error loading player profile:', error);
 		let isAuthError = false;
 		if (error && error.message === 'auth.authenticationRequired') {
 			isAuthError = true;
@@ -310,6 +405,7 @@ function formatDuration(seconds: number): string {
 }
 
 function closePlayerModal(): void {
+	console.log('[DEBUG] closePlayerModal called');
 	const modal = document.getElementById('playerModal');
 	if (modal) {
 		modal.classList.add('hidden');
@@ -317,8 +413,13 @@ function closePlayerModal(): void {
 }
 
 async function addFriend(playerId: string): Promise<void> {
+	console.log('[DEBUG] ===== addFriend called for playerId:', playerId, '=====');
 	const btn = document.getElementById('addFriendBtn');
+	
+	console.log('[DEBUG] Button found:', btn ? 'YES' : 'NO');
+	
 	if (btn) {
+		console.log('[DEBUG] Disabling button and showing loading state...');
 		btn.setAttribute('disabled', 'true');
 		btn.setAttribute('data-i18n', 'players.sendingRequest');
 		btn.innerHTML = '⏳ Sending...';
@@ -326,20 +427,25 @@ async function addFriend(playerId: string): Promise<void> {
 	}
 
 	try {
+		console.log('[DEBUG] Checking friend status...');
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
 			(`/api/database/friends/me/check/${playerId}`);
+
+		console.log('[DEBUG] Check response:', checkResponse);
 
 		if (checkResponse.success && checkResponse.status !== 'none') {
 			if (btn) {
 				btn.removeAttribute('disabled');
 				if (checkResponse.status === 'pending') {
+					console.log('[DEBUG] Request already pending');
 					btn.setAttribute('data-i18n', 'players.requestPending');
 					btn.innerHTML = '⏳ Request Pending';
 					btn.classList.remove('btn-green');
 					btn.classList.add('btn-gray');
 					window.languageManager?.applyTranslations();
 				} else if (checkResponse.status === 'accepted') {
+					console.log('[DEBUG] Already friends');
 					btn.setAttribute('data-i18n', 'players.alreadyFriends');
 					btn.innerHTML = '✓ Already Friends';
 					btn.classList.remove('btn-green');
@@ -350,13 +456,17 @@ async function addFriend(playerId: string): Promise<void> {
 			return;
 		}
 
+		console.log('[DEBUG] Sending friend request...');
 		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
 			body: JSON.stringify({ friend_id: playerId })
 		});
 
+		console.log('[DEBUG] Friend request response:', response);
+
 		if (response.success) {
+			console.log('[DEBUG] Friend request sent successfully!');
 			if (btn) {
 				btn.setAttribute('data-i18n', 'players.requestSent');
 				btn.innerHTML = '✓ Request Sent!';
@@ -366,6 +476,7 @@ async function addFriend(playerId: string): Promise<void> {
 			}
 			showToast('Friend request sent!', 'success');
 		} else {
+			console.error('[DEBUG] Friend request failed:', response.error);
 			if (btn) {
 				btn.removeAttribute('disabled');
 				btn.setAttribute('data-i18n', 'players.addFriend');
@@ -375,7 +486,7 @@ async function addFriend(playerId: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
-		console.error('Error adding friend:', error);
+		console.error('[DEBUG] Error in addFriend:', error);
 		if (btn) {
 			btn.removeAttribute('disabled');
 			btn.setAttribute('data-i18n', 'players.addFriend');
@@ -387,6 +498,7 @@ async function addFriend(playerId: string): Promise<void> {
 }
 
 function showToast(message: string, type: 'success' | 'error'): void {
+	console.log('[DEBUG] showToast:', message, type);
 	// Use i18n for known messages if possible
 	let translated = message;
 	if (window.languageManager?.t) {
@@ -414,13 +526,14 @@ function showToast(message: string, type: 'success' | 'error'): void {
 }
 
 function searchPlayers(): void {
+	console.log('[DEBUG] searchPlayers called');
 	const searchInput = document.getElementById('playerSearch') as HTMLInputElement;
 	if (searchInput) {
 		loadPlayers(searchInput.value);
 	}
 }
 
-// Expose functions globally
+// Expose functions globally (for backward compatibility)
 declare global {
 	interface Window {
 		viewPlayer: (id: string) => void;
@@ -429,6 +542,12 @@ declare global {
 	}
 }
 
+console.log('[DEBUG] Exposing functions to window...');
 window.viewPlayer = viewPlayer;
 window.closePlayerModal = closePlayerModal;
 window.searchPlayers = searchPlayers;
+console.log('[DEBUG] Functions exposed:', {
+	viewPlayer: typeof window.viewPlayer,
+	closePlayerModal: typeof window.closePlayerModal,
+	searchPlayers: typeof window.searchPlayers
+});
