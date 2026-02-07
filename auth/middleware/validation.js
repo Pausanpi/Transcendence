@@ -1,6 +1,5 @@
 import validationService from '../services/validation.js';
 import passwordService from '../services/password.js';
-import fastifyStatic from '@fastify/static';
 
 export function validateRegistration(request, reply, next) {
 	const { username, email, password } = request.body;

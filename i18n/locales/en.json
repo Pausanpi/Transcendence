@@ -9,6 +9,7 @@
 		"cancel": "Cancel",
 		"confirm": "Confirm",
 		"back": "Back",
+		"close": "Close",
 		"logout": "Logout",
 		"internalError": "Internal server error",
 		"enabled": "Enabled",
@@ -45,6 +46,7 @@
 			"Anti-DDoS Rate Limiting"
 		]
 	},
+
 	"profile": {
 		"adminPanel": "Administration Panel",
 		"manageUsers": "Manage Users",
@@ -54,6 +56,8 @@
 		"notAvailable": "Not available",
 		"title": "User Profile",
 		"user": "User",
+		"username": "Full name",
+		"displayName": "Nickname",
 		"email": "Email",
 		"id": "ID",
 		"2fa": "2FA",
@@ -71,7 +75,13 @@
 		],
 		"configure2FA": "Configure 2FA",
 		"manage2FA": "Manage 2FA",
-		"privacyData": "Privacy and Data"
+		"privacyData": "Privacy and Data",
+		"gamesPlayed": "Games",
+		"wins": "Wins",
+		"losses": "Losses",
+		"winRate": "Win%",
+		"matchHistory": "📜 Match History",
+		"noMatchHistory": "No matches played yet"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA disabled successfully",
@@ -253,5 +263,57 @@
 		"vaultTooltip": "Open HashiCorp Vault",
 		"accessDenied": "Access denied",
 		"adminRightsRequired": "Administrator rights required"
+	},
+	"players": {
+		"title": "👥 Players",
+		"searchPlaceholder": "Search players...",
+		"search": "🔍 Search",
+		"noPlayersFound": "No players found",
+		"authRequired": "You must be logged in to see other players",
+		"loadError": "Failed to load players. Please try again later.",
+		"loadErrorProfile": "Failed to load player profile. Please try again later.",
+		"addFriend": "Add Friend",
+		"sendingRequest": "Sending request...",
+		"requestPending": "Request Pending",
+		"alreadyFriends": "Already Friends",
+		"requestSent": "Request Sent!",
+		"victory": "Victory",
+		"defeat": "Defeat",
+		"tournament": "Tournament",
+		"vs": "vs",
+		"unknown": "Unknown",
+		"friendRequestSent": "Friend request sent!",
+		"failedToSendRequest": "Failed to send request",
+		"failedToSendFriendRequest": "Failed to send friend request",
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		}
+	},
+	
+	"friends": {
+		"title": "👫 Friends",
+		"myFriends": "👥 My Friends",
+		"requests": "📬 Requests",
+		"sent": "📤 Sent",
+		"noFriends": "You don't have any friends yet.",
+		"findPlayers": "🔍 Find Players",
+		"noRequests": "No pending friend requests.",
+		"noSent": "No pending sent requests.",
+		"viewProfile": "👤 Profile",
+		"remove": "✖",
+		"wantsToBeYourFriend": "wants to be your friend",
+		"accept": "✓ Accept",
+		"reject": "✗ Reject",
+		"pendingRequest": "Request pending...",
+		"cancel": "✗ Cancel",
+		"loadError": "Failed to load. Please try again.",
+		"loadErrorProfile": "Failed to load player profile",
+		"requestAccepted": "Friend request accepted!",
+		"requestRejected": "Friend request rejected",
+		"requestCancelled": "Friend request cancelled",
+		"friendRemoved": "Friend removed successfully",
+		"confirmRemove": "Remove {{username}} from friends?",
+		"error": "An error occurred. Please try again."
 	}
 }

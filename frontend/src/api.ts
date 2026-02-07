@@ -1,21 +1,53 @@
 const API_BASE = '';
 
+// Fallback in-memory storage for private browsing mode
+let memoryStorage: { [key: string]: string } = {};
+
+// Check if storage is available
+function isStorageAvailable(type: 'localStorage' | 'sessionStorage'): boolean {
+  try {
+    const storage = window[type];
+    const test = '__storage_test__';
+    storage.setItem(test, test);
+    storage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Use sessionStorage if available, fallback to memory
+const useSessionStorage = isStorageAvailable('sessionStorage');
+
 function getToken(): string | null {
-  return localStorage.getItem('auth_token');
+  if (useSessionStorage) {
+    return sessionStorage.getItem('auth_token');
+  }
+  return memoryStorage['auth_token'] || null;
 }
 
 function setToken(token: string): void {
-  localStorage.setItem('auth_token', token);
+  if (useSessionStorage) {
+    sessionStorage.setItem('auth_token', token);
+  } else {
+    memoryStorage['auth_token'] = token;
+  }
 }
 
 function clearToken(): void {
-  localStorage.removeItem('auth_token');
+  if (useSessionStorage) {
+    sessionStorage.removeItem('auth_token');
+  } else {
+    delete memoryStorage['auth_token'];
+  }
+}
+
+function removeAuthToken(): void {
+  clearToken();
 }
 
 function getHeaders(): HeadersInit {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  };
+  const headers: Record<string, string> = {};
 
   const token = getToken();
   if (token) {
@@ -26,21 +58,41 @@ function getHeaders(): HeadersInit {
 }
 
 async function api<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const isFormData = options.body instanceof FormData;
+
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    headers: { ...getHeaders(), ...options.headers }
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...getHeaders(),
+      ...options.headers
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'common.requestFailed');
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
   }
 
-  return response.json();
-}
+  if (response.status === 401 && data?.error === 'auth.invalidToken') {
+    removeAuthToken();
 
-function removeAuthToken(): void {
-  clearToken();
+    window.dispatchEvent(
+      new CustomEvent('auth-expired', {
+        detail: 'Your session has expired. Please login again.'
+      })
+    );
+
+    throw new Error('auth.invalidToken');
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'common.requestFailed');
+  }
+
+  return data as T;
 }
 
 export { api, getToken, setToken, clearToken, removeAuthToken };

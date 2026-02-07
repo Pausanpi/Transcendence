@@ -9,6 +9,9 @@ import { renderTournamentPage } from './tournamentPage.js';
 import { renderGdpr } from './pages/gdpr.js';
 import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
+import { renderPlayers } from './pages/players.js';
+import { renderFriends } from './pages/friends.js';
+import { renderTestPage } from './pages/testpage.js';
 const routes = {
     home: renderHome,
     games: renderGames,
@@ -20,6 +23,9 @@ const routes = {
     tournament_game: renderTournamentPage,
     gdpr: renderGdpr,
     twofaverify: renderTwoFAVerify,
+    players: renderPlayers,
+    friends: renderFriends,
+    testpage: renderTestPage,
 };
 let currentPage = 'home';
 export function navigate(page) {
