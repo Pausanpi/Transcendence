@@ -4,6 +4,13 @@ import { initPongGame, setOnGameEnd, showWinnerOverlay } from '../pong.js';
 import { setupTicTacToe } from '../tictactoe.js';
 // ===== PLAYER SETUP STATE =====
 let verifiedPlayer2: any = null;
+
+// ===== GAME OPTIONS STATE =====
+let pendingGamePlayers: any = null;
+let gameOptions = {
+  background: 'default',
+  difficulty: 'medium'
+};
 // ===== GAME SELECTION PAGE =====
 export function renderGames() {
     return `
@@ -267,6 +274,112 @@ async function confirmPlayer2Setup() {
     startPongWithPlayers(player1, player2);
 }
 function startPongWithPlayers(player1: any, player2: any) {
+    // Store players and show game options modal
+    pendingGamePlayers = { player1, player2 };
+    showGameOptionsModal();
+}
+
+function showGameOptionsModal() {
+    showModal(`
+    <div class="card text-center space-y-6 max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-yellow-400">Game Options</h2>
+      
+      <div class="text-left">
+        <label class="block text-sm text-gray-400 mb-3 font-bold">Background</label>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <label class="flex flex-col items-center cursor-pointer group">
+            <input type="radio" name="background" value="default" checked data-background="default" class="hidden">
+            <div class="w-full h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-black flex items-center justify-center text-white text-xs font-bold mb-2 transition-all duration-200 pointer-events-none"></div>
+            <span class="text-white text-sm">Default</span>
+          </label>
+          
+          <label class="flex flex-col items-center cursor-pointer group">
+            <input type="radio" name="background" value="space" data-background="space" class="hidden">
+            <div class="w-full h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+              <div class="absolute w-1 h-1 bg-white rounded-full pointer-events-none" style="top: 20%; left: 20%;"></div>
+              <div class="absolute w-0.5 h-0.5 bg-white rounded-full pointer-events-none" style="top: 40%; right: 30%;"></div>
+              <div class="absolute w-1 h-1 bg-white rounded-full pointer-events-none" style="bottom: 25%; left: 35%;"></div>
+              <div class="absolute w-0.5 h-0.5 bg-white rounded-full pointer-events-none" style="bottom: 15%; right: 20%;"></div>
+            </div>
+            <span class="text-white text-sm">Space</span>
+          </label>
+          
+          <label class="flex flex-col items-center cursor-pointer group">
+            <input type="radio" name="background" value="ocean" data-background="ocean" class="hidden">
+            <div class="w-full h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-blue-900 to-blue-950 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+              <div class="absolute inset-0 opacity-30 pointer-events-none" style="background: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);"></div>
+            </div>
+            <span class="text-white text-sm">Ocean</span>
+          </label>
+          
+          <label class="flex flex-col items-center cursor-pointer group">
+            <input type="radio" name="background" value="neon" data-background="neon" class="hidden">
+            <div class="w-full h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-br from-purple-900 via-gray-900 to-cyan-900 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+              <div class="absolute inset-0 opacity-50 pointer-events-none" style="background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,255,255,0.1) 5px, rgba(0,255,255,0.1) 10px);"></div>
+            </div>
+            <span class="text-white text-sm">Neon</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="text-left">
+        <label class="block text-sm text-gray-400 mb-3 font-bold">Difficulty</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio" name="difficulty" value="easy" data-difficulty="easy" class="w-4 h-4">
+            <span class="text-white">Easy</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio" name="difficulty" value="medium" checked data-difficulty="medium" class="w-4 h-4">
+            <span class="text-white">Medium</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio" name="difficulty" value="hard" data-difficulty="hard" class="w-4 h-4">
+            <span class="text-white">Hard</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-4 mt-6">
+        <button onclick="window.gameUI.cancelGameOptions()" class="btn btn-gray flex-1">Cancel</button>
+        <button onclick="window.gameUI.confirmGameOptions()" class="btn btn-green flex-1">Accept</button>
+      </div>
+    </div>
+  `);
+  
+  // Attach event listeners after modal is created
+  setTimeout(() => {
+    const backgroundInputs = document.querySelectorAll('input[name="background"]');
+    const difficultyInputs = document.querySelectorAll('input[name="difficulty"]');
+    
+    backgroundInputs.forEach(input => {
+      input.addEventListener('change', (e: any) => {
+        gameOptions.background = e.target.value;
+        console.log('Background changed to:', e.target.value);
+      });
+    });
+    
+    difficultyInputs.forEach(input => {
+      input.addEventListener('change', (e: any) => {
+        gameOptions.difficulty = e.target.value;
+        console.log('Difficulty changed to:', e.target.value);
+      });
+    });
+  }, 0);
+}
+
+function updateGameOption(option: string, value: string) {
+    gameOptions = {
+        ...gameOptions,
+        [option]: value
+    };
+}
+
+function confirmGameOptions() {
+    if (!pendingGamePlayers) return;
+    
+    const { player1, player2 } = pendingGamePlayers;
+    
     // Start session
     startGameSession({
         player1,
@@ -275,16 +388,29 @@ function startPongWithPlayers(player1: any, player2: any) {
         isAI: false,
         startTime: Date.now()
     });
+    
     // Setup game end handler
     setupPongGameEndHandler();
+    
     // Hide modal and start game
     hideModal();
     navigate('game');
     initPongGame({
         player1,
         player2,
-        isAI: false
+        isAI: false,
+        gameOptions: gameOptions
     });
+}
+
+function cancelGameOptions() {
+    pendingGamePlayers = null;
+    gameOptions = {
+        background: 'default',
+        difficulty: 'medium'
+    };
+    hideModal();
+    navigate('games');
 }
 // ===== GAME END HANDLING =====
 function setupPongGameEndHandler() {
@@ -394,5 +520,9 @@ function focusFirstInput() {
     clearPlayer2Verification,
     confirmGuestVsGuest,
     confirmPlayer2Setup,
-    backToPlayer2Setup
+    backToPlayer2Setup,
+    // Game options
+    updateGameOption,
+    confirmGameOptions,
+    cancelGameOptions
 };

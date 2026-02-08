@@ -40,6 +40,8 @@ let animationId: number;
 let gameOn = false;
 let isAI = false;
 let difficulty = 3;
+let paddleHeight = 100; // Default paddle height
+let backgroundType = 'default'; // Background type
 
 // Player info for current game
 let player1: Player;
@@ -52,7 +54,7 @@ let score1 = 0, score2 = 0;
 const keys: Record<string, boolean> = {};
 
 // Game constants
-const INITIAL_BALL_SPEED = 5;
+const INITIAL_BALL_SPEED = 3;
 const MAX_BALL_SPEED = 15;
 const SPEED_INCREMENT = 0.05;
 const PADDLE_SPEED = 5;
@@ -69,11 +71,33 @@ export function initPongGame(config: {
   player2: Player;
   isAI: boolean;
   difficulty?: number;
+  gameOptions?: {
+    background: string;
+    difficulty: string;
+  };
 }): void {
   player1 = config.player1;
   player2 = config.player2;
   isAI = config.isAI;
   difficulty = config.difficulty || 3;
+
+  // Calculate paddle height based on game difficulty
+  if (config.gameOptions) {
+    switch (config.gameOptions.difficulty) {
+      case 'easy':
+        paddleHeight = 150;
+        break;
+      case 'medium':
+        paddleHeight = 100;
+        break;
+      case 'hard':
+        paddleHeight = 60;
+        break;
+      default:
+        paddleHeight = 100;
+    }
+    backgroundType = config.gameOptions.background || 'default';
+  }
 
   navigate('game');
 
@@ -86,7 +110,10 @@ export function initPongGame(config: {
     // Reset game state
     gameOn = false;
     score1 = score2 = 0;
-    paddle1.y = paddle2.y = 250;
+    paddle1.y = 250;
+    paddle1.h = paddleHeight;
+    paddle2.y = 250;
+    paddle2.h = paddleHeight;
     paddle1.dy = paddle2.dy = 0;
     resetBall();
     
@@ -104,10 +131,20 @@ export function initPongGame(config: {
   }, 50);
 }
 
-function resetBall(): void {
+function resetBall(direction?: 'left' | 'right'): void {
   ball.x = 400;
   ball.y = 300;
-  ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  
+  // If a direction is specified (after scoring), ball goes to that side
+  // Otherwise, random direction (at game start)
+  if (direction === 'left') {
+    ball.dx = -INITIAL_BALL_SPEED;
+  } else if (direction === 'right') {
+    ball.dx = INITIAL_BALL_SPEED;
+  } else {
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  }
+  
   ball.dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
   
   // Update AI target on ball reset
@@ -285,8 +322,8 @@ function update(): void {
     ball.x = rightPaddleLeft - ball.r;
   }
 
-  if (ball.x < 0) { score2++; checkWin(); resetBall(); }
-  if (ball.x > 800) { score1++; checkWin(); resetBall(); }
+  if (ball.x < 0) { score2++; checkWin(); resetBall('right'); }
+  if (ball.x > 800) { score1++; checkWin(); resetBall('left'); }
 }
 
 function checkWin(): void {
@@ -313,13 +350,81 @@ function checkWin(): void {
   }
 }
 
+function drawBackground(): void {
+  switch (backgroundType) {
+    case 'space': {
+      // Space background with stars
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw stars
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 137) % 800;
+        const y = (i * 71) % 600;
+        const size = (i % 3) * 0.5 + 0.5;
+        ctx.fillRect(x, y, size, size);
+      }
+      break;
+    }
+    case 'ocean': {
+      // Ocean background with waves
+      const oceanGradient = ctx.createLinearGradient(0, 0, 0, 600);
+      oceanGradient.addColorStop(0, '#1a3a4a');
+      oceanGradient.addColorStop(1, '#0a1a2a');
+      ctx.fillStyle = oceanGradient;
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw wave pattern
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        for (let x = 0; x < 800; x += 10) {
+          const y = i * 100 + Math.sin(x * 0.05) * 10;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'neon': {
+      // Neon background
+      const neonGradient = ctx.createLinearGradient(0, 0, 800, 600);
+      neonGradient.addColorStop(0, '#1a0033');
+      neonGradient.addColorStop(0.5, '#0a0a1a');
+      neonGradient.addColorStop(1, '#001a33');
+      ctx.fillStyle = neonGradient;
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw neon grid
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 800; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 600);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 600; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+      break;
+    }
+    default:
+      // Default black background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 800, 600);
+  }
+}
+
 function draw(): void {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, 800, 600);
+  drawBackground();
 
   ctx.fillStyle = '#fff';
-  ctx.fillRect(paddle1.x, paddle1.y, 10, 100);
-  ctx.fillRect(paddle2.x, paddle2.y, 10, 100);
+  ctx.fillRect(paddle1.x, paddle1.y, paddle1.w, paddle1.h);
+  ctx.fillRect(paddle2.x, paddle2.y, paddle2.w, paddle2.h);
 
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, 10, 0, Math.PI * 2);
@@ -393,7 +498,10 @@ export function stopPongGame(): void {
   ball.dx = INITIAL_BALL_SPEED;
   ball.dy = INITIAL_BALL_SPEED;
   paddle1.y = paddle2.y = 250;
+  paddle1.h = paddle2.h = 100;
   paddle1.dy = paddle2.dy = 0;
+  paddleHeight = 100;
+  backgroundType = 'default';
   score1 = score2 = 0;
   
   // Hide exit button
