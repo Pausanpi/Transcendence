@@ -56,7 +56,7 @@ const keys: Record<string, boolean> = {};
 // Game constants
 const INITIAL_BALL_SPEED = 3;
 const MAX_BALL_SPEED = 15;
-const SPEED_INCREMENT = 0.05;
+const SPEED_INCREMENT = 0.01;
 const PADDLE_SPEED = 5;
 const COLLISION_MARGIN = 6;
 const IMPACT_ANGLE_FACTOR = 8;
