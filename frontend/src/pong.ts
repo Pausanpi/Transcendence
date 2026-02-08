@@ -52,7 +52,7 @@ let score1 = 0, score2 = 0;
 const keys: Record<string, boolean> = {};
 
 // Game constants
-const INITIAL_BALL_SPEED = 5;
+const INITIAL_BALL_SPEED = 3;
 const MAX_BALL_SPEED = 15;
 const SPEED_INCREMENT = 0.05;
 const PADDLE_SPEED = 5;
@@ -104,10 +104,20 @@ export function initPongGame(config: {
   }, 50);
 }
 
-function resetBall(): void {
+function resetBall(direction?: 'left' | 'right'): void {
   ball.x = 400;
   ball.y = 300;
-  ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  
+  // If a direction is specified (after scoring), ball goes to that side
+  // Otherwise, random direction (at game start)
+  if (direction === 'left') {
+    ball.dx = -INITIAL_BALL_SPEED;
+  } else if (direction === 'right') {
+    ball.dx = INITIAL_BALL_SPEED;
+  } else {
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  }
+  
   ball.dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
   
   // Update AI target on ball reset
@@ -285,8 +295,8 @@ function update(): void {
     ball.x = rightPaddleLeft - ball.r;
   }
 
-  if (ball.x < 0) { score2++; checkWin(); resetBall(); }
-  if (ball.x > 800) { score1++; checkWin(); resetBall(); }
+  if (ball.x < 0) { score2++; checkWin(); resetBall('right'); }
+  if (ball.x > 800) { score1++; checkWin(); resetBall('left'); }
 }
 
 function checkWin(): void {
