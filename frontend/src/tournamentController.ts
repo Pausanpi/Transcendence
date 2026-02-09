@@ -64,8 +64,29 @@ export function finishMatch(winner: Player): void {
   }
 }
 
+function showChampionOverlay(championName: string, onComplete: () => void): void {
+  const el = document.getElementById('countdown');
+  const txt = document.getElementById('countdownText');
+  
+  if (!el || !txt) {
+    onComplete();
+    return;
+  }
+
+  el.classList.remove('hidden');
+  txt.innerHTML = `<div class="text-6xl font-bold text-yellow-400 mb-4">🏆 ${championName}</div><div class="text-4xl font-semibold text-yellow-300">Tournament Champion!</div>`;
+
+  setTimeout(() => {
+    el.classList.add('hidden');
+    txt.className = 'text-9xl font-extrabold text-yellow-300';
+    txt.innerHTML = '';
+    onComplete();
+  }, 4000);
+}
+
 function showChampion(player: Player): void {
-  alert(`🏆 Tournament Champion: ${player.name}`);
-  sessionStorage.removeItem("pongTournament");
-  navigate("home");
+  showChampionOverlay(player.name, () => {
+    sessionStorage.removeItem("pongTournament");
+    navigate("home");
+  });
 }
