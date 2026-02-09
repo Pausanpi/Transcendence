@@ -2,13 +2,18 @@ import Fastify from 'fastify';
 import crypto from 'crypto';
 
 export default async function createFastifyApp(options = {}) {
-	const { serviceName = 'unknown', enableSessions = false, corsOrigin = false } = options;
+
+	const {
+		serviceName = 'unknown',
+		enableSessions = false,
+		corsOrigin = false,
+		getSessionSecret = null,
+	} = options;
+
 
 	const loggerConfig = {
-		level: process.env.LOG_LEVEL || 'info'
+		level: 'warn'
 	};
-
-
 
 	const fastify = Fastify({
 		logger: loggerConfig,
@@ -16,58 +21,62 @@ export default async function createFastifyApp(options = {}) {
 	});
 
 
+	if (corsOrigin) {
+		const fastifyCors = await import('@fastify/cors');
+		const origin = corsOrigin === true
+			? true
+			: corsOrigin;
 
-if (corsOrigin) {
-    const fastifyCors = await import('@fastify/cors');
-    const origin = corsOrigin === true
-        ? true
-        : (process.env.CORS_ORIGIN || corsOrigin);
-
-    await fastify.register(fastifyCors.default, {
-        origin: origin,
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token', 'Cookie'],
-        exposedHeaders: ['Set-Cookie', 'Authorization']
-    });
-}
+		await fastify.register(fastifyCors.default, {
+			origin: origin,
+			credentials: true,
+			methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+			allowedHeaders: ['Content-Type', 'Authorization', 'x-service-token', 'Cookie'],
+			exposedHeaders: ['Set-Cookie', 'Authorization']
+		});
+	}
 
 	if (serviceName === 'api-gateway' || serviceName === 'auth-service') {
 		const fastifyFormbody = await import('@fastify/formbody');
 		await fastify.register(fastifyFormbody.default);
 	}
 
+if (enableSessions) {
+  const fastifySecureSession = await import('@fastify/secure-session');
 
-	if (enableSessions) {
-		const fastifySecureSession = await import('@fastify/secure-session');
+  if (!getSessionSecret) {
+    throw new Error('getSessionSecret is required when enableSessions=true');
+  }
 
-		const sessionSecret = process.env.SESSION_SECRET;
-		let sessionKey;
-		if (sessionSecret && sessionSecret.length >= 64) {
-			sessionKey = Buffer.from(sessionSecret, 'hex');
-		} else {
-			console.warn('SESSION_SECRET not set or invalid, generating random session key');
-			sessionKey = crypto.randomBytes(32);
-		}
+  const sessionSecret = await getSessionSecret();
 
-		await fastify.register(fastifySecureSession.default, {
-			key: sessionKey,
-			cookie: {
-				path: '/',
-				secure: true,
-				httpOnly: true,
-				sameSite: 'none'
-			},
-			cookieName: 'sessionId',
-			sessionName: 'session'
-		});
+  let sessionKey;
+  if (sessionSecret && sessionSecret.length >= 64) {
+    sessionKey = Buffer.from(sessionSecret, 'hex');
+  } else {
+    console.warn('SESSION_SECRET not set or invalid, generating random session key');
+    sessionKey = crypto.randomBytes(32);
+  }
 
-		if (serviceName === 'api-gateway') {
-			const fastifyPassport = await import('@fastify/passport');
-			await fastify.register(fastifyPassport.default.initialize());
-			await fastify.register(fastifyPassport.default.secureSession());
-		}
-	}
+  await fastify.register(fastifySecureSession.default, {
+    key: sessionKey,
+    cookie: {
+      path: '/',
+      secure: true,
+      httpOnly: true,
+      sameSite: 'none'
+    },
+    cookieName: 'sessionId',
+    sessionName: 'session'
+  });
+
+  if (serviceName === 'api-gateway') {
+    const fastifyPassport = await import('@fastify/passport');
+    await fastify.register(fastifyPassport.default.initialize());
+    await fastify.register(fastifyPassport.default.secureSession());
+  }
+}
+
 
 	fastify.addHook('onReady', async () => {
 		if (!fastify.hasRequestDecorator('isAuthenticated')) {

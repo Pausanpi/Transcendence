@@ -37,6 +37,21 @@
   <!-- App Container -->
   <div id="app" class="max-w-6xl mx-auto p-4"></div>
 
+  <!-- Exit Game Button (Game page) -->
+  <div id="exitGameContainer" class="fixed bottom-4 right-4 hidden">
+    <button onclick="exitGame()" class="btn btn-red">← Exit Game</button>
+  </div>
+
+  <!-- TicTacToe Settings (Game page) -->
+  <div id="tictactoeSettings" class="fixed bottom-4 left-4 hidden">
+    <div class="bg-gray-800 p-3 rounded-lg shadow-lg space-y-2">
+      <div class="text-sm font-bold text-yellow-400 mb-2">⚙️ Theme</div>
+      <button onclick="changeTicTacToeTheme('classic')" class="btn btn-sm w-full bg-blue-600">Classic</button>
+      <button onclick="changeTicTacToeTheme('neon')" class="btn btn-sm w-full bg-green-600">Neon</button>
+      <button onclick="changeTicTacToeTheme('minimal')" class="btn btn-sm w-full bg-gray-600">Minimal</button>
+    </div>
+  </div>
+
   <!-- Modal -->
   <div id="modal" class="modal hidden"></div>
 
@@ -45,6 +60,6 @@
     <span id="countdownText"></span>
   </div>
 
-  <script type="module" src="dist/main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

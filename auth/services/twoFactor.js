@@ -1,6 +1,5 @@
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-import { databaseApiClient } from '../../shared/http-client.js';
 import bcrypt from 'bcrypt';
 
 class TwoFactorService {
@@ -61,8 +60,19 @@ class TwoFactorService {
 				})
 			);
 
-			const response = await databaseApiClient.saveBackupCodes(userId, hashedCodes);
-			return response.data.success;
+			const response = await fetch(
+				`http://database:3003/database/backup-codes`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ user_id: userId, hashedCodes })
+			});
+
+			const data = await response.json();
+			if (response.status === 404) {
+				return null;
+			}
+
+			return data.success;
 		} catch (error) {
 			return false;
 		}
@@ -70,18 +80,38 @@ class TwoFactorService {
 
 	async verifyBackupCode(userId, code) {
 		try {
-			const response = await databaseApiClient.getBackupCodes(userId);
-			if (!response.data.success || !response.data.codes) {
+
+			const response = await fetch(
+				`http://database:3003/database/backup-codes/user/${userId}`,
+				{ method: 'GET' }
+			);
+
+			const data = await response.json();
+			if (response.status === 404) {
+				return null;
+			}
+
+
+			if (!data.success || !data.codes) {
 				return false;
 			}
 
-			const codes = response.data.codes;
+			const codes = data.codes;
 
 			for (const codeRecord of codes) {
 				if (codeRecord.used === 0) {
 					const isValid = await bcrypt.compare(code, codeRecord.code_hash);
 					if (isValid) {
-						await databaseApiClient.markCodeAsUsed(codeRecord.id);
+
+						const response = await fetch(
+							`http://database:3003/database/backup-codes/${codeId}/use`, {
+							method: 'PUT'
+						});
+
+
+						if (response.status === 404) {
+							return null;
+						}
 						return true;
 					}
 				}
@@ -94,9 +124,17 @@ class TwoFactorService {
 
 	async getRemainingBackupCodes(userId) {
 		try {
-			const response = await databaseApiClient.getBackupCodes(userId);
-			if (response.data.success && response.data.codes) {
-				return response.data.codes.filter(code => code.used === 0).length;
+			const response = await fetch(
+				`http://database:3003/database/backup-codes/user/${userId}`,
+				{ method: 'GET' }
+			);
+
+			const data = await response.json();
+			if (response.status === 404) {
+				return null;
+			}
+			if (data.success && data.codes) {
+				return data.codes.filter(code => code.used === 0).length;
 			}
 			return 0;
 		} catch (error) {
@@ -106,12 +144,14 @@ class TwoFactorService {
 
 	async clearBackupCodes(userId) {
 		try {
-			const response = await databaseApiClient.saveBackupCodes(userId, []);
+			const response = await saveBackupCodes(userId, []);
 			return response.data.success;
 		} catch (error) {
 			return false;
 		}
 	}
 }
+
+
 
 export default new TwoFactorService();

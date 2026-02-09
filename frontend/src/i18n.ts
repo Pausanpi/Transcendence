@@ -1,4 +1,6 @@
-type Language = 'en' | 'es';
+import { api } from './api.js';
+
+type Language = 'en' | 'es' | 'ja';
 
 interface Translations {
 	[key: string]: string | Translations;
@@ -40,7 +42,10 @@ export class LanguageManager {
 				target instanceof HTMLSelectElement &&
 				target.id === 'languageSelect'
 			) {
-				this.changeLanguage(target.value as 'en' | 'es');
+				const lang = target.value as Language;
+				if (lang === 'en' || lang === 'es' || lang === 'ja') {
+					this.changeLanguage(lang);
+				}
 			}
 		});
 	}
@@ -50,11 +55,15 @@ export class LanguageManager {
 		try {
 			const savedLang = localStorage.getItem('preferredLanguage') as Language | null;
 
-			if (savedLang === 'en' || savedLang === 'es') {
+			if (savedLang === 'en' || savedLang === 'es' || savedLang === 'ja') {
 				this.currentLanguage = savedLang;
 			} else {
 				const browserLang = navigator.language.split('-')[0];
-				this.currentLanguage = browserLang === 'es' ? 'es' : 'en';
+				if (browserLang === 'es' || browserLang === 'ja') {
+					this.currentLanguage = browserLang as Language;
+				} else {
+					this.currentLanguage = 'en';
+				}
 				localStorage.setItem('preferredLanguage', this.currentLanguage);
 			}
 
@@ -73,18 +82,17 @@ export class LanguageManager {
 
 	private async syncWithServer(): Promise<void> {
 		try {
-			const response = await fetch('/api/i18n/change-language', {
+			const result = await api<any>('/api/i18n/change-language', {
 				method: 'POST',
 				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ language: this.currentLanguage })
 			});
+if (!result?.success) {
+	throw new Error('Failed to sync language with server');
+}
 
-			if (!response.ok) {
-				throw new Error('Failed to sync language with server');
-			}
-
-			await response.json();
+			await result;
 		} catch (error) {
 			console.warn('Could not sync language with server:', error);
 		}
@@ -92,15 +100,16 @@ export class LanguageManager {
 
 	private async loadTranslations(): Promise<void> {
 		try {
-			const response = await fetch(`/api/i18n/translations?t=${Date.now()}`, {
+			const result = await api<any>(`/api/i18n/translations?language=${this.currentLanguage}&t=${Date.now()}`, {
 				credentials: 'include'
 			});
 
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
+			if (result?.success) {
+				throw new Error(`HTTP error! status: ${result.status}`);
 			}
 
-			this.translations = await response.json();
+			this.translations = await result;
+        
 		} catch (error) {
 			console.error('Error loading translations:', error);
 			await this.loadFallbackTranslations();
@@ -109,12 +118,12 @@ export class LanguageManager {
 
 	private async loadFallbackTranslations(): Promise<void> {
 		try {
-			const response = await fetch(
+			 const result = await api<any>(
 				`/api/i18n/locales/${this.currentLanguage}.json?t=${Date.now()}`
 			);
 
-			if (response.ok) {
-				this.translations = await response.json();
+			if (!result?.success) {
+				this.translations = await result;
 			}
 		} catch (error) {
 			console.error('Error loading fallback translations:', error);
@@ -133,7 +142,8 @@ export class LanguageManager {
 			if (!key) return;
 
 			const value = this.getTranslation(key);
-			if (typeof value === 'string') {
+			// Only update if translation exists (not null)
+			if (value !== null && typeof value === 'string') {
 				if (
 					element instanceof HTMLInputElement &&
 					(element.type === 'submit' || element.type === 'button')
@@ -143,6 +153,7 @@ export class LanguageManager {
 					element.textContent = value;
 				}
 			}
+			// Otherwise, keep the original HTML content (fallback)
 		});
 
 		document
@@ -152,7 +163,7 @@ export class LanguageManager {
 				if (!key) return;
 
 				const value = this.getTranslation(key);
-				if (typeof value === 'string') {
+				if (value !== null && typeof value === 'string') {
 					element.placeholder = value;
 				}
 			});
@@ -163,7 +174,7 @@ export class LanguageManager {
 		window.dispatchEvent(new CustomEvent('translationsApplied'));
 	}
 
-	private getTranslation(key: string): string {
+	private getTranslation(key: string): string | null {
 		const parts = key.split('.');
 		let current: string | Translations | undefined = this.translations;
 
@@ -173,34 +184,34 @@ export class LanguageManager {
 				current === null ||
 				!(part in current)
 			) {
-				return parts[parts.length - 1];
+				return null; // Translation not found
 			}
 			current = (current as Translations)[part];
 		}
 
-		return typeof current === 'string'
-			? current
-			: parts[parts.length - 1];
+		return typeof current === 'string' ? current : null;
 	}
 
-public t(key: string): string {
-	return this.getTranslation(key);
-}
+	public t(key: string): string | null {
+		return this.getTranslation(key);
+	}
 
 	async changeLanguage(lang: Language): Promise<boolean> {
 		try {
+			if (lang !== 'en' && lang !== 'es' && lang !== 'ja') {
+				throw new Error('Unsupported language');
+			}
 			this.currentLanguage = lang;
 			localStorage.setItem('preferredLanguage', lang);
 
-			const response = await fetch('/api/i18n/change-language', {
+			const response = await api<any>('/api/i18n/change-language', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ language: lang }),
 				credentials: 'include'
 			});
 
-			const result: { success: boolean; error?: string } =
-				await response.json();
+			const result: { success: boolean; error?: string } = await response;
 
 			if (!result.success) {
 				throw new Error(result.error);
