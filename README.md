@@ -1,95 +1,196 @@
-# LO NUEVO
+*This project has been created as part of the 42 curriculum by csubires, joestrad, lcuevas-, pausanch.*
 
-docker stop gateway
-docker rm gateway
-docker rmi gateway
-docker volume prune -f
-docker compose up -d gateway
-docker ps -a
-docker logs gateway
+# Description
 
-CHANGES:
+**ft_transcendence** is the final coding project in the 42 common cursus. It serves as proof of a complete skillset from the team, demonstrating both hard technical skills and soft skills like teamwork.
 
-1er COMMIT
-- Borrado puertos expuestos del docker-compose
-- Eliminado keepPrefix = false de proxyAPI
-- Deshabilitado algunos botones del dashboard
-- Limpieza archivos
+Transcendence is a full-stack project. The goal is to automate the deployment of an entire server with a service-oriented architecture, accessible through a standard web browser. This requires building a frontend, backend, and database, all orchestrated to work together with a single command (`make`).
 
----
+The project uses a Makefile to orchestrate Docker Compose, launching multiple containers that each encapsulate a part of the project. Each container is mostly independent and includes all necessary dependencies.
 
-  # TODO AUTH+
-- 2fa con movil
-- Después de enable 2fa refrescar perfil y ocultar boton
-- Lo de modificar (botón UPDATE) nickname y subir avatar
-- Ocultar cosas. Como el botón al configurar 2FA, Profile sin estar autenticado
-- si se roba el token puede seguir accediendo a la bd al deslogearse... implementar Refresh Token (guardado en DB o Vault)
-  Pierdes la ventaja “stateless”
-  Necesitas Redis / DB / Vault
-- Hacer que si gateway falla, nginx en vez de 404 muestre estaticos?
+Our implementation is a games platform where users can play Pong and other games, register accounts, and view their game history. The system uses a microservices architecture and includes robust cybersecurity features to protect the backend and database from potential attacks originating from the frontend.
 
-- Crear volumem compartido
-- Normalizar rutas apiproxy
+# Instructions
 
---- (Dejando para el final)
-- Cosas que traducir
-- Mejorar dashboard grafana
-- Dependencias circulares
-- Probar a montar el tsc en user
----
+## Prerequisites
 
-> [!WARNING]
-- La web se levanta en https://localhost:8443 por cuestiones del campus
-- En el navegador, al usar certificados autofirmado debes aceptar los riesgos
-- PELIGRO: make destroy borra todas las imagenes, ... pero es una buena forma de
-evitar errores por incompatibilidades con otras versiones
-- Se puede acceder a la BD de 2 formas:
-  - Directamente accediendo al servicio (Puertos expuestos TEMPORALMENTE) HTTP:
-    `http://localhost:3003/users/all`
-  - Una vez logeado y con un token valido. HTTPS:
-    `https://localhost:8443/api/database/health`
+- **Make**: Ensure you have GNU Make installed to run the Makefile.
+- **Docker**: Required to build and run the containers.
+- **Docker Compose**: Used by the Makefile to orchestrate the multi-container setup.
 
 
-**Para no tener que andar creando usuarios si accedes a http://localhost:3003/users/all se deben ver todos los ya creados, sus datos, etc**
+NOTA:  DE MOMENTO NO HE PUESTO NADA DEL ENV, SI HICIERA FALTA SE MENCIONA Y TAL
+
+To run this project, simply execute `make` in the root directory. This command will automatically build and start all required services using Docker Compose.
+
+Once the setup is complete, open your web browser (the project is designed for Google Chrome) and navigate to https://localhost:8443.
+
+From there, you will be able to access the main page, where you can register a new account, log in, play games, and explore the available features through intuitive menus.
+
+# Resources
+
+## Classic References
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+- [Database Design Basics (Microsoft)](https://learn.microsoft.com/en-us/office/troubleshoot/access/database-design-basics)
+- [SQL Tutorial (W3Schools)](https://www.w3schools.com/sql/)
+
+- [Docker Documentation](https://docs.docker.com/)
+- [Node.js Documentation](https://nodejs.org/en/docs/)
+- [MDN Web Docs (HTML, CSS, JS)](https://developer.mozilla.org/)
+- [OWASP Top Ten Security Risks](https://owasp.org/www-project-top-ten/)
+
+- [Fastify Documentation](https://www.fastify.io/docs/latest/)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [NGINX Documentation](https://nginx.org/en/docs/)
+- [ModSecurity Handbook](https://www.modsecurity.org/documentation.html)
+- [JWT (JSON Web Token) Introduction](https://jwt.io/introduction)
+- [Web Application Firewall (WAF) Overview](https://owasp.org/www-community/Web_Application_Firewall)
+- [i18next Documentation (Internationalization)](https://www.i18next.com/)
+
+- [Vault by HashiCorp Documentation](https://developer.hashicorp.com/vault/docs)
+- [Prometheus Documentation](https://prometheus.io/docs/)
+- [Grafana Documentation](https://grafana.com/docs/)
+
+- [Fetch API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+- [Fastify Multipart Plugin](https://www.fastify.io/docs/latest/Reference/Multipart/)
+- [Axios Documentation](https://axios-http.com/docs/intro)
+
+### Project Modules and Containers
+
+- **auth**: Handles authentication, 2FA, and user security.
+- **base**: Core logic and shared utilities.
+- **database**: Manages user data, matches, and persistent storage.
+- **frontend**: User interface, game logic, and client-side features (TypeScript, Tailwind CSS).
+- **gateway**: API gateway and routing.
+- **grafana**: Monitoring and dashboards.
+- **i18n**: Internationalization and language support.
+- **nginx**: Reverse proxy, load balancing, and WAF (with ModSecurity).
+- **prometheus**: Metrics and monitoring.
+- **shared**: Shared configuration and code.
+- **users**: User management services.
+- **vault**: Secrets management and secure storage.
+
+## AI Usage
+
+AI tools (such as GitHub Copilot and ChatGPT) were primarily used to help understand and document code written by other team members, as well as to assist in modifying and extending existing modules.
+
+Additionally, AI was used in a limited way for code generation, documentation review, and troubleshooting errors.
+
+No AI models were integrated into the production code or user-facing features.
 
 
-### TOOLS
+# Team Information
 
-> Para acceder a traves de la api detras de nginx hay que pasarle el token
+**csubires**  
+Roles: Technical Lead, Developer  
+Responsibilities:
+- Lead cybersecurity development
+- Code reviews for development updates
+- Reviews of microservices structure
 
-``` javascript
-curl -k https://localhost:8443/api/auth/profile-data \
+**joestrad**  
+Roles: Developer  
+Responsibilities:
+- Frontend development and refinement
+- Main developer for the tournament module
+- Testing and documentation reviews
 
-> Transpilar a ts desde host
-npx tsc --watch
-```
+**lcuevas-**  
+Roles: Project Manager (PM), Developer  
+Responsibilities:
+- Organizes meetings and tracks weekly progress
+- Coordinates team communication, versioning, and decision-making
+- Implements features and final product versions
+- Develops containerization and microservices deployment
+- Main developer for user management and database modules
 
----
+**pausanch**  
+Roles: Product Owner (PO), Developer  
+Responsibilities:
+- Initial project schematization
+- Lead developer for frontend and games modules
+- Testing and documentation reviews
+
+All members participate in code reviews, testing, and documentation. Roles overlapped as needed throughout module development.
+
+# Project Management
+
+## Organization
+In the first phase, we held weekly meetings to distribute tasks. This stage focused on investigating the technologies needed to complete the modules and establishing a basic structure, which would later be improved and refined from mock-up builds. Each week, we met to discuss challenges, review how the modules interacted, and present the general structure and tools being used, as well as those intended for the final production version.
+During this stage, every member chose their preferred modules, and we agreed on task distribution accordingly.
+
+In the second stage, we concentrated on continuous development, fleshing out the modules. We shifted to a more remote approach, with team members regularly updating each other on their progress and pushing changes to the repositories. Every update to the development branch required a code review from another team member. If an update needed extra explanation, we would meet as necessary.
 
 
-# LO DE ABAJO YA ESTABA (VIEJO/DESACTUALIZADO)
+## Tools Used
+Project management tools:
+	- Git and GitHub for version control, code reviews, and collaboration.
+	- Pen and paper for brainstorming, sketching schemas, and planning.
+	- Canva and online flowchart tools for creating diagrams of project containers, services, and database structure.
+	- No formal project management software was used; most coordination was handled directly through GitHub and informal discussions.
+
+## Communication
+Communication channels:
+  - WhatsApp for informal personal updates and organizing meetings.
+  - Slack for technical discussions and sharing small documents.
+  - GitHub for project collaboration and code reviews.
+
+# Technical Stack
+
+## Frontend
+- Technologies and frameworks used.
+
+## Backend
+- Technologies and frameworks used.
+
+## Database
+- System used and justification for choice.
+
+## Other Technologies
+- Any other significant technologies or libraries.
+- Justification for major technical choices.
+
+# Database Schema
+
+- Visual representation or description of the database structure.
+- Tables/collections and their relationships.
+- Key fields and data types.
+
+# Features List
+
+- Complete list of implemented features.
+- Which team member(s) worked on each feature.
+- Brief description of each feature’s functionality.
+
+# Modules
+
+- List of all chosen modules (Major and Minor).
+- Point calculation (Major = 2pts, Minor = 1pt).
+- Justification for each module choice, especially for custom "Modules of choice".
+- How each module was implemented.
+- Which team member(s) worked on each module.
+
+# Individual Contributions
+
+- Detailed breakdown of what each team member contributed.
+- Specific features, modules, or components implemented by each person.
+- Any challenges faced and how they were overcome.
+
+# Other Information
+
+- Usage documentation, known limitations, license, credits, etc.
 
 
-## Oauth con Github (Montar el "server" de autenticación)
 
-- Antes de nada hay que darle permisos en Authorized OAuth para registrar la App en:
-https://github.com/settings/applications . Esto se hace una vez.
-![alt text](_assets/github1.png)
 
-- Configuración
-![alt text](_assets/github3.png)
 
-- Los datos que hay que incluir en el .env
-![alt text](_assets/gitubenv.png)
 
-- Confirmo la autorización
-![alt text](_assets/gihutauth.png)
 
-- Hacer uso del boton oauth
-![alt text](_assets/oatuh.png)
 
-- Usuario autenticado con Oauth. El protocólo solo extrae datos básicos, de los usuarios.
-![alt text](_assets/okauthgit.png)
+
+
+
 
 
 ## Activar 2fa
@@ -127,26 +228,3 @@ Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan
 
 - Para deshabilitarlo, los pasos son los mismos: Le das al botón de deshabilitar, te pedirá un código TOTP, lo metes y se deshabilita.
 
-### Grafana (En construcción)
-
-https://localhost:8445/login User/Password:users/admin -> Skip
-
-https://localhost:8445/dashboards
-![alt text](_assets/grafa1.png)
-![alt text](_assets/grafa2.png)
-
-en https://localhost:8445/a/grafana-metricsdrilldown-app/drilldown vienen muchas más métricas por defecto
-![alt text](_assets/grafa3.png)
-
-
-### URLs de estado de servicios expuestos (todos usan HTTPS)
-No se puede incluir como subpath (8443)/grafana porque no lo permiten (O sí?)
-
-docker exec -it vault sh -c "
-export VAULT_ADDR='https://localhost:8200'
-export VAULT_SKIP_VERIFY=true
-vault operator init -key-shares=1 -key-threshold=1
-"
-```
-
-docker exec -it vault sh -c 'env | grep VAULT'
