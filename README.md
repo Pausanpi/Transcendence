@@ -139,13 +139,57 @@ Communication channels:
 # Technical Stack
 
 ## Frontend
-- Technologies and frameworks used.
+**Languages:** TypeScript is used for development, and code is transpiled to JavaScript for browser compatibility.
+
+**CSS Framework:** Tailwind CSS is used for styling and layout, providing utility-first classes.
+
+**HTTP Requests:** The Fetch API is used for client-server communication, including image uploads. Axios may be used in some modules, but Fetch is the main method.
+
+**Build Tools:** Node.js is used for development and build processes (transpiling, bundling), but not for running frontend code in the browser.
+
+**Code Organization:** The frontend is modular,code is organized in TypeScript modules and pages.
+
+**Other Libraries:** If needed, multipart handling and Axios are used for specific tasks (e.g., image upload), but most network operations use Fetch.
 
 ## Backend
-- Technologies and frameworks used.
+**Languages:** JavaScript (Node.js) is used for backend development.
+
+**Frameworks:** Fastify is used as the main web framework for building APIs and handling HTTP requests.
+
+**Authentication:** JWT (JSON Web Token) is used for secure authentication and authorization. Two-factor authentication (2FA) is implemented for additional security.
+
+**Microservices:** The backend is organized into microservices structure, each running in its own Docker container.
+
+**Security:** ModSecurity (via NGINX) is used as a Web Application Firewall (WAF) to protect against common web vulnerabilities.
+
+**Database Integration:** SQLite is used for persistent storage, managed through dedicated backend modules.
+
+**Internationalization:** i18n provides localization and language support for backend responses.
+
+**Secrets Management:** Vault is used for secure storage and management of sensitive data.
+
+**Monitoring:** Prometheus collects metrics and monitors backend services.
+
+**Observability:** Grafana visualizes metrics and logs for backend observability.
+
+**Other Libraries:**
+- Passport & @fastify/passport: For authentication strategies and user session management.
+- bcrypt: For secure password hashing.
+- jsonwebtoken: For JWT creation and validation.
+- axios: For making special HTTP requests between services.
+- @fastify/multipart, busboy, form-data: For file uploads and form data handling.
+- speakeasy: For implementing two-factor authentication (TOTP).
+- qrcode: For generating QR codes (e.g., for 2FA setup).
+- @fastify/cookie, @fastify/secure-session: For cookie and session management.
+- @fastify/cors: For enabling CORS in APIs.
+- @fastify/formbody: For parsing form data in requests.
+- @fastify/static: For serving static files.
+- Additional libraries are used for validation and other backend tasks.
 
 ## Database
-- System used and justification for choice.
+**System Used:** SQLite is used as the main database. It was chosen because it is lightweight, easy to manage, and well-suited for projects with simple tables, small data volumes, and straightforward queries.
+
+**Image Storage:** In addition to the main relational database, a separate storage volume is managed within the database module specifically for storing user-uploaded images. This keeps binary data outside the main database and allows for efficient file management.
 
 ## Other Technologies
 - Any other significant technologies or libraries.
