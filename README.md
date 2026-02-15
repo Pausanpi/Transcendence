@@ -203,17 +203,217 @@ Communication channels:
 
 # Features List
 
-- Complete list of implemented features.
-- Which team member(s) worked on each feature.
-- Brief description of each feature’s functionality.
+
+# Features List
+
+## Authentication & User Management
+- **User registration and login**  
+	Secure account creation and login with JWT-based authentication.  
+	Team: csubires, lcuevas-
+- **Profile management**  
+	Users can update their profile info and upload avatars.  
+	Team: csubires, lcuevas-
+- **Friends system**  
+	Add/remove friends, see online status, and view friend lists.  
+	Team: lcuevas-
+- **Two-Factor Authentication (2FA)**  
+	TOTP-based 2FA for enhanced account security.  
+	Team: csubires
+- **OAuth login**  
+	Sign in with Google, GitHub, or 42 using OAuth 2.0.  
+	Team: csubires
+
+## Games
+- **Real-time Pong multiplayer**  
+	Play Pong live against other users with real-time updates.  
+	Team: pausanch
+- **Second game (e.g., Tic-Tac-Toe)**  
+	Play a second distinct game with matchmaking and stats.  
+	Team: pausanch
+- **AI opponent**  
+	Play against a challenging AI that simulates human-like play.  
+	Team: pausanch
+- **Game customization**  
+	Power-ups, map selection, and adjustable game settings.  
+	Team: pausanch
+- **Tournament system**  
+	Register for and compete in tournaments with bracket logic.  
+	Team: joestrad
+
+## Statistics & History
+- **Game statistics and match history**  
+	Track wins, losses, rankings, achievements, and match results.  
+	Team: lcuevas-, joestrad
+- **Leaderboard**  
+	View top players and rankings.  
+	Team: lcuevas-, joestrad
+
+## API & Microservices
+- **Public REST API**  
+	Secured API key, rate limiting, and documentation; CRUD endpoints for user and game data.  
+	Team: csubires, joestrad, lcuevas-, pausanch
+- **Microservices architecture**  
+	Loosely-coupled backend services in Docker containers.  
+	Team: csubires, lcuevas-
+
+## Security & Compliance
+- **WAF/ModSecurity**  
+	Web Application Firewall for backend protection.  
+	Team: csubires
+- **HashiCorp Vault**  
+	Secure secrets management for API keys and credentials.  
+	Team: csubires
+- **GDPR compliance**  
+	Data export, deletion, and confirmation emails for user privacy.  
+	Team: csubires
+
+## Internationalization & Compatibility
+- **Multiple languages (i18n)**  
+	English, Spanish, and Japanese support with language switcher.  
+	Team: csubires, joestrad, lcuevas-, pausanch
+- **Cross-browser support**  
+	Tested and compatible with Chrome, Firefox, and Edge.  
+	Team: csubires, joestrad, lcuevas-, pausanch
+
+## Monitoring & Reliability
+- **Prometheus monitoring**  
+	Collects metrics from backend services.  
+	Team: csubires
+- **Grafana dashboards**  
+	Visualizes metrics and logs for observability.  
+	Team: csubires
+- **Health checks and status page**  
+	Service health endpoints and status dashboard.  
+	Team: csubires, lcuevas-
+- **Automated backups & disaster recovery**  
+	Scheduled database backups and recovery procedures.  
+	Team: csubires, lcuevas-
 
 # Modules
 
-- List of all chosen modules (Major and Minor).
-- Point calculation (Major = 2pts, Minor = 1pt).
-- Justification for each module choice, especially for custom "Modules of choice".
-- How each module was implemented.
-- Which team member(s) worked on each module.
+# Modules List
+
+## Modules Overview
+
+**Total Points:**
+Major: 8 × 2 = 16 pts
+Minor: 11 × 1 = 12 pts
+**Grand Total: 27 points**
+
+---
+
+### Backend Framework (Major, 1 pts)
+**Justification:** Required for scalable, maintainable backend logic and API development. Mandated by old project subject.
+**Implementation:** Fastify (Node.js) used for high performance, modularity, and plugin support. All backend APIs and microservices are built on Fastify.
+**Team Members:** csubires, lcuevas-
+
+---
+### Frontend Framework (Minor, 1 pt)
+**Justification:** Improves maintainability and scalability of UI. (Partial, as not a full framework.)
+**Implementation:** TypeScript modules, Tailwind CSS, modular SPA-like structure.
+**Team Members:** pausanch, joestrad
+
+---
+### Public API (Major, 2 pts)
+**Justification:** Enables external integrations and modularity. Required by subject (secured API key, rate limiting, docs, 5+ endpoints).
+**Implementation:** RESTful API with Fastify, API key validation, rate limiting middleware, OpenAPI documentation, endpoints for CRUD operations.
+**Team Members:** csubires, joestrad, lcuevas-, pausanch
+
+---
+### Standard User Management & Authentication (Major, 2 pts)
+**Justification:** Core for any user-centric platform. Required for account creation, login, profile, avatars, friends, etc.
+**Implementation:** Fastify, JWT for authentication, user CRUD, avatar upload, friends system, online status, profile pages.
+**Team Members:** lcuevas-, pausanch
+
+---
+### AI Opponent for Games (Major, 2 pts)
+**Justification:** Adds single-player challenge and fulfills subject’s AI requirement.
+**Implementation:** Custom AI logic for Pong and other games, simulating human-like play, adjustable difficulty.
+**Team Members:** pausanch
+
+---
+### WAF/ModSecurity + HashiCorp Vault (Major, 2 pts)
+**Justification:** Security requirement for protecting backend and managing secrets securely.
+**Implementation:** NGINX with ModSecurity as WAF, strict rules, Vault for API keys and credentials, all secrets encrypted and isolated.
+**Team Members:** csubires
+
+---
+### Complete Web-Based Game (Major, 2 pts)
+**Justification:** Central to project (Pong and others), real-time multiplayer required by subject.
+**Implementation:** TypeScript frontend, WebSockets for real-time play, Fastify backend, clear win/loss logic, 2D game engine.
+**Team Members:** joestrad, pausanch
+
+---
+### Second Game with History & Matchmaking (Major, 2 pts)
+**Justification:** Subject requires a second distinct game with stats and matchmaking.
+**Implementation:** Additional game (e.g., Tic-Tac-Toe), user stats tracked, matchmaking logic, performance optimized.
+**Team Members:** joestrad, pausanch
+
+---
+### Monitoring: Prometheus & Grafana (Major, 2 pts)
+**Justification:** Required for observability, debugging, and system health.
+**Implementation:** Prometheus scrapes metrics from services, Grafana dashboards for visualization, alerting rules, secure access.
+**Team Members:** csubires
+
+---
+### Backend as Microservices (Major, 2 pts)
+**Justification:** Modern architecture, required for modularity, scalability, and isolation.
+**Implementation:** Each service (auth, users, database, etc.) runs in its own Docker container, communicates via REST APIs.
+**Team Members:** csubires, lcuevas-
+
+---
+### Multiple Languages/i18n (Minor, 1 pt)
+**Justification:** Required for accessibility and subject compliance (3+ languages).
+**Implementation:** i18n module, translations for English, Spanish, Japanese, language switcher in UI.
+**Team Members:** csubires, joestrad, lcuevas-, pausanch
+
+---
+### Additional Browsers Support (Minor, 1 pt)
+**Justification:** Ensures accessibility and usability across browsers (subject requirement).
+**Implementation:** Tested on Chrome, Firefox, Edge; fixed compatibility issues; documented limitations.
+**Team Members:** csubires, joestrad, lcuevas-, pausanch
+
+---
+### Game Statistics & Match History (Minor, 1 pt)
+**Justification:** Adds engagement, transparency, and progression for users.
+**Implementation:** Backend tracks wins/losses, rankings, achievements; frontend displays history and leaderboards.
+**Team Members:** lcuevas-, joestrad
+
+---
+### Remote Authentication with OAuth 2.0 (Minor, 1 pt)
+**Justification:** Allows users to sign in with Google, GitHub, etc. (subject requirement).
+**Implementation:** OAuth 2.0 strategies via Passport, Fastify integration, secure callback handling.
+**Team Members:** csubires
+
+---
+### Complete 2FA System (Minor, 1 pt)
+**Justification:** Enhances account security, required by subject.
+**Implementation:** TOTP-based 2FA using speakeasy, QR code setup, backup codes, enforced on login.
+**Team Members:** csubires, lcuevas-
+
+---
+### Tournament System (Minor, 1 pt)
+**Justification:** Adds competitive play and engagement.
+**Implementation:** Bracket logic, registration, matchmaking, tracking of tournament progress.
+**Team Members:** joestrad
+
+---
+### Game Customization Options (Minor, 1 pt)
+**Justification:** Increases replay value and user engagement.
+**Implementation:** Power-ups, map selection, adjustable settings, default options.
+**Team Members:** pausanch
+
+---
+### Health Check, Status Page, Backups (Minor, 1 pt)
+**Justification:** Ensures reliability, maintainability, and disaster recovery.
+**Implementation:** Health endpoints, status dashboard, automated database backups, documented recovery procedures.
+**Team Members:** csubires,lcuevas-
+
+---
+### GDPR Compliance Features (Minor, 1 pt)
+**Justification:** Required for user privacy and legal compliance.
+**Implementation:** Data export, deletion, confirmation emails, readable formats, user self-service.
+**Team Members:** csubires
 
 # Individual Contributions
 
