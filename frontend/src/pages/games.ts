@@ -517,7 +517,7 @@ function showTicTacToeOptions(isAI: boolean) {
 				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-green-900 to-green-700 ttt-difficulty-label">
 					<input type="radio" name="ttt-difficulty" value="2" data-difficulty="2" class="hidden">
 					<div class="text-3xl mb-2">😊</div>
-					<span class="text-green-200 font-bold text-lg>Easy</span>
+					<span class="text-green-200 font-bold text-lg">Easy</span>
 					<span class="text-xs text-green-100 mt-1" data-i18n="game.casual">Casual</span>
 				</label>
 				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-yellow-900 to-yellow-700 ttt-difficulty-label">
@@ -538,7 +538,7 @@ function showTicTacToeOptions(isAI: boolean) {
 	
 	showModal(`
 		<div class="card text-center space-y-6 max-w-4xl mx-auto">
-			<h2 class="text-2xl font-bold text-yellow-400">Tic-Tac-Toe Options</h2>
+			<h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.tttOptions">Tic-Tac-Toe Options</h2>
 			
 			${difficultySection}
 			

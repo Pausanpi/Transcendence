@@ -370,6 +370,7 @@
 		"theme": "Theme",
 		"classic": "Classic",
 		"neon": "Neon",
-		"minimal": "Minimal"
+		"minimal": "Minimal",
+		"tttOptions": "Tic-Tac-Toe Options"
 	}
 }
