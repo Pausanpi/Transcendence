@@ -318,22 +318,18 @@
 		"playingAsGuest": "プレイヤーvsゲスト",
 		"player2": "プレイヤー2 (↑/↓ キー)",
 		"startGame": "ゲームを開始する",
-
 		"verifiedPlayer": "✓ 認証済みプレイヤー",
 		"changePlayer": "スイッチプレーヤー2",
 		"verifyPlayer2": "プレーヤー2を確認してください",
 		"player2setup": "プレーヤー2の設定 jugador 2",
 		"logged": "✓ として識別される ",
-
 		"player2mustLog": "プレイヤー2はログインして本人確認をする必要があります",
 		"back": "戻る",
 		"login": "ログイン",
-
 		"enterEmailandPassword": "メールアドレスとパスワードを入力してください。",
 		"logginIn": "識別中...",
 		"player2Verified": "✓ プレイヤー2が認証されました!",
 		"invalidCredentials": "✗ 無効な資格情報",
-
 		"select": "ゲームを選択",
 		"pongPvP": "ポン - PvP",
 		"playerVSplayer": "プレイヤー対プレイヤー",
@@ -353,14 +349,20 @@
 		"dificulty3": "難しい",
 		"cancel": "キャンセル",
 		"accept": "受け入れる",
-
 		"selectDifficulty": "難易度を選択",
 		"easy": "簡単",
 		"medium": "半分",
 		"hard": "難しい",
-
 		"gameMode": "ゲームモードを選択する",
 		"playerVSAI": "ゲームモードを選択する",
-		"selectAIdifficulty": "AIの難易度を選択"
+		"selectAIdifficulty": "AIの難易度を選択",
+		"AIdifficulty": "AIの難易度",
+		"casual": "カジュアル",
+		"normal": "普通",
+		"expert": "専門家",
+		"theme": "テーマ",
+		"classic": "クラシック",
+		"neon": "ネオン",
+		"minimal": "最小限の"
 	}
 }

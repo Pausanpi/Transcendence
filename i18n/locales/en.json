@@ -332,22 +332,18 @@
 		"playingAsGuest": "Playing as guest",
 		"player2": "Player 2 (↑/↓ keys)",
 		"startGame": "Start Game",
-
 		"verifiedPlayer": "✓ Verified player",
 		"changePlayer": "Change Player 2",
 		"verifyPlayer2": "Verify Player 2",
 		"player2setup": "Player 2 Setup",
 		"logged": "✓ Logged in as ",
-
 		"player2mustLog": "Player 2 must log in to verify their identity",
 		"back": "Back",
 		"login": "Login",
-
 		"enterEmailandPassword": "Please enter email and password",
 		"logginIn": "Logging in...",
 		"player2Verified": "✓ Player 2 verified!",
 		"invalidCredentials": "✗ Invalid credentials",
-
 		"options": "Game Options",
 		"background": "Background",
 		"background1": "Default",
@@ -360,14 +356,20 @@
 		"dificulty3": "Challenging",
 		"cancel": "Cancel",
 		"accept": "Accept",
-
 		"selectDifficulty": "Select Difficulty",
 		"easy": "Easy",
 		"medium": "Medium",
 		"hard": "Hard",
-
 		"gameMode": "Choose game mode",
 		"playerVSAI": "Player vs AI",
-		"selectAIdifficulty": "Select AI Difficulty"
+		"selectAIdifficulty": "Select AI Difficulty",
+		"AIdifficulty": "AI Difficulty",
+		"casual": "Casual",
+		"normal": "Normal",
+		"expert": "Expert",
+		"theme": "Theme",
+		"classic": "Classic",
+		"neon": "Neon",
+		"minimal": "Minimal"
 	}
 }

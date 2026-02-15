@@ -339,29 +339,24 @@
 		"playerVScomputer": "Jugador contra Ordenador",
 		"ttt": "3 en línea",
 		"twoplayers": "2 Jugadores",
-
 		"guestVSguest": "Invitado vs Invitado",
 		"noPlayersLogged": "Ningún jugador identificado - jugarán como invitados",
 		"player1": "Jugador 1 (W/S teclas)",
 		"playingAsGuest": "Jugador vs Invitado",
 		"player2": "Jugador 2 (↑/↓ teclas)",
 		"startGame": "Iniciar Juego",
-
 		"verifiedPlayer": "✓ Jugador verificado",
 		"changePlayer": "Cambiar jugador 2",
 		"verifyPlayer2": "Verificar jugador 2",
 		"player2setup": "Configuración jugador 2",
 		"logged": "✓ Identificado como ",
-
 		"player2mustLog": "El jugador 2 debe iniciar sesión para identificarse",
 		"back": "Volver",
 		"login": "Iniciar Sesión",
-
 		"enterEmailandPassword": "Por favor, introduzca email y contraseña",
 		"logginIn": "Identificando...",
 		"player2Verified": "✓ Jugador 2 verificado!",
 		"invalidCredentials": "✗ Credenciales inválidas",
-
 		"options": "Opciones de Juego",
 		"background": "Fondo",
 		"background1": "Defecto",
@@ -374,14 +369,20 @@
 		"dificulty3": "Difícil",
 		"cancel": "Cancelar",
 		"accept": "Aceptar",
-
 		"selectDifficulty": "Selecciona Dificultad",
 		"easy": "Fácil",
 		"medium": "Medio",
 		"hard": "Difícil",
-
 		"gameMode": "Selecciona modo de juego",
 		"playerVSAI": "Jugador vs IA",
-		"selectAIdifficulty": "Selecciona dificultad IA"
+		"selectAIdifficulty": "Selecciona dificultad IA",
+		"AIdifficulty": "Dificultad IA",
+		"casual": "Casual",
+		"normal": "Normal",
+		"expert": "Experto",
+		"theme": "Tema",
+		"classic": "Classic",
+		"neon": "Neon",
+		"minimal": "Minimalista"
 	}
 }

@@ -7,9 +7,14 @@ let verifiedPlayer2: any = null;
 
 // ===== GAME OPTIONS STATE =====
 let pendingGamePlayers: any = null;
+let pendingTicTacToeMode: { isAI: boolean, difficulty?: number } | null = null;
 let gameOptions = {
-	background: 'default',
-	difficulty: 'medium'
+  background: 'default',
+  difficulty: 'medium'
+};
+let ticTacToeOptions = {
+  theme: 'classic',
+  boardSize: 3
 };
 // ===== GAME SELECTION PAGE =====
 export function renderGames() {
@@ -494,8 +499,8 @@ function startTicTacToe() {
 			<p class="text-gray-400" data-i18n="game.gameMode">Choose game mode</p>
 			
 			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToePvP()" class="btn btn-green w-full" data-i18n="game.playerVSplayer">Player vs Player</button>
-				<button onclick="window.gameUI.showTicTacToeDifficulty()" class="btn btn-yellow w-full" data-i18n="game.playerVSAI">Player vs AI</button>
+				<button onclick="window.gameUI.showTicTacToeOptions(false)" class="btn btn-green w-full" data-i18n="game.playerVSplayer">👥 Player vs Player</button>
+				<button onclick="window.gameUI.showTicTacToeOptions(true)" class="btn btn-yellow w-full" data-i18n="game.playerVSAI">🤖 Player vs AI</button>
 			</div>
 			
 			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full" data-i18n="game.cancel">Cancel</button>
@@ -503,29 +508,193 @@ function startTicTacToe() {
 	`);
 	applyTranslations();
 }
-async function startTicTacToePvP() {
-	hideModal();
-	await setupTicTacToe(false);
-}
-function showTicTacToeDifficulty() {
+
+function showTicTacToeOptions(isAI: boolean) {
+	const difficultySection = isAI ? `
+		<div class="text-left">
+			<label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.AIdifficulty">AI Difficulty</label>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-difficulty">
+				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-green-900 to-green-700 ttt-difficulty-label">
+					<input type="radio" name="ttt-difficulty" value="2" data-difficulty="2" class="hidden">
+					<div class="text-3xl mb-2">😊</div>
+					<span class="text-green-200 font-bold text-lg>Easy</span>
+					<span class="text-xs text-green-100 mt-1" data-i18n="game.casual">Casual</span>
+				</label>
+				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-yellow-900 to-yellow-700 ttt-difficulty-label">
+					<input type="radio" name="ttt-difficulty" value="3" checked data-difficulty="3" class="hidden">
+					<div class="text-3xl mb-2">😐</div>
+					<span class="text-yellow-200 font-bold text-lg">Medium</span>
+					<span class="text-xs text-yellow-100 mt-1" data-i18n="game.normal">Normal</span>
+				</label>
+				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-red-900 to-red-700 ttt-difficulty-label">
+					<input type="radio" name="ttt-difficulty" value="4" data-difficulty="4" class="hidden">
+					<div class="text-3xl mb-2">😈</div>
+					<span class="text-red-200 font-bold text-lg">Hard</span>
+					<span class="text-xs text-red-100 mt-1" data-i18n="game.expert">Expert</span>
+				</label>
+			</div>
+		</div>
+	` : '';
+	
 	showModal(`
-		<div class="card text-center space-y-4">
-			<h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.selectAIdifficulty">Select AI Difficulty</h2>
+		<div class="card text-center space-y-6 max-w-4xl mx-auto">
+			<h2 class="text-2xl font-bold text-yellow-400">Tic-Tac-Toe Options</h2>
 			
-			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToeAI(2)" class="btn btn-green w-full" data-i18n="game.easy">Easy</button>
-				<button onclick="window.gameUI.startTicTacToeAI(3)" class="btn btn-yellow w-full" data-i18n="game.medium">Medium</button>
-				<button onclick="window.gameUI.startTicTacToeAI(4)" class="btn btn-red w-full" data-i18n="game.hard">Hard</button>
+			${difficultySection}
+			
+			<div class="text-left">
+				<label class="block text-sm text-gray-400 mb-3 font-bold": data-i18n="game.theme">Theme</label>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-themes">
+					<label class="flex flex-col items-center cursor-pointer group ttt-theme-label">
+						<input type="radio" name="ttt-theme" value="classic" checked data-theme="classic" class="hidden">
+						<div class="w-full h-32 rounded border-2 border-gray-600 transition-all duration-200 bg-black flex items-center justify-center relative overflow-hidden mb-2">
+							<svg viewBox="0 0 100 100" class="w-20 h-20">
+								<line x1="33" y1="0" x2="33" y2="100" stroke="#fff" stroke-width="3"/>
+								<line x1="67" y1="0" x2="67" y2="100" stroke="#fff" stroke-width="3"/>
+								<line x1="0" y1="33" x2="100" y2="33" stroke="#fff" stroke-width="3"/>
+								<line x1="0" y1="67" x2="100" y2="67" stroke="#fff" stroke-width="3"/>
+								<text x="16" y="22" fill="#3b82f6" font-size="18" font-weight="bold">X</text>
+								<text x="83" y="88" fill="#ef4444" font-size="18" font-weight="bold">O</text>
+							</svg>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.classic">Classic</span>
+					</label>
+					
+					<label class="flex flex-col items-center cursor-pointer group ttt-theme-label">
+						<input type="radio" name="ttt-theme" value="neon" data-theme="neon" class="hidden">
+						<div class="w-full h-32 rounded border-2 border-gray-600 transition-all duration-200 bg-gradient-to-br from-purple-950 via-gray-900 to-cyan-950 flex items-center justify-center relative overflow-hidden mb-2">
+							<svg viewBox="0 0 100 100" class="w-20 h-20">
+								<line x1="33" y1="0" x2="33" y2="100" stroke="#00ff00" stroke-width="3"/>
+								<line x1="67" y1="0" x2="67" y2="100" stroke="#00ff00" stroke-width="3"/>
+								<line x1="0" y1="33" x2="100" y2="33" stroke="#00ff00" stroke-width="3"/>
+								<line x1="0" y1="67" x2="100" y2="67" stroke="#00ff00" stroke-width="3"/>
+								<text x="16" y="22" fill="#ff00ff" font-size="18" font-weight="bold">X</text>
+								<text x="83" y="88" fill="#00ffff" font-size="18" font-weight="bold">O</text>
+							</svg>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.neon">Neon</span>
+					</label>
+					
+					<label class="flex flex-col items-center cursor-pointer group ttt-theme-label">
+						<input type="radio" name="ttt-theme" value="minimal" data-theme="minimal" class="hidden">
+						<div class="w-full h-32 rounded border-2 border-gray-600 transition-all duration-200 bg-gray-100 flex items-center justify-center relative overflow-hidden mb-2">
+							<svg viewBox="0 0 100 100" class="w-20 h-20">
+								<line x1="33" y1="0" x2="33" y2="100" stroke="#333" stroke-width="2"/>
+								<line x1="67" y1="0" x2="67" y2="100" stroke="#333" stroke-width="2"/>
+								<line x1="0" y1="33" x2="100" y2="33" stroke="#333" stroke-width="2"/>
+								<line x1="0" y1="67" x2="100" y2="67" stroke="#333" stroke-width="2"/>
+								<text x="16" y="22" fill="#666" font-size="18" font-weight="bold">X</text>
+								<text x="83" y="88" fill="#999" font-size="18" font-weight="bold">O</text>
+							</svg>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.minimal">Minimal</span>
+					</label>
+				</div>
 			</div>
 			
-			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full" data-i18n="game.cancel">Cancel</button>
+			<div class="flex gap-4 mt-6">
+				<button onclick="window.gameUI.cancelTicTacToeOptions()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
+				<button onclick="window.gameUI.confirmTicTacToeOptions(${isAI})" class="btn btn-green flex-1" data-i18n="game.startGame">Start Game</button>
+			</div>
 		</div>
 	`);
+	
 	applyTranslations();
+	setTimeout(() => setupTicTacToeOptionsListeners(isAI), 0);
 }
-async function startTicTacToeAI(difficulty: number) {
+
+function setupTicTacToeOptionsListeners(isAI: boolean) {
+	const themeLabels = document.querySelectorAll('.ttt-theme-label');
+	const themeInputs = document.querySelectorAll('input[name="ttt-theme"]');
+	
+	function updateThemeSelection() {
+		themeLabels.forEach((label) => {
+			const input = label.querySelector('input[name="ttt-theme"]') as HTMLInputElement;
+			const preview = label.querySelector('div');
+			if (input && input.checked && preview) {
+				preview.classList.add('ring-4', 'ring-yellow-400', 'border-yellow-400');
+			} else if (preview) {
+				preview.classList.remove('ring-4', 'ring-yellow-400', 'border-yellow-400');
+			}
+		});
+	}
+	
+	themeLabels.forEach((label) => {
+		label.addEventListener('click', () => {
+			const input = label.querySelector('input[name="ttt-theme"]') as HTMLInputElement;
+			if (input) {
+				input.checked = true;
+				ticTacToeOptions.theme = input.value as 'classic' | 'neon' | 'minimal';
+				updateThemeSelection();
+			}
+		});
+	});
+	
+	themeInputs.forEach(input => {
+		input.addEventListener('change', (e: any) => {
+			ticTacToeOptions.theme = e.target.value;
+			updateThemeSelection();
+		});
+	});
+	
+	if (isAI) {
+		const difficultyLabels = document.querySelectorAll('.ttt-difficulty-label');
+		const difficultyInputs = document.querySelectorAll('input[name="ttt-difficulty"]');
+		
+		function updateDifficultySelection() {
+			difficultyLabels.forEach((label) => {
+				const input = label.querySelector('input[name="ttt-difficulty"]') as HTMLInputElement;
+				if (input && input.checked) {
+					label.classList.add('ring-4', 'ring-yellow-400', 'border-yellow-400');
+				} else {
+					label.classList.remove('ring-4', 'ring-yellow-400', 'border-yellow-400');
+				}
+			});
+		}
+		
+		difficultyLabels.forEach((label) => {
+			label.addEventListener('click', () => {
+				const input = label.querySelector('input[name="ttt-difficulty"]') as HTMLInputElement;
+				if (input) {
+					input.checked = true;
+					updateDifficultySelection();
+				}
+			});
+		});
+		
+		difficultyInputs.forEach(input => {
+			input.addEventListener('change', () => {
+				updateDifficultySelection();
+			});
+		});
+		
+		updateDifficultySelection();
+	}
+	
+	updateThemeSelection();
+}
+
+function confirmTicTacToeOptions(isAI: boolean) {
+	// Save theme to localStorage
+	localStorage.setItem('tictactoeCustomization', JSON.stringify({
+		theme: ticTacToeOptions.theme,
+		boardSize: ticTacToeOptions.boardSize
+	}));
+	
 	hideModal();
-	await setupTicTacToe(true, difficulty);
+	
+	if (isAI) {
+		const difficultyInput = document.querySelector('input[name="ttt-difficulty"]:checked') as HTMLInputElement;
+		const difficulty = difficultyInput ? parseInt(difficultyInput.value) : 3;
+		setupTicTacToe(true, difficulty);
+	} else {
+		setupTicTacToe(false);
+	}
+}
+
+function cancelTicTacToeOptions() {
+	hideModal();
+	startTicTacToe();
 }
 // ===== UTILITY FUNCTIONS =====
 function applyTranslations() {
@@ -552,9 +721,7 @@ function focusFirstInput() {
 	startPongAI,
 	showDifficultySelect,
 	startTicTacToe,
-	startTicTacToePvP,
-	showTicTacToeDifficulty,
-	startTicTacToeAI,
+	showTicTacToeOptions,
 	// Modal controls
 	hideModal,
 	// Player setup
@@ -567,5 +734,8 @@ function focusFirstInput() {
 	// Game options
 	updateGameOption,
 	confirmGameOptions,
-	cancelGameOptions
+	cancelGameOptions,
+	// Tic Tac Toe options
+	confirmTicTacToeOptions,
+	cancelTicTacToeOptions
 };
