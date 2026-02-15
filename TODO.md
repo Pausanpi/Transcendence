@@ -1,91 +1,35 @@
 # TODO
 
-## Current Status (2026-01-07)
-
-### 🔧 In Progress: Match Saving Not Working
-- **Issue:** Matches not being saved to database after game ends
-- **Debug added:** Console logs in `saveMatch()` to trace the issue
-- **Next step:** Check browser console for logs when playing a match:
-  - Look for `saveMatch called with: {...}`
-  - Check if player1.id is populated when logged in
-  - Verify `endGameSession` is being called (game reaches 5 points)
-
-### ✅ Fixed Issues
-- [x] Registration error "auth.creationError" → Added `DATABASE_SERVICE_URL` to docker-compose.yml
-- [x] TypeScript changes not reflecting → Recompiled with `npx tsc`
-- [x] Match saving auth requirement → Only saves if at least one player is logged in
-
----
-
-## ✅ Completed (2026-01-07)
+## High Priority
+- [ ] General testing of endpoints
 
 ### Database Schema
-- [x] Extended `users` table (display_name, wins, losses, games_played, online_status, last_seen)
-- [x] Created `friendships` table
-- [x] Created `tournaments` table
-- [x] Created `tournament_participants` table
-- [x] Created `matches` table
-
-### Database Endpoints
-- [x] `database/routes/matches.js` - Match history & user stats
-- [x] `database/routes/tournaments.js` - Tournament CRUD & participants
-- [x] `database/routes/friends.js` - Friend system & online status
-
-### Shared HTTP Client
-- [x] Added client methods for matches, tournaments, friends
-
-### Frontend Game Integration
-- [x] Created `frontend/src/gameService.ts` - Game-to-database bridge
-- [x] Modified `frontend/src/pong.ts` - Player setup & match saving
-- [x] Modified `frontend/src/pages/games.ts` - Uses new setupPongGame()
-- [x] Modified `frontend/src/auth.ts` - Clears user cache on logout
-- [x] Modified `frontend/src/main.ts` - Imports gameService
+- [ ] Schema for README
 
 ### Docker Configuration
-- [x] Added `DATABASE_SERVICE_URL=http://database:3003` to auth service
-- [x] Added `DATABASE_SERVICE_URL=http://database:3003` to users service
+- [ ] Prepare final production version without bind-mounts
 
----
+### Git comments
+- [ ] Investigate changing git comments history
 
-## 📋 Pending Tasks
+### Documentation
 
-### High Priority (Next Session)
-- [ ] Debug match saving - check browser console logs
-- [ ] Test complete flow: login → play game → verify match saved
-- [ ] Scoreboard/leaderboard page
 
-### Medium Priority
+## Medium Priority
 - [ ] Friends list UI (show friends, online status, send requests)
 - [ ] Tournament UI and matchmaking logic
 - [ ] Profile page: show user stats & match history
 - [ ] TicTacToe integration with gameService
 
-### Low Priority / Future
-- [ ] Real-time notifications for friend requests
-- [ ] Tournament brackets visualization
-- [ ] Match replay system
-- [ ] Spectator mode
-
----
-
-## 🚀 GitHub Collaboration Setup (Tomorrow)
-
-### Branch Protection Rules
-- [ ] Require pull request reviews before merging
-- [ ] Require status checks to pass
-- [ ] Require branches to be up to date
-
-### GitHub Actions CI
-- [ ] TypeScript compile check
-- [ ] ESLint linting
-- [ ] Docker build test
-
 ### Documentation
-- [ ] Create CONTRIBUTING.md with workflow guidelines
+- [ ] Update README.md
 - [ ] Create issue templates (bug report, feature request)
-- [ ] Update README.md with setup instructions
 
----
+
+## Low Priority / Bug reports
+-001 [ ] Update button in profile page overwrites the image. We can recicle to change the mail, maybe
+-002 [ ] Check erase od information and account in GDPR
+
 
 ## Testing Checklist
 
@@ -96,53 +40,6 @@
 - [ ] AI game: Verify difficulty selection works
 - [ ] AI game: Confirm match saves with AI as player2
 - [ ] Guest vs Guest: Verify match is NOT saved (skipped)
-- [ ] Check database: `curl -s http://localhost:3003/matches | jq .`
+- [ ] Check enpoints? in dashboard?
 
-
-
-### Elementos borrados (Por si acaso)
-
-FROM redis:7.2-alpine
-
-USER root
-RUN apk add --no-cache bash && mkdir -p /data && chown redis:redis /data
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-USER redis
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
----
-
-#!/bin/bash
-set -e
-
-exec redis-server \
-    --appendonly yes \
-    --save 900 1 \
-    --save 300 10 \
-    --save 60 10000 \
-    --bind 0.0.0.0 \
-    --port 6379
-
----
-
-  redis:
-    image: redis
-    container_name: redis
-    build:
-      network: host
-      context: redis
-      dockerfile: Dockerfile
-    volumes:
-      - redis-data:/data
-      - logs-data:/var/log/redis
-    networks: [transcendence-net]
-    healthcheck: *redis-healthcheck
-    restart: always
-
-  redis-data:
-    name: redis-data
-
-  redis: &redis-healthcheck
-    test: ["CMD", "redis-cli", "ping"]
+## Solved Bug reports
