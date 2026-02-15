@@ -315,5 +315,19 @@
 		"friendRemoved": "Friend removed successfully",
 		"confirmRemove": "Remove {{username}} from friends?",
 		"error": "An error occurred. Please try again."
+	},
+	"game": {
+		"options": "Game Options",
+		"background": "Background",
+		"background1": "Default",
+		"background2": "Space",
+		"background3": "Ocean",
+		"background4": "Neon",
+		"dificulty": "Difficulty",
+		"dificulty1": "Relaxed",
+		"dificulty2": "Balanced",
+		"dificulty3": "Challenging",
+		"cancel": "Cancel",
+		"accept": "Accept"
 	}
 }

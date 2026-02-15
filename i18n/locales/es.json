@@ -328,5 +328,20 @@
 		"friendRemoved": "Amigo eliminado correctamente",
 		"confirmRemove": "¿Eliminar a {{username}} de tus amigos?",
 		"error": "Ocurrió un error. Por favor, inténtalo de nuevo."
+	},
+
+	"game": {
+		"options": "Opciones de Juego",
+		"background": "Fondo",
+		"background1": "Defecto",
+		"background2": "Espacio",
+		"background3": "Oceano",
+		"background4": "Neon",
+		"dificulty": "Dificultad",
+		"dificulty1": "Facilito",
+		"dificulty2": "Balanceado",
+		"dificulty3": "Difícil",
+		"cancel": "Cancelar",
+		"accept": "Aceptar"
 	}
 }

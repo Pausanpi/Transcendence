@@ -308,5 +308,20 @@
 		"friendRemoved": "フレンドが正常に削除されました",
 		"confirmRemove": "{{username}} をフレンドから削除しますか？",
 		"error": "エラーが発生しました。もう一度お試しください。"
+	},
+
+	"game": {
+		"options": "ゲームオプション",
+		"background": "背景",
+		"background1": "デフォルト",
+		"background2": "空間",
+		"background3": "海",
+		"background4": "ネオン",
+		"dificulty": "難しい",
+		"dificulty1": "簡単",
+		"dificulty2": "バランスが取れた",
+		"dificulty3": "難しい",
+		"cancel": "キャンセル",
+		"accept": "受け入れる"
 	}
 }
