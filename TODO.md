@@ -23,21 +23,12 @@
 
 ### Documentation
 - [ ] Update README.md
-
-
-## Low Priority / Bug reports
-- [ ] Update button in profile page overwrites the image. We can recicle to change the mail, maybe
-- [ ] Check erase od information and account in GDPR
-
-### Documentation
 - [ ] Create issue templates (bug report, feature request)
 
 
-### Database Endpoints
-
-
-### Shared HTTP Client
-
+## Low Priority / Bug reports
+-001 [ ] Update button in profile page overwrites the image. We can recicle to change the mail, maybe
+-002 [ ] Check erase od information and account in GDPR
 
 
 ## Testing Checklist
@@ -50,3 +41,5 @@
 - [ ] AI game: Confirm match saves with AI as player2
 - [ ] Guest vs Guest: Verify match is NOT saved (skipped)
 - [ ] Check enpoints? in dashboard?
+
+## Solved Bug reports
