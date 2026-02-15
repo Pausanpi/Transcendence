@@ -469,7 +469,7 @@ I started the project in high spirits, thinking of making a game and some fronte
   - Check Docker container logs: `docker compose logs` or `docker logs <container>`
   - Use your browser's console and network inspector for frontend errors
   - Ensure all services are running with `docker compose ps`
-  - For 2FA issues, see the section above
+  - For 2FA issues, see the section bellow (O ESCRIBIRLE SU PROPIA GUIA?)
 
 ## Related Projects & Resources
 - [42 School](https://42.fr/en/homepage/)

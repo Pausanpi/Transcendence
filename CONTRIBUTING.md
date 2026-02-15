@@ -1,17 +1,46 @@
 # Contributing Guide
-.
+
+## General Guidelines
+
+- **Code Structure:**
+  - Backend code is in `auth/` and `database/` (Node.js/Fastify, JavaScript).
+  - Frontend code is in `frontend/src/` (TypeScript).
+  - Organize new files by feature/module and keep related logic together.
+
+- **Naming Conventions:**
+  - Use lowerCamelCase for variables and functions.
+  - Use PascalCase for class names.
+  - File names: use kebab-case or lowerCamelCase (e.g., `user.js`, `main.ts`).
+  - Branch names: use `feature/`, `fix/`, or `refactor/` prefixes as described below.
+
+- **Code Style:**
+  - Indent with tabs (backend) or 2 spaces (frontend, if using Prettier/ESLint).
+  - Prefer `const`/`let` over `var`.
+  - Use async/await for asynchronous code.
+  - Add JSDoc/TSDoc comments for exported functions when possible.
+
+- **Commits & PRs:**
+  - Write clear, descriptive commit messages.
+  - Reference issues or features in PRs.
+
+- **Testing:**
+  - If you add or modify features, include or update tests if available.
+
+- **Tracking Bugs and Pending Work:**
+  - If you find a bug, technical debt, or something to review later, add a note to `TODO.md` in the project root.
+
 ## Branch Structure
 
 ```
 main        → Stable, production-ready code (DO NOT push directly)
   └── dev   → Integration branch (DO NOT push directly)
-        └── feature/* / fix/* → Your working branches
+        └── feature/* / fix/* / refactor/* → Your working branches
 ```
 
-## Workflow
+## Git Workflow
 
-The idea is to have a "main" safe version, a "dev" working version and create branches to work everytime and -
-merge them into "dev" once we are done.
+The idea is to have a "main" safe version, a "dev" working version and create branches to work every time and merge them into "dev" once we are done.
+At the moment the repository is on GitHub with some special rules, so that it will require manual reviews to merge into main and dev and they will not accept any push.
 
 ### 1. Start new work
 
@@ -24,8 +53,7 @@ git pull origin dev
 git checkout -b feature/your-feature-name
 ```
 
-There are more ways but this is a simpple way of ensuring the pull and that the new branch is "under" dev -
-(technically there is no under but you know)
+This ensures your branch is up to date and based on `dev`.
 
 ### 2. Make your changes
 
@@ -36,8 +64,7 @@ git add .
 git commit -m "descriptive message"
 ```
 
-Remember that not every commit needs a push, you can keep working with commit to stablis points and then push when you are done.
-
+Remember that not every commit needs a push; you can keep working with commits to establish points and then push when you are done.
 
 ### 3. Push your branch
 
@@ -47,16 +74,15 @@ git push -u origin feature/your-feature-name
 
 ### 4. Create a Pull Request
 
-Once you have pushed you will have to get into github and request review.
-This request will be put by default in "main", change it to "dev"
+Once you have pushed, go to GitHub and request a review.
+This request will be put by default in "main"; change it to "dev".
 
 1. Go to GitHub → Pull Requests → New Pull Request
 2. Set **base:** `dev` ← **compare:** `your-branch`
 3. Add a clear title and description
 4. Request a reviewer
 
-You will have to actively request a reviewe in the side menu. You can select as many as you want,
-you will need 1 review for dev and 2 for main.
+You will have to actively request a reviewer in the side menu. You can select as many as you want; you will need 1 review for dev and 2 for main.
 
 ### 5. After approval
 
@@ -64,7 +90,7 @@ Once approved, click "Merge pull request" on GitHub.
 
 ### 6. Cleaning
 
-Once done you can continue using your branch to work.
+Once done, you can continue using your branch to work.
 You can also delete it and create a new one if you are using a more strict naming convention.
 Try to delete branches that are not being used anymore.
 
@@ -151,10 +177,10 @@ Before pushing or opening a Pull Request, always update your branch with the lat
    git push origin feature/your-feature
    ```
 
-> **Tip:** If there is an error with non related
-histories, you cna force with
-git merge dev --allow-unrelated-histories
-
+> **Tip:** If there is an error with unrelated histories, you can force with:
+> ```bash
+> git merge dev --allow-unrelated-histories
+> ```
 
 > **Tip:** Use `git status` to see which files need attention during a conflict. Repeat the conflict resolution steps for each file as needed.
 
@@ -164,13 +190,13 @@ This process is required by our workflow to keep the codebase healthy and avoid 
 
 ## Branch Naming Convention
 
-We have been using "feature/your-feature" but branches can be called however we want.
+Please use the following branch naming conventions for clarity and consistency:
 
-| Type | Format | Example |
-|------|--------|---------|
-| New feature | `feature/description` | `feature/user-login` |
-| Bug fix | `fix/description` | `fix/login-error` |
-| Refactor | `refactor/description` | `refactor/auth-service` |
+| Type      | Format                | Example                |
+|-----------|-----------------------|------------------------|
+| New feature | `feature/description` | `feature/user-login`   |
+| Bug fix     | `fix/description`     | `fix/login-error`      |
+| Refactor    | `refactor/description`| `refactor/auth-service`|
 
 ---
 
@@ -180,42 +206,10 @@ We have been using "feature/your-feature" but branches can be called however we 
 - ✅ Always create a Pull Request
 - ✅ Always get at least 1 approval before merging
 - ✅ Always pull latest `dev` before creating a new branch
+- ✅ Delete branches after merging to keep the repo clean
 
 ---
 
-## Syncing your branch with dev
+## Questions?
 
-If `dev` has new commits while you're working
-You will have to update your branch before pushing to ensure that no work is lost
-There are more than one ways to do this:
-
-```bash
-git checkout dev
-git pull origin dev
-git checkout feature/your-feature
-git rebase dev
-```
-
-Or use merge:
-
-```bash
-git checkout feature/your-feature
-git merge dev
-```
-
-
-EN GENERAL
-git checkout dev
-git pull origin dev
-git checkout -b feature/my-feature
-# ... work, commit ...
-git push -u origin feature/my-feature
-# → Create PR on GitHub → Get review → Merge → Delete branch
-
-
----
-### Bruteforce pull
-
-git reset --hard origin/fix/refactor
-git clean -fd
-
+If you have any questions or are unsure about any part of the process, please open an issue or contact a maintainer for guidance.
