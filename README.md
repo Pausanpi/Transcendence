@@ -65,7 +65,7 @@ From there, you will be able to access the main page, where you can register a n
 - **gateway**: API gateway and routing.
 - **grafana**: Monitoring and dashboards.
 - **i18n**: Internationalization and language support.
-- **nginx**: Reverse proxy, load balancing, and WAF (with ModSecurity).
+- **nginx**: Reverse proxy, load balancing, and WAF (with ModSecurity). Serves static frontend files.
 - **prometheus**: Metrics and monitoring.
 - **shared**: Shared configuration and code.
 - **users**: User management services.
@@ -75,7 +75,8 @@ From there, you will be able to access the main page, where you can register a n
 
 AI tools (such as GitHub Copilot and ChatGPT) were primarily used to help understand and document code written by other team members, as well as to assist in modifying and extending existing modules.
 
-Additionally, AI was used in a limited way for code generation, documentation review, and troubleshooting errors.
+Additionally, AI was used in a limited way for code generation, documentation review, and troubleshooting errors
+when starting with new tools and tech stacks.
 
 No AI models were integrated into the production code or user-facing features.
 
@@ -291,8 +292,6 @@ Communication channels:
 
 # Modules
 
-# Modules List
-
 ## Modules Overview
 
 **Total Points:**
@@ -417,16 +416,66 @@ Minor: 11 × 1 = 12 pts
 
 # Individual Contributions
 
-- Detailed breakdown of what each team member contributed.
-- Specific features, modules, or components implemented by each person.
-- Any challenges faced and how they were overcome.
+### csubires
+- Implemented backend framework (Fastify), authentication, 2FA, API security, public API, WAF/ModSecurity, HashiCorp Vault, Prometheus, Grafana, OAuth, GDPR features, profile management, health checks, and backups.
+- Contributed to i18n, profile management, browser support, and microservices structure.
 
-# Other Information
+I wanted to develop a robust and connected cybersecurity package that felt complete. That in itself was a challenge, but then adapting it to a microservices structure—since I had developed this part as a monolithic package—was even more demanding. I am also pursuing professional training, so finding the time to coordinate and work with the rest of the team has been a constant effort.
 
-- Usage documentation, known limitations, license, credits, etc.
+### joestrad
+- Implemented tournament system, game statistics, and leaderboard.
+- Contributed to frontend structure, match history, real-time Pong multiplayer, second game (Tic-Tac-Toe), i18n, browser support, and friends system.
 
+I faced time challenges from the very start. I was added to the team after the project was already running and had to get up to speed quickly. I also have a full-time job, so coordinating and finding time to study the project was not easy. On the technical side, it was both fun and hard to implement my modules using, enhancing, and repairing functions and modules from other colleagues. My modules had to orchestrate features already implemented in other parts of the project.
 
+### lcuevas-
+- Implemented microservices structure, user management, game statistics, match history, leaderboard, friends system, avatar upload, health checks, and backups.
+- Contributed to public API, profile management, i18n, and browser support.
 
+To be honest, the effort of coordinating the team ended up on my shoulders. This was a great team, but sometimes I felt more like a manager than a developer. Speaking of code, I was out of my comfort zone for the entire project, since I focused heavily on the production version and microservices containerization. I had to be the link between the code my colleagues made and the final product, which meant working on a lot of systems I never had before and checking documentation and the subject again and again, even with other teams that were familiar with Transcendence.
+
+### pausanch
+- Implemented frontend structure and styles, real-time Pong multiplayer, second game, AI opponent, and game customization.
+- Contributed to friends system, i18n, and browser support.
+
+I started the project in high spirits, thinking of making a game and some frontend, which I enjoy doing. But, like other colleagues, I am pursuing professional training that is equally challenging, so I was working on alternate projects. That meant that, sometimes, when I got back to the project, the backend or the tech stack had changed in some way and I had to readapt my work to the new version. I had a challenging time with all the versions and updates, but I think I learned a lot about workflows.
+
+---
+
+### Challenges Faced
+- Integrating multiple microservices and ensuring reliable communication between containers.
+- Implementing real-time multiplayer gameplay with WebSockets and handling network latency.
+- Ensuring robust security with ModSecurity, Vault, and 2FA.
+- Achieving full GDPR compliance and user data management.
+- Coordinating translations and cross-browser compatibility.
+- Maintaining clear documentation and code reviews across a distributed team.
+
+# Other information
+
+## Team & Contact
+- GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)
+
+## Limitations
+- Game logic runs entirely in the frontend. This means match results and records can potentially be manipulated by users, as the backend does not validate in-game actions. Use for learning and demonstration purposes only.
+
+## Contribution Guidelines
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute, code style, and review process.
+
+## License
+- No license specified. All rights reserved. Contact the authors if you wish to use or adapt this project.
+
+## Troubleshooting
+- If you encounter issues:
+  - Check Docker container logs: `docker compose logs` or `docker logs <container>`
+  - Use your browser's console and network inspector for frontend errors
+  - Ensure all services are running with `docker compose ps`
+  - For 2FA issues, see the section above
+
+## Related Projects & Resources
+- [42 School](https://42.fr/en/homepage/)
+- [Pong Game (Wikipedia)](https://en.wikipedia.org/wiki/Pong)
+- [Fastify](https://www.fastify.io/), [Docker](https://www.docker.com/), [Vault](https://www.vaultproject.io/)
+- See the Resources section above for more documentation links
 
 
 
