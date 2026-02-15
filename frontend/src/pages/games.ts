@@ -14,22 +14,22 @@ let gameOptions = {
 // ===== GAME SELECTION PAGE =====
 export function renderGames() {
 	return `
-    <h2 class="text-4xl font-bold text-center text-yellow-400 mb-8">Select Game</h2>
+    <h2 class="text-4xl font-bold text-center text-yellow-400 mb-8" data-i18n="game.select">Select Game</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
       <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="window.gameUI.startPongPvP()">
         <div class="text-6xl mb-4">🏓</div>
-        <h3 class="text-xl font-bold">Pong - PvP</h3>
-        <p class="text-gray-400">Player vs Player</p>
+        <h3 class="text-xl font-bold" data-i18n="game.pongPvP">Pong - PvP</h3>
+        <p class="text-gray-400" data-i18n="game.playerVSplayer">Player vs Player</p>
       </div>
       <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="window.gameUI.showDifficultySelect()">
         <div class="text-6xl mb-4">🤖</div>
-        <h3 class="text-xl font-bold">Pong - AI</h3>
-        <p class="text-gray-400">Player vs Computer</p>
+        <h3 class="text-xl font-bold" data-i18n="game.pongAI">Pong - AI</h3>
+        <p class="text-gray-400"data-i18n="game.playerVScomputer">Player vs Computer</p>
       </div>
       <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="window.gameUI.startTicTacToe()">
         <div class="text-6xl mb-4">⭕</div>
-        <h3 class="text-xl font-bold">Tic-Tac-Toe</h3>
-        <p class="text-gray-400">2 Players</p>
+        <h3 class="text-xl font-bold" data-i18n="game.ttt">Tic-Tac-Toe</h3>
+        <p class="text-gray-400" data-i18n="game.twoplayers">2 Players</p>
       </div>
     </div>
   `;
@@ -105,34 +105,34 @@ async function startPongAI(difficulty: number) {
 function showGuestVsGuestSetup() {
 	showModal(`
     <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="players.enterNames">Guest vs Guest</h2>
-      <p class="text-sm text-gray-400">No players logged in - both will play as guests</p>
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.guestVSguest">Guest vs Guest</h2>
+      <p class="text-sm text-gray-400" data-i18n="game.noPlayersLogged">No players logged in - both will play as guests</p>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player1Keys">Player 1 (W/S keys)</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="game.player1">Player 1 (W/S keys)</label>
         <input
           type="text"
           value="Guest"
           disabled
           class="w-full p-3 rounded bg-gray-600 cursor-not-allowed text-white"
         />
-        <p class="text-xs text-gray-400 mt-1">Playing as guest</p>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="game.playingAsGuest">Playing as guest</p>
       </div>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player2Keys">Player 2 (↑/↓ keys)</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="game.player2">Player 2 (↑/↓ keys)</label>
         <input
           type="text"
           value="Guest"
           disabled
           class="w-full p-3 rounded bg-gray-600 cursor-not-allowed text-white"
         />
-        <p class="text-xs text-gray-400 mt-1">Playing as guest</p>
+        <p class="text-xs text-gray-400 mt-1" data-i18n="game.playingAsGuest">Playing as guest</p>
       </div>
       
       <div class="flex gap-4 mt-6">
-        <button onclick="window.gameUI.hideModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
-        <button onclick="window.gameUI.confirmGuestVsGuest()" class="btn btn-green flex-1" data-i18n="players.startGame">Start Game</button>
+        <button onclick="window.gameUI.hideModal()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
+        <button onclick="window.gameUI.confirmGuestVsGuest()" class="btn btn-green flex-1" data-i18n="game.startGame">Start Game</button>
       </div>
     </div>
   `);
@@ -144,28 +144,28 @@ function showPlayer2Setup(currentUser: any) {
 		? (verifiedPlayer2.display_name || verifiedPlayer2.username)
 		: 'Guest';
 	const verifiedStatus = verifiedPlayer2
-		? `<p class="text-xs text-green-400 mt-1">✓ Verified player</p>`
-		: `<p class="text-xs text-gray-400 mt-1">Playing as guest</p>`;
+		? `<p class="text-xs text-green-400 mt-1" data-i18n="game.verifiedPlayer">✓ Verified player</p>`
+		: `<p class="text-xs text-gray-400 mt-1" data-i18n="game.playingAsGuest">Playing as guest</p>`;
 	const verifyButtonHtml = verifiedPlayer2
-		? '<button onclick="window.gameUI.clearPlayer2Verification()" class="btn btn-yellow mt-2" type="button">Change Player 2</button>'
-		: '<button onclick="window.gameUI.showPlayer2VerifyModal()" class="btn btn-blue mt-2" type="button">Verify Player 2</button>';
+		? '<button onclick="window.gameUI.clearPlayer2Verification()" class="btn btn-yellow mt-2" type="button" data-i18n="game.changePlayer">Change Player 2</button>'
+		: '<button onclick="window.gameUI.showPlayer2VerifyModal()" class="btn btn-blue mt-2" type="button" data-i18n="game.verifyPlayer2">Verify Player 2</button>';
 	showModal(`
     <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="players.enterNames">Player 2 Setup</h2>
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.player2setup">Player 2 Setup</h2>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player1Keys">Player 1 (W/S keys)</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="game.player1">Player 1 (W/S keys)</label>
         <input
           type="text"
           value="${player1Name}"
           disabled
           class="w-full p-3 rounded bg-gray-600 cursor-not-allowed text-white"
         />
-        <p class="text-xs text-green-400 mt-1">✓ Logged in as ${player1Name}</p>
+        <p class="text-xs text-green-400 mt-1" data-i18n="game.logged">✓ Logged in as ${player1Name}</p>
       </div>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1" data-i18n="players.player2Keys">Player 2 (↑/↓ keys)</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="game.player2">Player 2 (↑/↓ keys)</label>
         <input
           type="text"
           value="${player2DisplayName}"
@@ -177,8 +177,8 @@ function showPlayer2Setup(currentUser: any) {
       </div>
       
       <div class="flex gap-4 mt-6">
-        <button onclick="window.gameUI.hideModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
-        <button onclick="window.gameUI.confirmPlayer2Setup()" class="btn btn-green flex-1" data-i18n="players.startGame">Start Game</button>
+        <button onclick="window.gameUI.hideModal()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
+        <button onclick="window.gameUI.confirmPlayer2Setup()" class="btn btn-green flex-1" data-i18n="game.startGame">Start Game</button>
       </div>
     </div>
   `);
@@ -187,11 +187,11 @@ function showPlayer2Setup(currentUser: any) {
 function showPlayer2VerifyModal() {
 	showModal(`
     <div class="card text-center space-y-4 max-w-md mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400">Verify Player 2</h2>
-      <p class="text-gray-400">Player 2 must log in to verify their identity</p>
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.verifyPlayer2">Verify Player 2</h2>
+      <p class="text-gray-400" data-i18n="game.player2mustLog">Player 2 must log in to verify their identity</p>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Email</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="admin.email">Email</label>
         <input
           type="email"
           id="player2Email"
@@ -201,7 +201,7 @@ function showPlayer2VerifyModal() {
       </div>
       
       <div class="text-left">
-        <label class="block text-sm text-gray-400 mb-1">Password</label>
+        <label class="block text-sm text-gray-400 mb-1" data-i18n="admin.password">Password</label>
         <input
           type="password"
           id="player2Password"
@@ -213,12 +213,13 @@ function showPlayer2VerifyModal() {
       <div id="loginStatus" class="text-sm"></div>
       
       <div class="flex gap-4 mt-6">
-        <button onclick="window.gameUI.backToPlayer2Setup()" class="btn btn-gray flex-1">Back</button>
-        <button onclick="window.gameUI.loginPlayer2Direct()" class="btn btn-green flex-1">Login</button>
+        <button onclick="window.gameUI.backToPlayer2Setup()" class="btn btn-gray flex-1" data-i18n="game.back">Back</button>
+        <button onclick="window.gameUI.loginPlayer2Direct()" class="btn btn-green flex-1" data-i18n="game.login">Login</button>
       </div>
     </div>
   `);
 	focusInput('player2Email');
+	applyTranslations();
 }
 async function loginPlayer2Direct() {
 	const emailInput = document.getElementById('player2Email') as HTMLInputElement;
@@ -229,20 +230,20 @@ async function loginPlayer2Direct() {
 	const email = emailInput.value.trim();
 	const password = passwordInput.value;
 	if (!email || !password) {
-		statusDiv.innerHTML = '<span class="text-red-400">Please enter email and password</span>';
+		statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.enterEmailAndPassword">Please enter email and password</span>';
 		return;
 	}
-	statusDiv.innerHTML = '<span class="text-yellow-400">Logging in...</span>';
+	statusDiv.innerHTML = '<span class="text-yellow-400" data-i18n="game.logginIn">Logging in...</span>';
 	const user = await loginPlayer(email, password);
 	if (user) {
 		verifiedPlayer2 = user;
-		statusDiv.innerHTML = '<span class="text-green-400">✓ Player 2 verified!</span>';
+		statusDiv.innerHTML = '<span class="text-green-400" data-i18n="game.player2Verified">✓ Player 2 verified!</span>';
 		setTimeout(() => {
 			backToPlayer2Setup();
 		}, 1000);
 	}
 	else {
-		statusDiv.innerHTML = '<span class="text-red-400">✗ Invalid credentials</span>';
+		statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
 	}
 }
 async function backToPlayer2Setup() {
@@ -476,29 +477,31 @@ function setupPongGameEndHandler() {
 function showDifficultySelect() {
 	showModal(`
     <div class="card text-center space-y-4">
-      <h2 class="text-2xl font-bold text-yellow-400">Select Difficulty</h2>
-      <button onclick="window.gameUI.startPongAI(2)" class="btn btn-green w-full">Easy</button>
-      <button onclick="window.gameUI.startPongAI(3)" class="btn btn-yellow w-full">Medium</button>
-      <button onclick="window.gameUI.startPongAI(4)" class="btn btn-red w-full">Hard</button>
-      <button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full">Cancel</button>
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.selectDifficulty">Select Difficulty</h2>
+      <button onclick="window.gameUI.startPongAI(2)" class="btn btn-green w-full" data-i18n="game.easy">Easy</button>
+      <button onclick="window.gameUI.startPongAI(3)" class="btn btn-yellow w-full" data-i18n="game.medium">Medium</button>
+      <button onclick="window.gameUI.startPongAI(4)" class="btn btn-red w-full" data-i18n="game.hard">Hard</button>
+      <button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full" data-i18n="game.cancel">Cancel</button>
     </div>
   `);
+  applyTranslations();
 }
 // ===== TIC-TAC-TOE =====
 function startTicTacToe() {
 	showModal(`
 		<div class="card text-center space-y-4">
-			<h2 class="text-2xl font-bold text-yellow-400">Tic-Tac-Toe</h2>
-			<p class="text-gray-400">Choose game mode</p>
+			<h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.ttt">Tic-Tac-Toe</h2>
+			<p class="text-gray-400" data-i18n="game.gameMode">Choose game mode</p>
 			
 			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToePvP()" class="btn btn-green w-full">👥 Player vs Player</button>
-				<button onclick="window.gameUI.showTicTacToeDifficulty()" class="btn btn-yellow w-full">🤖 Player vs AI</button>
+				<button onclick="window.gameUI.startTicTacToePvP()" class="btn btn-green w-full" data-i18n="game.playerVSplayer">Player vs Player</button>
+				<button onclick="window.gameUI.showTicTacToeDifficulty()" class="btn btn-yellow w-full" data-i18n="game.playerVSAI">Player vs AI</button>
 			</div>
 			
-			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full">Cancel</button>
+			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full" data-i18n="game.cancel">Cancel</button>
 		</div>
 	`);
+	applyTranslations();
 }
 async function startTicTacToePvP() {
 	hideModal();
@@ -507,17 +510,18 @@ async function startTicTacToePvP() {
 function showTicTacToeDifficulty() {
 	showModal(`
 		<div class="card text-center space-y-4">
-			<h2 class="text-2xl font-bold text-yellow-400">Select AI Difficulty</h2>
+			<h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.selectAIdifficulty">Select AI Difficulty</h2>
 			
 			<div class="space-y-2">
-				<button onclick="window.gameUI.startTicTacToeAI(2)" class="btn btn-green w-full">😊 Easy</button>
-				<button onclick="window.gameUI.startTicTacToeAI(3)" class="btn btn-yellow w-full">😐 Medium</button>
-				<button onclick="window.gameUI.startTicTacToeAI(4)" class="btn btn-red w-full">😈 Hard</button>
+				<button onclick="window.gameUI.startTicTacToeAI(2)" class="btn btn-green w-full" data-i18n="game.easy">Easy</button>
+				<button onclick="window.gameUI.startTicTacToeAI(3)" class="btn btn-yellow w-full" data-i18n="game.medium">Medium</button>
+				<button onclick="window.gameUI.startTicTacToeAI(4)" class="btn btn-red w-full" data-i18n="game.hard">Hard</button>
 			</div>
 			
-			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full">Cancel</button>
+			<button onclick="window.gameUI.hideModal()" class="btn btn-gray w-full" data-i18n="game.cancel">Cancel</button>
 		</div>
 	`);
+	applyTranslations();
 }
 async function startTicTacToeAI(difficulty: number) {
 	hideModal();

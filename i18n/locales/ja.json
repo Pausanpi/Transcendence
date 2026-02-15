@@ -243,6 +243,7 @@
 		"userId": "ユーザー ID",
 		"username": "ユーザー名",
 		"email": "メール",
+		"password": "パスワード",
 		"status": "ステータス",
 		"2faStatus": "2FA ステータス",
 		"createdAt": "作成日",
@@ -311,6 +312,35 @@
 	},
 
 	"game": {
+		"guestVSguest": "ゲスト対ゲスト",
+		"noPlayersLogged": "選手は未定。ゲストとして出場する。",
+		"player1": "プレイヤー1 (W/S キー)",
+		"playingAsGuest": "プレイヤーvsゲスト",
+		"player2": "プレイヤー2 (↑/↓ キー)",
+		"startGame": "ゲームを開始する",
+
+		"verifiedPlayer": "✓ 認証済みプレイヤー",
+		"changePlayer": "スイッチプレーヤー2",
+		"verifyPlayer2": "プレーヤー2を確認してください",
+		"player2setup": "プレーヤー2の設定 jugador 2",
+		"logged": "✓ として識別される ",
+
+		"player2mustLog": "プレイヤー2はログインして本人確認をする必要があります",
+		"back": "戻る",
+		"login": "ログイン",
+
+		"enterEmailandPassword": "メールアドレスとパスワードを入力してください。",
+		"logginIn": "識別中...",
+		"player2Verified": "✓ プレイヤー2が認証されました!",
+		"invalidCredentials": "✗ 無効な資格情報",
+
+		"select": "ゲームを選択",
+		"pongPvP": "ポン - PvP",
+		"playerVSplayer": "プレイヤー対プレイヤー",
+		"pongAI": "ポン - AI",
+		"playerVScomputer": "プレイヤー対コンピューター",
+		"ttt": "三目並べ",
+		"twoplayers": "2人のプレイヤー",
 		"options": "ゲームオプション",
 		"background": "背景",
 		"background1": "デフォルト",
@@ -322,6 +352,15 @@
 		"dificulty2": "バランスが取れた",
 		"dificulty3": "難しい",
 		"cancel": "キャンセル",
-		"accept": "受け入れる"
+		"accept": "受け入れる",
+
+		"selectDifficulty": "難易度を選択",
+		"easy": "簡単",
+		"medium": "半分",
+		"hard": "難しい",
+
+		"gameMode": "ゲームモードを選択する",
+		"playerVSAI": "ゲームモードを選択する",
+		"selectAIdifficulty": "AIの難易度を選択"
 	}
 }

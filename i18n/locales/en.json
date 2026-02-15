@@ -246,6 +246,7 @@
 		"userId": "User ID",
 		"username": "Username",
 		"email": "Email",
+		"password": "Password",
 		"status": "Status",
 		"2faStatus": "2FA Status",
 		"createdAt": "Created At",
@@ -317,6 +318,36 @@
 		"error": "An error occurred. Please try again."
 	},
 	"game": {
+		"select": "Select Game",
+		"pongPvP": "Pong - PVP",
+		"playerVSplayer": "Player vs Player",
+		"pongAI": "Pong - AI",
+		"playerVScomputer": "Player vs Computer",
+		"ttt": "Tic-Tac-Toe",
+		"twoplayers": "2 Players",
+
+		"guestVSguest": "Guest vs Guest",
+		"noPlayersLogged": "No players logged in - both will play as guest",
+		"player1": "Player 1 (W/S keys)",
+		"playingAsGuest": "Playing as guest",
+		"player2": "Player 2 (↑/↓ keys)",
+		"startGame": "Start Game",
+
+		"verifiedPlayer": "✓ Verified player",
+		"changePlayer": "Change Player 2",
+		"verifyPlayer2": "Verify Player 2",
+		"player2setup": "Player 2 Setup",
+		"logged": "✓ Logged in as ",
+
+		"player2mustLog": "Player 2 must log in to verify their identity",
+		"back": "Back",
+		"login": "Login",
+
+		"enterEmailandPassword": "Please enter email and password",
+		"logginIn": "Logging in...",
+		"player2Verified": "✓ Player 2 verified!",
+		"invalidCredentials": "✗ Invalid credentials",
+
 		"options": "Game Options",
 		"background": "Background",
 		"background1": "Default",
@@ -328,6 +359,15 @@
 		"dificulty2": "Balanced",
 		"dificulty3": "Challenging",
 		"cancel": "Cancel",
-		"accept": "Accept"
+		"accept": "Accept",
+
+		"selectDifficulty": "Select Difficulty",
+		"easy": "Easy",
+		"medium": "Medium",
+		"hard": "Hard",
+
+		"gameMode": "Choose game mode",
+		"playerVSAI": "Player vs AI",
+		"selectAIdifficulty": "Select AI Difficulty"
 	}
 }
