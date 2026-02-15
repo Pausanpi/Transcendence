@@ -206,10 +206,11 @@ Please use the following branch naming conventions for clarity and consistency:
 - ✅ Always create a Pull Request
 - ✅ Always get at least 1 approval before merging
 - ✅ Always pull latest `dev` before creating a new branch
+- ✅ Always update your banch up to latest `dev` before merging into it
 - ✅ Delete branches after merging to keep the repo clean
 
 ---
 
 ## Questions?
 
-If you have any questions or are unsure about any part of the process, please open an issue or contact a maintainer for guidance.
+If you have any questions or are unsure about any part of the process, please contact lcuevas-
