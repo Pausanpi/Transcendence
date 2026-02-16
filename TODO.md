@@ -4,7 +4,7 @@
 - [ ] General testing of endpoints
 
 ### Database Schema
-- [ ] Schema for README
+- [ ] Database schema for README
 
 ### Docker Configuration
 - [ ] Prepare final production version without bind-mounts
@@ -42,4 +42,4 @@
 - [ ] Guest vs Guest: Verify match is NOT saved (skipped)
 - [ ] Check enpoints? in dashboard?
 
-## Solved Bug reports
+# Solved Bug reports
