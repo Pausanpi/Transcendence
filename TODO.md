@@ -14,12 +14,13 @@
 
 ### Docker Configuration
 - [ ] Prepare final production version without bind-mounts (lcuevas- / todo)
+- [ ] Nginx must generate the certificates at runtime (lcuevas- / todo)
 
 ### Git comments
 - [ ] Investigate changing git comments history (lcuevas- / todo)
 
-### Documentation
-
+### Authentications
+- [ ] Oauth need api keys to be configured? (lcuevas- / todo)
 
 ## Medium Priority
 - [ ] Friends list UI (show friends, online status, send requests) (lcuevas- / todo)
