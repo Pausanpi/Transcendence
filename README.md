@@ -39,6 +39,9 @@ From there, you will be able to access the main page, where you can register a n
 - [MDN Web Docs (HTML, CSS, JS)](https://developer.mozilla.org/)
 - [OWASP Top Ten Security Risks](https://owasp.org/www-project-top-ten/)
 
+- [Microservices Architecture Pattern](https://microservices.io/patterns/microservices.html)
+- [Docker Compose for Microservices](https://docs.docker.com/compose/)
+
 - [Fastify Documentation](https://www.fastify.io/docs/latest/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
