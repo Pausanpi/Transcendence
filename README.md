@@ -464,7 +464,7 @@ Most of those steps are intuitive but we have prepared some manuals inside:
 
 ## Limitations
 - Game logic runs entirely in the frontend. This means match results and records can potentially be manipulated by users, as the backend does not validate in-game actions. Use for learning and demonstration purposes only.
-
+.
 ## Contribution Guidelines
 - See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute, code style, and review process.
 

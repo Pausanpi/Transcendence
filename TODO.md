@@ -29,6 +29,8 @@
 ## Low Priority / Bug reports
 -001 [ ] Update button in profile page overwrites the image. We can recicle to change the mail, maybe
 -002 [ ] Check erase od information and account in GDPR
+-003 [✅] Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log
+-004 [✅] Similarly to 003, there are network errors when the api "fails" even in a expcted way.
 
 
 ## Testing Checklist
@@ -43,3 +45,6 @@
 - [ ] Check enpoints? in dashboard?
 
 # Solved Bug reports
+
+-003 [✅] Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log
+-004 [✅] Similarly to 003, there are network errors when the api "fails" even in a expcted way. This is due to the browser DevTools, we CAN NOT silence that, our backend is correct. The frontend handle it gracefully, but hte devtools will launch that everytime since it is monitoring the requests.
