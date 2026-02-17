@@ -457,7 +457,7 @@ I started the project in high spirits, thinking of making a game and some fronte
 Some modules require extra steps to make them work correctly on the browser.
 Most of those steps are intuitive but we have prepared some manuals inside:
 
-- [2FA Guide](docs/2fa-guide.md)  <!-- Detailed instructions for two-factor authentication -->
+- [2fa.md](docs/2fa-guide.md)  <!-- Detailed instructions for two-factor authentication -->
 
 ## Team & Contact
 - GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)
