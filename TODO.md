@@ -1,7 +1,7 @@
 # TODO
 
 ## High Priority
-- [ ] General testing of endpoints
+- [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully
 
 ### Database Schema
 - [ ] Database schema for README
