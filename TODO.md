@@ -1,5 +1,10 @@
 # TODO
 
+**Organization:**
+- **High and Medium Priority**: Active todo lists that can be checked off or expanded as needed.
+- **Low Priority / Bug Reports**: Numbered list for tracking issues. When resolved, move entries to the "Solved Bug Reports" section below.
+
+
 ## High Priority
 - [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully
 
