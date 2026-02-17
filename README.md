@@ -452,6 +452,13 @@ I started the project in high spirits, thinking of making a game and some fronte
 
 # Other information
 
+## Further Reading
+
+Some modules require extra steps to make them work correctly on the browser.
+Most of those steps are intuitive but we have prepared some manuals inside:
+
+- [2FA Guide](docs/2fa-guide.md)  <!-- Detailed instructions for two-factor authentication -->
+
 ## Team & Contact
 - GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)
 
@@ -476,48 +483,3 @@ I started the project in high spirits, thinking of making a game and some fronte
 - [Pong Game (Wikipedia)](https://en.wikipedia.org/wiki/Pong)
 - [Fastify](https://www.fastify.io/), [Docker](https://www.docker.com/), [Vault](https://www.vaultproject.io/)
 - See the Resources section above for more documentation links
-
-
-
-
-
-
-
-
-
-
-## Activar 2fa
-
-Aún no he consegido que sincronice bien con app de android.
-La clave del 2fa es el SECRET. Ejemplo: OBHG2SKNGBGHO4TBHZHW6KDBMMXEWM32GZKGGM3IJJSF4QJVJJNA
-
-Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan los códigos de autenticación. En condiciones normales no se muestra por ningún lado... son las app de autenticación (google aut...etc) las encargadas de guardalas mediante el escaneo del código QR. Pero como no van, pongo algunas alternativas para generar códigos.
-
-1 - Hay un botón en el perfil que dirige a https://localhost:8443/users/decode.html, ahí metes el SECRET que aparece al habilitarlo
-
-2 - https://qrcoderaptor.com/es/
-
-3 - sudo apt install oathtool
-
-`oathtool --totp -b OBHG2SKNGBGHO4TBHZHW6KDBMMXEWM32GZKGGM3IJJSF4QJVJJNA`
-
-- Habilitar 2fa: Dar al botón Gestionar 2FA del perfil
-![alt text](_assets/enable2fa.png)
-
-- Copias el secreto de la ventana que sale al pulsar el botón Configurar 2FA. Generas el código y lo pegas (Ver abajo)
-![alt text](_assets/tot.png)
-
-- Te vas a tu generador de códigos favorito (Ojo, estos códigos caducan en segundos)
-![alt text](_assets/gentot.png)
-
-- Una vez habilitado te salen los códigos de recuperación. Que se usan en caso de que al hacer lógin y tener el 2FA activado no tengas tu SECRET porque lo perdiste, borraste la app de autentificación que lo guardaba, etc... Estos códigos se van borrando al usarlos
-![alt text](_assets/backcodes.png)
-
-- 2FA ya Habilitado
-![alt text](_assets/okenablef2a.png)
-
-- Ahora despúes de hacer logín con tu email/password también se te pide que generes un código TOTP para acceder
-![alt text](_assets/acces2fa.png)
-
-- Para deshabilitarlo, los pasos son los mismos: Le das al botón de deshabilitar, te pedirá un código TOTP, lo metes y se deshabilita.
-
