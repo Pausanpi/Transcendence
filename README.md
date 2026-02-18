@@ -201,9 +201,174 @@ Communication channels:
 
 # Database Schema
 
-- Visual representation or description of the database structure.
-- Tables/collections and their relationships.
-- Key fields and data types.
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    users ||--o{ user_sessions : "has"
+    users ||--o{ backup_codes : "has"
+    users ||--o{ friendships : "creates"
+    users ||--o{ friendships : "receives"
+    users ||--o{ tournaments : "creates"
+    users ||--o{ tournaments : "wins"
+    users ||--o{ tournament_participants : "participates"
+    users ||--o{ matches : "plays_as_player1"
+    users ||--o{ matches : "plays_as_player2"
+    users ||--o{ matches : "wins"
+    tournaments ||--o{ tournament_participants : "includes"
+    tournaments ||--o{ matches : "has"
+
+    users {
+        TEXT id PK
+        TEXT username
+        TEXT display_name
+        TEXT email UK
+        TEXT password_hash
+        TEXT oauth_provider
+        TEXT oauth_id
+        TEXT avatar
+        BOOLEAN two_factor_enabled
+        TEXT two_factor_secret
+        BOOLEAN is_active
+        BOOLEAN is_anonymized
+        INTEGER login_attempts
+        DATETIME locked_until
+        BOOLEAN consent_marketing
+        BOOLEAN consent_analytics
+        BOOLEAN consent_data_processing
+        DATETIME consent_updated_at
+        DATETIME created_at
+        DATETIME updated_at
+        TEXT online_status
+        DATETIME last_seen
+    }
+
+    user_sessions {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT jwt_token
+        DATETIME expires_at
+        DATETIME created_at
+    }
+
+    backup_codes {
+        INTEGER id PK
+        TEXT user_id FK
+        TEXT code_hash
+        BOOLEAN used
+        DATETIME created_at
+    }
+
+    friendships {
+        INTEGER id PK
+        TEXT user_id FK
+        TEXT friend_id FK
+        TEXT status
+        DATETIME created_at
+    }
+
+    tournaments {
+        INTEGER id PK
+        TEXT name
+        TEXT creator_id FK
+        TEXT status
+        INTEGER max_players
+        INTEGER current_round
+        TEXT winner_id FK
+        TEXT winner_name
+        DATETIME created_at
+        DATETIME started_at
+        DATETIME completed_at
+    }
+
+    tournament_participants {
+        INTEGER id PK
+        INTEGER tournament_id FK
+        TEXT user_id FK
+        TEXT display_name
+        INTEGER seed
+        BOOLEAN eliminated
+        INTEGER eliminated_round
+        DATETIME joined_at
+    }
+
+    matches {
+        INTEGER id PK
+        TEXT player1_id FK
+        TEXT player1_name
+        TEXT player2_id FK
+        TEXT player2_name
+        INTEGER player1_score
+        INTEGER player2_score
+        TEXT winner_id FK
+        TEXT winner_name
+        TEXT game_type
+        INTEGER tournament_id FK
+        INTEGER match_duration
+        DATETIME played_at
+    }
+```
+
+## Tables Overview
+
+### users
+Stores all user account information including authentication, profile data, and privacy settings.
+- **Primary Key**: `id` (TEXT)
+- **Unique Constraints**: `email`, `(oauth_provider, oauth_id)`
+- **Key Features**: Supports both traditional authentication and OAuth, includes 2FA, GDPR compliance fields, and user status tracking
+
+### user_sessions
+Manages active user sessions with JWT tokens.
+- **Primary Key**: `id` (TEXT)
+- **Foreign Keys**: `user_id` → users(id)
+- **Purpose**: Session management and JWT token tracking with expiration
+
+### backup_codes
+Stores hashed backup codes for 2FA recovery.
+- **Primary Key**: `id` (INTEGER, auto-increment)
+- **Foreign Keys**: `user_id` → users(id)
+- **Purpose**: Provides recovery mechanism when 2FA device is unavailable
+
+### friendships
+Manages friend relationships between users.
+- **Primary Key**: `id` (INTEGER, auto-increment)
+- **Foreign Keys**: `user_id` → users(id), `friend_id` → users(id)
+- **Unique Constraints**: `(user_id, friend_id)`
+- **Status Values**: `pending`, `accepted`, `rejected`
+
+### tournaments
+Stores tournament information and metadata.
+- **Primary Key**: `id` (INTEGER, auto-increment)
+- **Foreign Keys**: `creator_id` → users(id), `winner_id` → users(id)
+- **Status Values**: `pending`, `active`, `completed`
+- **Purpose**: Manages tournament lifecycle from creation to completion
+
+### tournament_participants
+Links users to tournaments they participate in.
+- **Primary Key**: `id` (INTEGER, auto-increment)
+- **Foreign Keys**: `tournament_id` → tournaments(id), `user_id` → users(id)
+- **Purpose**: Tracks participant registration, seeding, and elimination status
+
+### matches
+Records all game matches played, both casual and tournament.
+- **Primary Key**: `id` (INTEGER, auto-increment)
+- **Foreign Keys**: `player1_id` → users(id), `player2_id` → users(id), `winner_id` → users(id), `tournament_id` → tournaments(id)
+- **Game Types**: `pong`, `tictactoe`, etc.
+- **Purpose**: Comprehensive match history including scores, duration, and tournament association
+
+## Key Relationships
+
+- **Users ↔ Sessions**: One user can have multiple active sessions
+- **Users ↔ Friendships**: Bidirectional friendship system with status tracking
+- **Users ↔ Tournaments**: Users can create and participate in multiple tournaments
+- **Tournaments ↔ Matches**: Tournament matches are linked for bracket tracking
+- **Users ↔ Matches**: Users can play many matches, both in tournaments and casual games
+
+## Data Retention & Privacy
+
+- User data includes GDPR compliance fields (`consent_*`, `is_anonymized`)
+- Foreign keys use `ON DELETE SET NULL` or `ON DELETE CASCADE` to maintain data integrity
+- Player and winner names are denormalized in matches/tournaments to preserve history even if user accounts are deleted
 
 # Features List
 
