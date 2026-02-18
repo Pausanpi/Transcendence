@@ -28,9 +28,12 @@
 - [ ] Profile page: show user stats & match history (lcuevas- / todo)
 - [ ] TicTacToe integration with gameService (lcuevas- / todo)
 
+
 ### Documentation
 - [ ] Update README.md (lcuevas- / todo)
+- [x] Privacy Policy and Terms of services, accesible and tick in the registration (lcuevas- / lcuevas-)
 - [ ] Create issue templates (bug report, feature request) (lcuevas- / todo)
+
 
 
 ## Low Priority / Bug reports
@@ -38,6 +41,7 @@
 - [ ] **002**: Check erase od information and account in GDPR (lcuevas- / todo)
 - [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. (lcuevas- / lcuevas-)
+- [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
 
 
 ## Testing Checklist
@@ -55,3 +59,4 @@
 
 - [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. This is due to the browser DevTools, we CAN NOT silence that, our backend is correct. The frontend handle it gracefully, but hte devtools will launch that everytime since it is monitoring the requests. (lcuevas- / lcuevas-)
+- [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
