@@ -37,6 +37,7 @@
 		"invalidAuthFormat": "Invalid authorization format",
 		"authenticationRequired": "Authentication required",
 		"invalidToken": "Invalid or expired token",
+		"termsAcceptanceRequired": "You must accept the Terms of Service and Privacy Policy to register",
 		"securityFeatures": "Security Features",
 		"securityList": [
 			"Web Application Firewall (ModSecurity)",

@@ -36,6 +36,7 @@
 		"invalidAuthFormat": "認証フォーマットが無効です",
 		"authenticationRequired": "認証が必要です",
 		"invalidToken": "無効または期限切れのトークンです",
+		"termsAcceptanceRequired": "登録するには利用規約とプライバシーポリシーに同意する必要があります",
 		"securityFeatures": "セキュリティ機能",
 		"securityList": [
 			"Web アプリケーションファイアウォール (ModSecurity)",

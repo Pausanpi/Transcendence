@@ -35,6 +35,7 @@
 		"accountLocked": "Cuenta temporalmente bloqueada",
 		"invalidAuthFormat": "Formato de autorización inválido",
 		"invalidToken": "Token inválido o expirado",
+		"termsAcceptanceRequired": "Debe aceptar los Términos de Servicio y la Política de Privacidad para registrarse",
 		"authenticationRequired": "Autenticación requerida",
 		"playGame": "Jugar Ahora",
 		"securityList": [

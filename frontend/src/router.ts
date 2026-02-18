@@ -10,6 +10,8 @@ import { renderTwoFAVerify } from './pages/twofaverify.js';
 import { renderPlayers } from './pages/players.js';
 import { renderFriends } from './pages/friends.js';
 import { renderTestPage } from './pages/testpage.js';
+import { renderPrivacyPolicy } from './pages/privacy-policy.js';
+import { renderTermsOfService } from './pages/terms-of-service.js';
 
 
 declare global {
@@ -31,6 +33,8 @@ const routes: Record<string, () => string> = {
   players: renderPlayers,
   friends: renderFriends,
   testpage: renderTestPage,
+  'privacy-policy': renderPrivacyPolicy,
+  'terms-of-service': renderTermsOfService,
 };
 let currentPage = 'home';
 
