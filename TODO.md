@@ -8,9 +8,10 @@
 
 ## High Priority
 - [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully (lcuevas- / todo)
+- [ ] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? (lcuevas- / todo)
 
 ### Database Schema
-- [ ] Database schema for README (lcuevas- / todo)
+- [x] Database schema for README (lcuevas- / lcuevas-)
 
 ### Docker Configuration
 - [ ] Prepare final production version without bind-mounts (lcuevas- / todo)
@@ -23,8 +24,8 @@
 - [ ] Oauth need api keys to be configured? (lcuevas- / todo)
 
 ## Medium Priority
-- [ ] Friends list UI (show friends, online status, send requests) (lcuevas- / todo)
-- [ ] Tournament UI and matchmaking logic (lcuevas- / todo)
+- [ ] Check friends list UI (show friends, online status, send requests) (lcuevas- / todo)
+- [ ] Check tournament UI and matchmaking logic (lcuevas- / todo)
 - [ ] Profile page: show user stats & match history (lcuevas- / todo)
 - [ ] TicTacToe integration with gameService (lcuevas- / todo)
 
@@ -42,6 +43,7 @@
 - [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. (lcuevas- / lcuevas-)
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
+- [ ] **006**: Navbar is not translated. Some buttons like "Dashboard" in front page also (lcuevas- / TODO)
 
 
 ## Testing Checklist
