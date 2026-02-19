@@ -44,6 +44,7 @@
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. (lcuevas- / lcuevas-)
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
 - [ ] **006**: Navbar is not translated. Some buttons like "Dashboard" in front page also (lcuevas- / TODO)
+- [ ] **007**: Update database scheme in README and image to the last version with tournament and sessions? (lcuevas- / TODO)
 
 
 ## Testing Checklist
