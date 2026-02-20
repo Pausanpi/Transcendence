@@ -13,6 +13,7 @@ Basically when we return an error on a api request, instead of do a condole.erro
 
 ### Database Schema
 - [x] Database schema for README (lcuevas- / lcuevas-)
+- [ ] Database schema must be updated in the final version(lcuevas- / todo)
 
 ### Docker Configuration
 - [ ] Prepare final production version without bind-mounts (lcuevas- / todo)
@@ -32,7 +33,7 @@ Basically when we return an error on a api request, instead of do a condole.erro
 
 
 ### Documentation
-- [ ] Update README.md (lcuevas- / todo)
+- [x] Update README.md (lcuevas- / lcuevas-)
 - [x] Privacy Policy and Terms of services, accesible and tick in the registration (lcuevas- / lcuevas-)
 - [ ] Create issue templates (bug report, feature request) (lcuevas- / todo)
 
@@ -46,8 +47,8 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
 - [ ] **006**: Navbar is not translated. Some buttons like "Dashboard" in front page also (lcuevas- / TODO)
 - [ ] **007**: Update database scheme in README and image to the last version with tournament and sessions? (lcuevas- / TODO)
-- [ ] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / todo)
-- [ ] **009**: You cna play against yourself if logged in (lcuevas- / todo)
+- [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
+- [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
 
 
 ## Testing Checklist
@@ -66,3 +67,5 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. This is due to the browser DevTools, we CAN NOT silence that, our backend is correct. The frontend handle it gracefully, but hte devtools will launch that everytime since it is monitoring the requests. (lcuevas- / lcuevas-)
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
+- [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
+- [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
