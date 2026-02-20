@@ -7,7 +7,8 @@
 
 
 ## High Priority
-- [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully (lcuevas- / todo)
+- [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully.
+Basically when we return an error on a api request, instead of do a condole.error we handle it "gracefully" (lcuevas- / todo)
 - [ ] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? (lcuevas- / todo)
 
 ### Database Schema
