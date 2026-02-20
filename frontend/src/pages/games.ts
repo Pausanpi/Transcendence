@@ -236,19 +236,55 @@ async function loginPlayer2Direct() {
 	const password = passwordInput.value;
 	if (!email || !password) {
 		statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.enterEmailAndPassword">Please enter email and password</span>';
+		applyTranslations();
 		return;
 	}
 	statusDiv.innerHTML = '<span class="text-yellow-400" data-i18n="game.logginIn">Logging in...</span>';
-	const user = await loginPlayer(email, password);
-	if (user) {
-		verifiedPlayer2 = user;
-		statusDiv.innerHTML = '<span class="text-green-400" data-i18n="game.player2Verified">✓ Player 2 verified!</span>';
-		setTimeout(() => {
-			backToPlayer2Setup();
-		}, 1000);
-	}
-	else {
-		statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
+	applyTranslations();
+	
+	try {
+		const user = await loginPlayer(email, password);
+		
+		if (user) {
+			// Check if player 2 is the same as player 1
+			const currentUser = await getCurrentUser();
+			if (currentUser && user.id === currentUser.id) {
+				statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.samePlayerError">✗ Player 2 cannot be the same as Player 1</span>';
+				applyTranslations();
+				return;
+			}
+			
+			verifiedPlayer2 = user;
+			statusDiv.innerHTML = '<span class="text-green-400" data-i18n="game.player2Verified">✓ Player 2 verified!</span>';
+			applyTranslations();
+			setTimeout(() => {
+				backToPlayer2Setup();
+			}, 1000);
+		} else {
+			statusDiv.innerHTML = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
+			applyTranslations();
+		}
+	} catch (error: any) {
+		// Handle different error types gracefully
+		let errorMessage = '<span class="text-red-400" data-i18n="game.loginFailed">✗ Login failed. Please try again</span>';
+		
+		if (error && error.message === 'auth.invalidToken') {
+			errorMessage = '<span class="text-red-400" data-i18n="game.sessionExpired">✗ Session expired</span>';
+		} else if (error && error.message === 'auth.authenticationRequired') {
+			errorMessage = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
+		} else if (error && error.message === 'messages.invalidCredentials') {
+			errorMessage = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
+		}
+		
+		// Only log unexpected errors (not i18n error keys from API)
+		// Expected errors look like: auth.*, messages.*, common.*
+		const isExpectedError = error && error.message && /^[a-z]+\.[a-zA-Z]+/.test(error.message);
+		if (error && !isExpectedError) {
+			console.error('Unexpected error during player 2 login:', error);
+		}
+		
+		statusDiv.innerHTML = errorMessage;
+		applyTranslations();
 	}
 }
 async function backToPlayer2Setup() {
@@ -270,6 +306,13 @@ async function confirmPlayer2Setup() {
 	const player1 = createRegisteredPlayer(currentUser);
 	let player2;
 	if (verifiedPlayer2) {
+		// Additional safety check: prevent same player
+		if (verifiedPlayer2.id === currentUser.id) {
+			const errorMsg = window.languageManager?.t('game.samePlayerError') || 
+				'Player 2 cannot be the same as Player 1';
+			alert(errorMsg);
+			return;
+		}
 		// Verified registered player
 		player2 = createRegisteredPlayer(verifiedPlayer2);
 	}

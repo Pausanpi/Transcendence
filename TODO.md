@@ -46,6 +46,8 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
 - [ ] **006**: Navbar is not translated. Some buttons like "Dashboard" in front page also (lcuevas- / TODO)
 - [ ] **007**: Update database scheme in README and image to the last version with tournament and sessions? (lcuevas- / TODO)
+- [ ] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / todo)
+- [ ] **009**: You cna play against yourself if logged in (lcuevas- / todo)
 
 
 ## Testing Checklist
