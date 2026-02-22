@@ -71,6 +71,13 @@ export async function register(): Promise<void> {
 	const display_name = (document.getElementById('regUsername') as HTMLInputElement).value;
 	const email = (document.getElementById('regEmail') as HTMLInputElement).value;
 	const password = (document.getElementById('regPassword') as HTMLInputElement).value;
+	const termsAccepted = (document.getElementById('termsAccepted') as HTMLInputElement)?.checked;
+
+	// Validate terms acceptance
+	if (!termsAccepted) {
+		showResult('registerResult', 'auth.termsAcceptanceRequired', true);
+		return;
+	}
 
 	try {
 		const data = await api<any>('/api/auth/register', {

@@ -173,11 +173,14 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		console.error('Error loading players:', error);
 		// Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
 		let isAuthError = false;
 		if (error && error.message === 'auth.authenticationRequired') {
 			isAuthError = true;
+		}
+		// Only log unexpected errors
+		if (!isAuthError) {
+			console.error('Unexpected error loading players:', error);
 		}
 		let message = isAuthError
 			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'

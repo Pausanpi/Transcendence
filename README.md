@@ -39,6 +39,9 @@ From there, you will be able to access the main page, where you can register a n
 - [MDN Web Docs (HTML, CSS, JS)](https://developer.mozilla.org/)
 - [OWASP Top Ten Security Risks](https://owasp.org/www-project-top-ten/)
 
+- [Microservices Architecture Pattern](https://microservices.io/patterns/microservices.html)
+- [Docker Compose for Microservices](https://docs.docker.com/compose/)
+
 - [Fastify Documentation](https://www.fastify.io/docs/latest/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
@@ -198,12 +201,191 @@ Communication channels:
 
 # Database Schema
 
-- Visual representation or description of the database structure.
-- Tables/collections and their relationships.
-- Key fields and data types.
+## Tables and Relationships
 
-# Features List
+The database consists of 7 interconnected tables:
 
+**Visual diagram available**: See `_assets/database_schema.png` for a graphical representation.
+
+![Database Schema](./_assets/database_schema.png)
+
+### Text Representation
+
+```
+users (PK: id)
+  │
+  ├──→ user_sessions (FK: user_id → users.id)
+  │    └── Tracks active JWT sessions
+  │
+  ├──→ backup_codes (FK: user_id → users.id)
+  │    └── Stores 2FA backup codes
+  │
+  ├──→ friendships (FK: user_id → users.id, friend_id → users.id)
+  │    └── Manages friend relationships between users
+  │
+  ├──→ tournaments (FK: creator_id → users.id, winner_id → users.id)
+  │    │
+  │    ├──→ tournament_participants (FK: tournament_id → tournaments.id, user_id → users.id)
+  │    │    └── Links users to tournaments
+  │    │
+  │    └──→ matches (FK: tournament_id → tournaments.id)
+  │         └── Tournament games
+  │
+  └──→ matches (FK: player1_id → users.id, player2_id → users.id, winner_id → users.id)
+       └── Records all game matches (casual and tournament)
+```
+
+## Table Structures
+
+### 1. users
+```
+PRIMARY KEY: id (TEXT)
+UNIQUE: email, (oauth_provider, oauth_id)
+
+Columns:
+  id                      TEXT      - Unique user identifier
+  username                TEXT      - User's login name
+  display_name            TEXT      - Public display name
+  email                   TEXT      - User email (unique)
+  password_hash           TEXT      - Hashed password
+  oauth_provider          TEXT      - OAuth provider (google, github, 42)
+  oauth_id                TEXT      - OAuth user ID
+  avatar                  TEXT      - Avatar file path
+  two_factor_enabled      BOOLEAN   - 2FA activation status
+  two_factor_secret       TEXT      - TOTP secret for 2FA
+  is_active               BOOLEAN   - Account active status
+  is_anonymized           BOOLEAN   - GDPR anonymization flag
+  login_attempts          INTEGER   - Failed login counter
+  locked_until            DATETIME  - Account lock expiration
+  consent_marketing       BOOLEAN   - Marketing consent
+  consent_analytics       BOOLEAN   - Analytics consent
+  consent_data_processing BOOLEAN   - Data processing consent
+  consent_updated_at      DATETIME  - Last consent update
+  created_at              DATETIME  - Account creation timestamp
+  updated_at              DATETIME  - Last update timestamp
+  online_status           TEXT      - Current status (online/offline)
+  last_seen               DATETIME  - Last activity timestamp
+```
+
+### 2. user_sessions
+```
+PRIMARY KEY: id (TEXT)
+FOREIGN KEY: user_id → users(id) [CASCADE DELETE]
+
+Columns:
+  id          TEXT      - Session identifier
+  user_id     TEXT      - Reference to users table
+  jwt_token   TEXT      - JWT authentication token
+  expires_at  DATETIME  - Token expiration time
+  created_at  DATETIME  - Session creation timestamp
+```
+
+### 3. backup_codes
+```
+PRIMARY KEY: id (INTEGER, auto-increment)
+FOREIGN KEY: user_id → users(id) [CASCADE DELETE]
+
+Columns:
+  id         INTEGER   - Auto-incrementing ID
+  user_id    TEXT      - Reference to users table
+  code_hash  TEXT      - Hashed backup code
+  used       BOOLEAN   - Whether code has been used
+  created_at DATETIME  - Code generation timestamp
+```
+
+### 4. friendships
+```
+PRIMARY KEY: id (INTEGER, auto-increment)
+FOREIGN KEYS: user_id → users(id) [CASCADE DELETE]
+              friend_id → users(id) [CASCADE DELETE]
+UNIQUE: (user_id, friend_id)
+
+Columns:
+  id         INTEGER   - Auto-incrementing ID
+  user_id    TEXT      - User initiating friendship
+  friend_id  TEXT      - User receiving friendship request
+  status     TEXT      - Status: 'pending', 'accepted', 'rejected'
+  created_at DATETIME  - Request timestamp
+```
+
+### 5. tournaments
+```
+PRIMARY KEY: id (INTEGER, auto-increment)
+FOREIGN KEYS: creator_id → users(id) [SET NULL on delete]
+              winner_id → users(id) [SET NULL on delete]
+
+Columns:
+  id            INTEGER   - Auto-incrementing ID
+  name          TEXT      - Tournament name
+  creator_id    TEXT      - User who created tournament
+  status        TEXT      - Status: 'pending', 'active', 'completed'
+  max_players   INTEGER   - Maximum participants (default: 8)
+  current_round INTEGER   - Current tournament round
+  winner_id     TEXT      - Winner user ID
+  winner_name   TEXT      - Winner display name (preserved)
+  created_at    DATETIME  - Creation timestamp
+  started_at    DATETIME  - Start timestamp
+  completed_at  DATETIME  - Completion timestamp
+```
+
+### 6. tournament_participants
+```
+PRIMARY KEY: id (INTEGER, auto-increment)
+FOREIGN KEYS: tournament_id → tournaments(id) [CASCADE DELETE]
+              user_id → users(id) [SET NULL on delete]
+
+Columns:
+  id               INTEGER   - Auto-incrementing ID
+  tournament_id    INTEGER   - Reference to tournaments table
+  user_id          TEXT      - Reference to users table
+  display_name     TEXT      - Participant display name (preserved)
+  seed             INTEGER   - Tournament seeding position
+  eliminated       BOOLEAN   - Elimination status
+  eliminated_round INTEGER   - Round of elimination
+  joined_at        DATETIME  - Registration timestamp
+```
+
+### 7. matches
+```
+PRIMARY KEY: id (INTEGER, auto-increment)
+FOREIGN KEYS: player1_id → users(id) [SET NULL on delete]
+              player2_id → users(id) [SET NULL on delete]
+              winner_id → users(id) [SET NULL on delete]
+              tournament_id → tournaments(id) [SET NULL on delete]
+
+Columns:
+  id              INTEGER   - Auto-incrementing ID
+  player1_id      TEXT      - First player user ID
+  player1_name    TEXT      - First player name (preserved)
+  player2_id      TEXT      - Second player user ID
+  player2_name    TEXT      - Second player name (preserved)
+  player1_score   INTEGER   - Player 1 final score
+  player2_score   INTEGER   - Player 2 final score
+  winner_id       TEXT      - Winner user ID
+  winner_name     TEXT      - Winner name (preserved)
+  game_type       TEXT      - Game type: 'pong', 'tictactoe', etc.
+  tournament_id   INTEGER   - Tournament reference (NULL for casual)
+  match_duration  INTEGER   - Match length in seconds
+  played_at       DATETIME  - Match completion timestamp
+```
+
+## Design Notes
+
+**Relationship Patterns:**
+- Users can have multiple sessions (1:N)
+- Friendships are bidirectional (users can be both initiator and receiver)
+- Matches support both casual play and tournament games
+- Player/winner names are denormalized to preserve match history
+
+**Data Integrity:**
+- CASCADE DELETE: Sessions, backup codes, friendships, tournament participants
+- SET NULL on DELETE: Match participants, tournament creators/winners
+- This ensures history is preserved even when user accounts are deleted
+
+**Privacy & Compliance:**
+- GDPR consent fields track user preferences
+- is_anonymized flag for user data anonymization
+- Account locking mechanism (login_attempts, locked_until)
 
 # Features List
 
@@ -452,12 +634,19 @@ I started the project in high spirits, thinking of making a game and some fronte
 
 # Other information
 
+## Further Reading
+
+Some modules require extra steps to make them work correctly on the browser.
+Most of those steps are intuitive but we have prepared some manuals inside:
+
+- [2FA Guide](docs/2fa-guide.md)  <!-- Detailed instructions for two-factor authentication -->
+
 ## Team & Contact
 - GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)
 
 ## Limitations
 - Game logic runs entirely in the frontend. This means match results and records can potentially be manipulated by users, as the backend does not validate in-game actions. Use for learning and demonstration purposes only.
-
+.
 ## Contribution Guidelines
 - See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute, code style, and review process.
 
@@ -476,48 +665,3 @@ I started the project in high spirits, thinking of making a game and some fronte
 - [Pong Game (Wikipedia)](https://en.wikipedia.org/wiki/Pong)
 - [Fastify](https://www.fastify.io/), [Docker](https://www.docker.com/), [Vault](https://www.vaultproject.io/)
 - See the Resources section above for more documentation links
-
-
-
-
-
-
-
-
-
-
-## Activar 2fa
-
-Aún no he consegido que sincronice bien con app de android.
-La clave del 2fa es el SECRET. Ejemplo: OBHG2SKNGBGHO4TBHZHW6KDBMMXEWM32GZKGGM3IJJSF4QJVJJNA
-
-Es lo que hay que guardar con cuidado, ya que a partir de ese chorizo se generan los códigos de autenticación. En condiciones normales no se muestra por ningún lado... son las app de autenticación (google aut...etc) las encargadas de guardalas mediante el escaneo del código QR. Pero como no van, pongo algunas alternativas para generar códigos.
-
-1 - Hay un botón en el perfil que dirige a https://localhost:8443/users/decode.html, ahí metes el SECRET que aparece al habilitarlo
-
-2 - https://qrcoderaptor.com/es/
-
-3 - sudo apt install oathtool
-
-`oathtool --totp -b OBHG2SKNGBGHO4TBHZHW6KDBMMXEWM32GZKGGM3IJJSF4QJVJJNA`
-
-- Habilitar 2fa: Dar al botón Gestionar 2FA del perfil
-![alt text](_assets/enable2fa.png)
-
-- Copias el secreto de la ventana que sale al pulsar el botón Configurar 2FA. Generas el código y lo pegas (Ver abajo)
-![alt text](_assets/tot.png)
-
-- Te vas a tu generador de códigos favorito (Ojo, estos códigos caducan en segundos)
-![alt text](_assets/gentot.png)
-
-- Una vez habilitado te salen los códigos de recuperación. Que se usan en caso de que al hacer lógin y tener el 2FA activado no tengas tu SECRET porque lo perdiste, borraste la app de autentificación que lo guardaba, etc... Estos códigos se van borrando al usarlos
-![alt text](_assets/backcodes.png)
-
-- 2FA ya Habilitado
-![alt text](_assets/okenablef2a.png)
-
-- Ahora despúes de hacer logín con tu email/password también se te pide que generes un código TOTP para acceder
-![alt text](_assets/acces2fa.png)
-
-- Para deshabilitarlo, los pasos son los mismos: Le das al botón de deshabilitar, te pedirá un código TOTP, lo metes y se deshabilita.
-

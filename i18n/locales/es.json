@@ -35,6 +35,7 @@
 		"accountLocked": "Cuenta temporalmente bloqueada",
 		"invalidAuthFormat": "Formato de autorización inválido",
 		"invalidToken": "Token inválido o expirado",
+		"termsAcceptanceRequired": "Debe aceptar los Términos de Servicio y la Política de Privacidad para registrarse",
 		"authenticationRequired": "Autenticación requerida",
 		"playGame": "Jugar Ahora",
 		"securityList": [
@@ -357,6 +358,9 @@
 		"logginIn": "Identificando...",
 		"player2Verified": "✓ Jugador 2 verificado!",
 		"invalidCredentials": "✗ Credenciales inválidas",
+		"samePlayerError": "✗ El Jugador 2 no puede ser el mismo que el Jugador 1",
+		"loginFailed": "✗ Error al iniciar sesión. Por favor, inténtelo de nuevo",
+		"sessionExpired": "✗ Sesión expirada",
 		"options": "Opciones de Juego",
 		"background": "Fondo",
 		"background1": "Defecto",

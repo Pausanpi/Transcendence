@@ -11,31 +11,51 @@
 <body class="bg-gray-900 text-white min-h-screen">
 
   <!-- Navbar -->
-  <nav id="navbar" class="bg-gray-800 p-4 hidden">
-    <div class="max-w-6xl mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-yellow-400 cursor-pointer" data-nav="home">🎮 Transcendence</h1>
-      <div class="flex gap-2">
+  <nav id="navbar" class="bg-gray-800 p-2 sm:p-4 hidden">
+    <div class="max-w-6xl mx-auto px-2">
+      <div class="flex flex-wrap gap-2 items-center justify-center">
+        <h1 class="text-lg sm:text-xl font-bold text-yellow-400 cursor-pointer mr-2" data-nav="home">🎮 Transcendence</h1>
         <button class="nav-btn" data-nav="home">Home</button>
         <button class="nav-btn" data-nav="games">Games</button>
         <button class="nav-btn" data-nav="players">Players</button>
         <button class="nav-btn" data-nav="friends">Friends</button>
-        <button class="nav-btn" data-nav="testpage">Test Page</button>
+        <button class="nav-btn" data-nav="testpage">Test</button>
         <button class="nav-btn" data-nav="dashboard">Dashboard</button>
         <button class="nav-btn" data-nav="profile">Profile</button>
         <button id="authBtn" class="nav-btn bg-blue-600 hover:bg-blue-700">Login</button>
+        <select class="nav-btn bg-blue-600 hover:bg-blue-700" id="languageSelect">
+          <option class="nav-btn" value="es">🇪🇸 ES</option>
+          <option class="nav-btn" value="en">🇺🇸 EN</option>
+          <option class="nav-btn" value="ja">🇯🇵 JA</option>
+        </select>
       </div>
-
-				<select class="nav-btn bg-blue-600 hover:bg-blue-700" id="languageSelect">
-					<option class="nav-btn"value="es">🇪🇸 Español</option>
-					<option class="nav-btn" value="en">🇺🇸 English</option>
-          <option class="nav-btn" value="ja">🇯🇵 日本語</option>
-				</select>
-
     </div>
   </nav>
 
   <!-- App Container -->
-  <div id="app" class="max-w-6xl mx-auto p-4"></div>
+  <div id="app" class="max-w-6xl mx-auto p-2 sm:p-4"></div>
+
+  <!-- Footer -->
+  <footer id="footer" class="bg-gray-800 border-t border-gray-700 py-4 sm:py-6 mt-8">
+    <div class="max-w-6xl mx-auto px-2 sm:px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-2 sm:gap-4">
+        <div class="text-gray-400 text-xs sm:text-sm">
+          © 2026 Transcendence. All rights reserved.
+        </div>
+        <div class="flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm justify-center">
+          <button onclick="navigate('privacy-policy')" class="text-gray-400 hover:text-yellow-400 transition-colors">
+            Privacy Policy
+          </button>
+          <button onclick="navigate('terms-of-service')" class="text-gray-400 hover:text-yellow-400 transition-colors">
+            Terms of Service
+          </button>
+          <button onclick="navigate('gdpr')" class="text-gray-400 hover:text-yellow-400 transition-colors">
+            Data Management
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- Exit Game Button (Game page) -->
   <div id="exitGameContainer" class="fixed bottom-4 right-4 hidden">

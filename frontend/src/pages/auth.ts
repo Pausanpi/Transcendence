@@ -13,7 +13,22 @@ export function renderAuth(): string {
         <h3 class="text-2xl font-bold mb-4 text-center" data-i18n="auth.register">Register</h3>
         <input id="regUsername" type="text" placeholder="Username" class="input mb-3" />
         <input id="regEmail" type="email" placeholder="Email" class="input mb-3" data-i18n="auth.email" />
-        <input id="regPassword" type="password" placeholder="Password" class="input mb-4" />
+        <input id="regPassword" type="password" placeholder="Password" class="input mb-3" />
+        
+        <label class="flex items-start gap-3 mb-4 cursor-pointer text-sm">
+          <input type="checkbox" id="termsAccepted" class="w-5 h-5 rounded mt-0.5 flex-shrink-0" />
+          <span class="text-gray-300">
+            I agree to the 
+            <button onclick="event.preventDefault(); navigate('terms-of-service');" class="text-yellow-400 hover:text-yellow-300 underline">
+              Terms of Service
+            </button>
+            and 
+            <button onclick="event.preventDefault(); navigate('privacy-policy');" class="text-yellow-400 hover:text-yellow-300 underline">
+              Privacy Policy
+            </button>
+          </span>
+        </label>
+        
         <button onclick="register()" class="btn btn-green w-full">Register</button>
         <div id="registerResult" class="hidden"></div>
       </div>

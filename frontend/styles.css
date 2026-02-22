@@ -1,3 +1,18 @@
+/* Global responsive fixes */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 /* Pages */
 .page { display: none; }
 .page.active { display: block; }
@@ -7,6 +22,8 @@
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .nav-btn:hover { background: #374151; }
 .nav-btn.active { background: #06b6d4; color: #000; }
@@ -17,6 +34,7 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
+  word-wrap: break-word;
 }
 .btn-blue { background: #2563eb; }
 .btn-blue:hover { background: #1d4ed8; }
@@ -35,6 +53,9 @@
   border-radius: 0.75rem;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 /* Inputs */
