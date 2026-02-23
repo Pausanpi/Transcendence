@@ -62,17 +62,7 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [ ] **018**: Promehteus and grapahan are deactivated. (lcuevas- / todo)
 - [ ] **019**: Clean references to old users module. (lcuevas- / todo)
 - [ ] **020**: Check GDPR module for new requisites, like requesting data via mail (lcuevas- / todo)
-
-## Testing Checklist
-
-### After `make` (container rebuild)
-- [ ] PvP game: Check player name modal appears
-- [ ] PvP game: Verify names display during game
-- [ ] PvP game: Confirm match saves after game ends (check console)
-- [ ] AI game: Verify difficulty selection works
-- [ ] AI game: Confirm match saves with AI as player2
-- [ ] Guest vs Guest: Verify match is NOT saved (skipped)
-- [ ] Check enpoints? in dashboard?
+- [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
 
 # Solved Bug reports
 
