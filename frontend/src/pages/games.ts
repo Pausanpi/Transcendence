@@ -14,7 +14,8 @@ let gameOptions = {
 };
 let ticTacToeOptions = {
   theme: 'classic',
-  boardSize: 3
+  boardSize: 3,
+  specialMode: 'none' as 'none' | 'timed' | 'gravity'
 };
 // ===== GAME SELECTION PAGE =====
 export function renderGames() {
@@ -635,6 +636,33 @@ function showTicTacToeOptions(isAI: boolean) {
 				</div>
 			</div>
 			
+			<div class="text-left">
+				<label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.mode">Mode</label>
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-modes">
+					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
+						<input type="radio" name="ttt-mode" value="none" checked data-mode="none" class="hidden">
+						<div class="w-full h-20 rounded border-2 border-gray-600 transition-all duration-200 bg-gray-700 flex items-center justify-center mb-2">
+							<span class="text-2xl">🎮</span>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.normal">Normal</span>
+					</label>
+					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
+						<input type="radio" name="ttt-mode" value="timed" data-mode="timed" class="hidden">
+						<div class="w-full h-20 rounded border-2 border-gray-600 transition-all duration-200 bg-orange-900 flex items-center justify-center mb-2">
+							<span class="text-2xl">⏱</span>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.timed">Timed</span>
+					</label>
+					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
+						<input type="radio" name="ttt-mode" value="gravity" data-mode="gravity" class="hidden">
+						<div class="w-full h-20 rounded border-2 border-gray-600 transition-all duration-200 bg-purple-900 flex items-center justify-center mb-2">
+							<span class="text-2xl">🌍</span>
+						</div>
+						<span class="text-white text-sm" data-i18n="game.gravity">Gravity</span>
+					</label>
+				</div>
+			</div>
+			
 			<div class="flex gap-4 mt-6">
 				<button onclick="window.gameUI.cancelTicTacToeOptions()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
 				<button onclick="window.gameUI.confirmTicTacToeOptions(${isAI})" class="btn btn-green flex-1" data-i18n="game.startGame">Start Game</button>
@@ -679,7 +707,42 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 			updateThemeSelection();
 		});
 	});
-	
+
+	const modeLabels = document.querySelectorAll('.ttt-mode-label');
+	const modeInputs = document.querySelectorAll('input[name="ttt-mode"]');
+
+	function updateModeSelection() {
+		modeLabels.forEach((label) => {
+			const input = label.querySelector('input[name="ttt-mode"]') as HTMLInputElement;
+			const preview = label.querySelector('div');
+			if (input && input.checked && preview) {
+				preview.classList.add('ring-4', 'ring-yellow-400', 'border-yellow-400');
+			} else if (preview) {
+				preview.classList.remove('ring-4', 'ring-yellow-400', 'border-yellow-400');
+			}
+		});
+	}
+
+	modeLabels.forEach((label) => {
+		label.addEventListener('click', () => {
+			const input = label.querySelector('input[name="ttt-mode"]') as HTMLInputElement;
+			if (input) {
+				input.checked = true;
+				ticTacToeOptions.specialMode = input.value as 'none' | 'timed' | 'gravity';
+				updateModeSelection();
+			}
+		});
+	});
+
+	modeInputs.forEach(input => {
+		input.addEventListener('change', (e: any) => {
+			ticTacToeOptions.specialMode = e.target.value;
+			updateModeSelection();
+		});
+	});
+
+	updateModeSelection();
+
 	if (isAI) {
 		const difficultyLabels = document.querySelectorAll('.ttt-difficulty-label');
 		const difficultyInputs = document.querySelectorAll('input[name="ttt-difficulty"]');
@@ -718,10 +781,11 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 }
 
 function confirmTicTacToeOptions(isAI: boolean) {
-	// Save theme to localStorage
+	// Save theme and mode to localStorage
 	localStorage.setItem('tictactoeCustomization', JSON.stringify({
 		theme: ticTacToeOptions.theme,
-		boardSize: ticTacToeOptions.boardSize
+		boardSize: ticTacToeOptions.boardSize,
+		specialMode: ticTacToeOptions.specialMode
 	}));
 	
 	hideModal();

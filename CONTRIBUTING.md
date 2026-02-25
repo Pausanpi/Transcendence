@@ -192,8 +192,8 @@ This process is required by our workflow to keep the codebase healthy and avoid 
 
 Please use the following branch naming conventions for clarity and consistency:
 
-| Type      | Format                | Example                |
-|-----------|-----------------------|------------------------|
+| Type        | Format                | Example                |
+|-------------|-----------------------|------------------------|
 | New feature | `feature/description` | `feature/user-login`   |
 | Bug fix     | `fix/description`     | `fix/login-error`      |
 | Refactor    | `refactor/description`| `refactor/auth-service`|
