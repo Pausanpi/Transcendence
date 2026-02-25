@@ -43,6 +43,9 @@ export function navigate(page: string): void {
   const app = document.getElementById('app')!;
   const render = routes[page];
   if (render) {
+    // Signal active games/components to stop before replacing DOM
+    window.dispatchEvent(new CustomEvent('beforepagechange', { detail: page }));
+
     app.innerHTML = render();
 
     if (window.languageManager?.isReady()) {

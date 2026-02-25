@@ -37,6 +37,8 @@ interface Ball {
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 let animationId: number;
+let countdownTimer: ReturnType<typeof setInterval> | null = null;
+let initTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let gameOn = false;
 let isAI = false;
 let difficulty = 3;
@@ -101,7 +103,8 @@ export function initPongGame(config: {
 
   navigate('game');
 
-  setTimeout(() => {
+  initTimeoutId = setTimeout(() => {
+    initTimeoutId = null;
     canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     ctx = canvas.getContext('2d')!;
     canvas.width = 800;
@@ -452,11 +455,16 @@ function countdown(cb: () => void): void {
   let n = 3;
   txt.textContent = n.toString();
 
-  const i = setInterval(() => {
+  countdownTimer = setInterval(() => {
     n--;
     if (n > 0) txt.textContent = n.toString();
     else if (n === 0) txt.textContent = 'GO!';
-    else { clearInterval(i); el.classList.add('hidden'); cb(); }
+    else {
+      clearInterval(countdownTimer!);
+      countdownTimer = null;
+      el.classList.add('hidden');
+      cb();
+    }
   }, 1000);
 }
 
@@ -480,10 +488,21 @@ export function showWinnerOverlay(winnerName: string, onContinue: () => void): v
 
 export function stopPongGame(): void {
   gameOn = false;
+
   if (animationId) {
     cancelAnimationFrame(animationId);
   }
-  
+
+  // Cancel pending countdown and init timers
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  if (initTimeoutId !== null) {
+    clearTimeout(initTimeoutId);
+    initTimeoutId = null;
+  }
+
   // Reset game state
   Object.keys(keys).forEach(key => keys[key] = false);
   
@@ -542,6 +561,11 @@ export function exitGame(): void {
 // Keyboard
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
+
+// Stop game automatically when navigating away
+window.addEventListener('beforepagechange', () => {
+  stopPongGame();
+});
 
 // Global exports (only keep what's still needed)
 (window as any).exitGame = exitGame;

@@ -11,12 +11,20 @@ import {
   type GameSession
 } from './gameService.js';
 
-let canvas: HTMLCanvasElement;
-let ctx: CanvasRenderingContext2D;
+let canvas: HTMLCanvasElement | null = null;
+let ctx: CanvasRenderingContext2D | null = null;
 let board: string[][] = [['','',''],['','',''],['','','']];
 let currentPlayer: 'X' | 'O' = 'X';
 let over = false;
 let animationFrame: number | null = null;
+let aiMoveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let winnerTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let initTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+// Timed mode state
+const TURN_TIME_SECONDS = 10;
+let timerSecondsLeft = TURN_TIME_SECONDS;
+let timerIntervalId: ReturnType<typeof setInterval> | null = null;
 
 // Player objects
 let player1: Player;  // X
@@ -107,9 +115,11 @@ export function startTicTacToe(): void {
   isAI = session.isAI;
   
   navigate('game');
-  
-  setTimeout(() => {
+
+  initTimeoutId = setTimeout(() => {
+    initTimeoutId = null;
     canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    if (!canvas) return; // navigated away before timeout fired
     ctx = canvas.getContext('2d')!;
     
     // Adjust canvas size based on board size
@@ -140,10 +150,12 @@ export function startTicTacToe(): void {
     // Add new event listener
     canvas.addEventListener('click', handleClick);
     draw();
+    startTurnTimer();
   }, 50);
 }
 
 function draw(): void {
+  if (!ctx) return;
   const theme = themes[settings.theme];
   const cellSize = 600 / settings.boardSize;
   
@@ -181,50 +193,116 @@ function draw(): void {
       }
     }
   }
+
+  // Timed mode: draw timer bar and countdown
+  if (settings.specialMode === 'timed' && !over) {
+    const ratio = timerSecondsLeft / TURN_TIME_SECONDS;
+    const barH = 10;
+    const barY = 600 - barH;
+    // Background bar
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(0, barY, 600, barH);
+    // Filled portion (green → orange → red)
+    const r2 = Math.min(1, 2 * (1 - ratio));
+    const g2 = Math.min(1, 2 * ratio);
+    ctx.fillStyle = `rgb(${Math.round(r2 * 220)},${Math.round(g2 * 180)},0)`;
+    ctx.fillRect(0, barY, 600 * ratio, barH);
+    // Seconds text
+    ctx.font = 'bold 18px monospace';
+    ctx.fillStyle = timerSecondsLeft <= 3 ? '#ff4444' : '#ffffff';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${timerSecondsLeft}s`, 596, barY - 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+  }
 }
 
 function handleClick(e: MouseEvent): void {
   if (over) return;
+  if (!canvas) return;
   if (currentPlayer === 'O' && isAI) return; // AI's turn, ignore clicks
-  
+
   const rect = canvas.getBoundingClientRect();
   const cellSize = 600 / settings.boardSize;
   const c = Math.floor((e.clientX - rect.left) / cellSize);
-  const r = Math.floor((e.clientY - rect.top) / cellSize);
-  
-  // Validation
-  if (r < 0 || r >= settings.boardSize || c < 0 || c >= settings.boardSize) return;
-  if (board[r][c]) return;
-  
-  makeMove(r, c);
+
+  if (c < 0 || c >= settings.boardSize) return;
+
+  if (settings.specialMode === 'gravity') {
+    // Gravity mode: piece falls to lowest empty row in this column
+    let targetRow = -1;
+    for (let row = settings.boardSize - 1; row >= 0; row--) {
+      if (!board[row][c]) { targetRow = row; break; }
+    }
+    if (targetRow === -1) return; // column full
+    makeMove(targetRow, c);
+  } else {
+    const r = Math.floor((e.clientY - rect.top) / cellSize);
+    if (r < 0 || r >= settings.boardSize) return;
+    if (board[r][c]) return;
+    makeMove(r, c);
+  }
 }
 
 function makeMove(r: number, c: number): void {
+  stopTurnTimer();
   board[r][c] = currentPlayer;
   draw();
-  
+
   const result = checkWin();
   if (result) {
     over = true;
-    
+
     // Calculate scores (winner gets 1, loser gets 0, tie gets 0.5 each)
     let score1 = 0, score2 = 0;
     if (result === 'X') score1 = 1;
     else if (result === 'O') score2 = 1;
     else { score1 = 0.5; score2 = 0.5; } // Tie
-    
+
     // Save match
     endGameSession(score1, score2).then(() => {
-      setTimeout(() => showWinner(result), 300);
+      winnerTimeoutId = setTimeout(() => { winnerTimeoutId = null; showWinner(result); }, 300);
     });
   } else {
     // Switch player
     currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    
+
     // AI turn
     if (isAI && currentPlayer === 'O' && !over) {
-      setTimeout(() => makeAIMove(), 500); // Small delay for better UX
+      aiMoveTimeoutId = setTimeout(() => { aiMoveTimeoutId = null; makeAIMove(); }, 500); // Small delay for better UX
+    } else {
+      startTurnTimer();
     }
+  }
+}
+
+function startTurnTimer(): void {
+  stopTurnTimer();
+  if (settings.specialMode !== 'timed' || over) return;
+  timerSecondsLeft = TURN_TIME_SECONDS;
+  draw();
+  timerIntervalId = setInterval(() => {
+    timerSecondsLeft--;
+    draw();
+    if (timerSecondsLeft <= 0) {
+      stopTurnTimer();
+      if (over) return;
+      // Time up: skip this player's turn
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      if (isAI && currentPlayer === 'O' && !over) {
+        aiMoveTimeoutId = setTimeout(() => { aiMoveTimeoutId = null; makeAIMove(); }, 300);
+      } else {
+        startTurnTimer();
+      }
+    }
+  }, 1000);
+}
+
+function stopTurnTimer(): void {
+  if (timerIntervalId !== null) {
+    clearInterval(timerIntervalId);
+    timerIntervalId = null;
   }
 }
 
@@ -452,28 +530,35 @@ function showWinner(w: string): void {
 }
 
 /**
+ * Stop TicTacToe and clean up all state (without navigating).
+ * Safe to call even when no game is running.
+ */
+export function stopTicTacToe(): void {
+  over = true;
+
+  // Cancel all pending timers
+  if (initTimeoutId !== null) { clearTimeout(initTimeoutId); initTimeoutId = null; }
+  if (aiMoveTimeoutId !== null) { clearTimeout(aiMoveTimeoutId); aiMoveTimeoutId = null; }
+  if (winnerTimeoutId !== null) { clearTimeout(winnerTimeoutId); winnerTimeoutId = null; }
+  if (animationFrame !== null) { cancelAnimationFrame(animationFrame); animationFrame = null; }
+  stopTurnTimer();
+
+  // Remove canvas click listener
+  if (canvas) {
+    canvas.removeEventListener('click', handleClick);
+    canvas = null;
+  }
+
+  // Hide UI elements if present
+  document.getElementById('exitGameBtn')?.classList.add('hidden');
+  document.getElementById('tictactoeSettings')?.classList.add('hidden');
+}
+
+/**
  * Exit game early
  */
 export function exitGame(): void {
-  over = true;
-  
-  // Hide exit button and settings
-  const exitBtn = document.getElementById('exitGameBtn');
-  if (exitBtn) {
-    exitBtn.classList.add('hidden');
-  }
-  
-  const settingsMenu = document.getElementById('tictactoeSettings');
-  if (settingsMenu) {
-    settingsMenu.classList.add('hidden');
-  }
-  
-  // Cancel animation if any
-  if (animationFrame !== null) {
-    cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-  
+  stopTicTacToe();
   navigate('games');
 }
 
@@ -520,8 +605,28 @@ export function changeTheme(theme: 'classic' | 'neon' | 'minimal'): void {
   draw(); // Redraw with new theme
 }
 
+export function changeSpecialMode(mode: 'none' | 'timed' | 'gravity'): void {
+  settings.specialMode = mode;
+  saveCustomization({ specialMode: mode });
+  // If switching to timed mid-game, kick off the timer; otherwise stop it
+  if (!over) {
+    if (mode === 'timed') {
+      startTurnTimer();
+    } else {
+      stopTurnTimer();
+      draw(); // Redraw to remove the timer bar
+    }
+  }
+}
+
+// Stop game automatically when navigating away
+window.addEventListener('beforepagechange', () => {
+  stopTicTacToe();
+});
+
 // Global exports
 (window as any).setupTicTacToe = setupTicTacToe;
 (window as any).startTicTacToe = startTicTacToe;
 (window as any).exitGame = exitGame;
 (window as any).changeTicTacToeTheme = changeTheme;
+(window as any).changeTicTacToeMode = changeSpecialMode;
