@@ -9,7 +9,7 @@
 ## High Priority
 - [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully.
 Basically when we return an error on a api request, instead of do a condole.error we handle it "gracefully" (lcuevas- / todo)
-- [ ] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? Bug report 15 (lcuevas- / todo)
+- [x] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? Bug report 15 (lcuevas- / todo)
 
 ### Database Schema
 - [x] Database schema for README (lcuevas- / lcuevas-)
@@ -42,7 +42,7 @@ Basically when we return an error on a api request, instead of do a condole.erro
 
 
 ## Low Priority / Bug reports
-- [ ] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe (lcuevas- / todo)
+- [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe (lcuevas- / lcuevas-)
 - [ ] **002**: Check erase od information and account in GDPR (lcuevas- / todo)
 - [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
 - [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. (lcuevas- / lcuevas-)
@@ -56,13 +56,15 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [ ] **012**: Make the leaderboard. (lcuevas- / todo)
 - [ ] **013**: Oauth 2 Deactivated, reactivate with API key?. (lcuevas- / todo)
 - [ ] **014**: IA movement overshoots and never stop mooving. (lcuevas- / todo)
-- [ ] **015**: Games keep runing in backgorund if we change pages. (lcuevas- / todo)
+- [X] **015**: Games keep runing in backgorund if we change pages. (lcuevas- / pausanch)
 - [ ] **016**: Tic-Tac-Toe does not track matches. (lcuevas- / todo)
 - [ ] **017**: Check subject compliance for Games Customization module. (lcuevas- / todo)
 - [ ] **018**: Promehteus and grapahan are deactivated. (lcuevas- / todo)
 - [ ] **019**: Clean references to old users module. (lcuevas- / todo)
 - [ ] **020**: Check GDPR module for new requisites, like requesting data via mail (lcuevas- / todo)
 - [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
+- [ ] **022**: Privacy Policy and Terms of Service are not translated. DOn't know if it needs it (lcuevas- / todo)
+- [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
 
 # Solved Bug reports
 
@@ -71,3 +73,5 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
 - [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
 - [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
+- [X] **015**: Games keep runing in backgorund if we change pages. General strucutre mantained, used listeners to stop game gracefully (lcuevas- / pausanch)
+- [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe. Recicled the button for mail updating. Mail is validated and Also imprived translation and (lcuevas- / lcuevas-)

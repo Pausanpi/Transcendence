@@ -34,7 +34,7 @@ export function renderProfile(): string {
         </div>
         <div class="grid grid-cols-2 gap-4 mt-4">
           <input id="displayName" placeholder="Display Name (Nickname)" class="input" data-i18n-placeholder="profile.displayName" />
-          <input id="avatar" placeholder="Avatar URL" class="input" data-i18n-placeholder="profile.avatarUrl" />
+          <input id="newEmail" type="email" placeholder="New Email" class="input" data-i18n-placeholder="profile.newEmail" />
         </div>
 
         <div class="col-span-2 mt-4">
@@ -44,7 +44,7 @@ export function renderProfile(): string {
 
         <button onclick="uploadAvatar()" class="btn btn-blue mt-4">Upload Avatar</button>
         <button onclick="deleteAvatar()" class="btn btn-red mt-4" data-i18n="profile.deleteAvatar">🗑️ Remove Avatar</button>
-        <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.update">Update</button>
+        <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.updatePersonalInfo">Update Personal Info</button>
 
         <button onclick="navigate('gdpr')" class="btn btn-gray mt-2" data-i18n="profile.privacyData">🔒 Privacy & Data</button>
         <button id="enable2FABtn" class="btn btn-blue" data-i18n="2fa.setup2FA">
@@ -189,7 +189,11 @@ async function uploadAvatar(): Promise<void> {
 	const avatarFile = fileInput?.files?.[0];
 
 	if (!avatarFile) {
-		showProfileMessage('Please select a file', 'error');
+		const msg = window.languageManager?.t('profile.selectFile');
+		showProfileMessage(
+			msg !== null ? msg : 'Please select a file',
+			'error'
+		);
 		return;
 	}
 
@@ -200,13 +204,21 @@ async function uploadAvatar(): Promise<void> {
 	const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
 
 	if (!validTypes.includes(avatarFile.type) && !hasValidExtension) {
-		showProfileMessage('Only JPG/JPEG files are allowed', 'error');
+		const msg = window.languageManager?.t('profile.onlyJpgAllowed');
+		showProfileMessage(
+			msg !== null ? msg : 'Only JPG/JPEG files are allowed',
+			'error'
+		);
 		return;
 	}
 
 	// Validate file size (2MB)
 	if (avatarFile.size > 2 * 1024 * 1024) {
-		showProfileMessage('File size must be less than 2MB', 'error');
+		const msg = window.languageManager?.t('profile.fileSizeLimit');
+		showProfileMessage(
+			msg !== null ? msg : 'File size must be less than 2MB',
+			'error'
+		);
 		return;
 	}
 
@@ -215,7 +227,11 @@ async function uploadAvatar(): Promise<void> {
 	formData.append('avatar', avatarFile);
 
 	try {
-		showProfileMessage('Uploading...', 'success');
+		const uploadingMsg = window.languageManager?.t('profile.uploading');
+		showProfileMessage(
+			uploadingMsg !== null ? uploadingMsg : 'Uploading...',
+			'success'
+		);
 
 		// Call the upload endpoint
 		const data = await api<any>('/api/database/avatar/upload', {
@@ -227,7 +243,11 @@ async function uploadAvatar(): Promise<void> {
 			throw new Error(data.error || 'Upload failed');
 		}
 
-		showProfileMessage(data.message || 'Avatar uploaded successfully', 'success');
+		const successMsg = window.languageManager?.t('profile.avatarUploaded');
+		showProfileMessage(
+			successMsg !== null ? successMsg : (data.message || 'Avatar uploaded successfully'),
+			'success'
+		);
 
 		// Clear the file input
 		if (fileInput) {
@@ -240,7 +260,11 @@ async function uploadAvatar(): Promise<void> {
 		}, 500);
 	} catch (error: any) {
 		console.error('Upload error:', error);
-		showProfileMessage(error.message || 'Failed to upload avatar', 'error');
+		const errorMsg = window.languageManager?.t('profile.uploadFailed');
+		showProfileMessage(
+			errorMsg !== null ? errorMsg : (error.message || 'Failed to upload avatar'),
+			'error'
+		);
 	}
 }
 
@@ -259,29 +283,73 @@ function showProfileMessage(message: string, type: 'success' | 'error'): void {
 
 async function updateProfile(): Promise<void> {
 	const display_name = (document.getElementById('displayName') as HTMLInputElement).value;
-	let avatar = (document.getElementById('avatar') as HTMLInputElement).value;
+	const email = (document.getElementById('newEmail') as HTMLInputElement).value;
+
+	// Validate email if provided
+	if (email && email.trim() !== '') {
+		// Same validation as backend
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			const msg = window.languageManager?.t('validation.invalidEmailFormat');
+			showProfileMessage(
+				msg !== null ? msg : 'Invalid email format',
+				'error'
+			);
+			return;
+		}
+
+		// Check for temporary email domains
+		const tempEmailDomains = [
+			'tempmail.com', 'guerrillamail.com', 'mailinator.com',
+			'10minutemail.com', 'yopmail.com', 'throwaway.com'
+		];
+		const domain = email.split('@')[1].toLowerCase();
+		if (tempEmailDomains.some(temp => domain.includes(temp))) {
+			const msg = window.languageManager?.t('validation.temporaryEmailNotAllowed');
+			showProfileMessage(
+				msg !== null ? msg : 'Temporary email addresses are not allowed',
+				'error'
+			);
+			return;
+		}
+	}
 
 	try {
 		const data = await api<any>('/api/auth/profile-data', {
 			method: 'PUT',
-			body: JSON.stringify({ display_name, avatar })
+			body: JSON.stringify({ display_name, email: email || undefined })
 		});
 
-		const resultDiv = document.getElementById('profileResult');
-		if (resultDiv) {
-			resultDiv.classList.remove('hidden');
-			resultDiv.className = 'mt-4 p-3 rounded bg-green-900 text-green-200';
-			resultDiv.textContent = 'Profile updated successfully';
+		if (!data.success) {
+			const translated = data.error ? window.languageManager?.t(data.error) : null;
+			const errorMsg = translated !== null ? translated : (data.error || 'Failed to update profile');
+			showProfileMessage(errorMsg, 'error');
+			return;
+		}
+
+		const successMsg = window.languageManager?.t('profile.emailUpdated');
+		showProfileMessage(
+			successMsg !== null ? successMsg : 'Email updated successfully',
+			'success'
+		);
+
+		// Clear the email input after successful update
+		const emailInput = document.getElementById('newEmail') as HTMLInputElement;
+		if (emailInput) {
+			emailInput.value = '';
 		}
 
 		loadProfile();
-	} catch (error) {
-		const resultDiv = document.getElementById('profileResult');
-		if (resultDiv) {
-			resultDiv.classList.remove('hidden');
-			resultDiv.className = 'mt-4 p-3 rounded bg-red-900 text-red-200';
-			resultDiv.textContent = 'Failed to update profile';
+	} catch (error: any) {
+		let errorMsg: string;
+		if (error.error) {
+			const translated = window.languageManager?.t(error.error);
+			errorMsg = translated !== null ? translated : error.error;
+		} else {
+			const translated = window.languageManager?.t('profile.failedToUpdateEmail');
+			errorMsg = translated !== null ? translated : 'Failed to update email';
 		}
+		showProfileMessage(errorMsg, 'error');
 	}
 }
 
@@ -345,12 +413,18 @@ async function deleteAcc(): Promise<void> {
 }
 
 async function deleteAvatar(): Promise<void> {
-	if (!confirm('Are you sure you want to remove your avatar?')) return;
+	const msg = window.languageManager?.t('profile.confirmDeleteAvatar');
+	const confirmMsg = msg !== null ? msg : 'Are you sure you want to remove your avatar?';
+	if (!confirm(confirmMsg)) return;
 
 	try {
 		const token = getToken();
 		if (!token) {
-			showProfileMessage('Please login first', 'error');
+			const msg = window.languageManager?.t('profile.loginFirst');
+			showProfileMessage(
+				msg !== null ? msg : 'Please login first',
+				'error'
+			);
 			return;
 		}
 
@@ -372,7 +446,11 @@ async function deleteAvatar(): Promise<void> {
 			throw new Error(data.error || 'Delete failed');
 		}
 
-		showProfileMessage(data.message || 'Avatar removed successfully', 'success');
+		const msg = window.languageManager?.t('profile.avatarDeleted');
+		showProfileMessage(
+			msg !== null ? msg : (data.message || 'Avatar removed successfully'),
+			'success'
+		);
 
 		// Reload profile to show default avatar
 		setTimeout(() => {
@@ -380,7 +458,11 @@ async function deleteAvatar(): Promise<void> {
 		}, 500);
 	} catch (error: any) {
 		console.error('Delete avatar error:', error);
-		showProfileMessage(error.message || 'Failed to remove avatar', 'error');
+		const msg = window.languageManager?.t('profile.deleteFailed');
+		showProfileMessage(
+			msg !== null ? msg : (error.message || 'Failed to remove avatar'),
+			'error'
+		);
 	}
 }
 
