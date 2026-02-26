@@ -103,7 +103,9 @@
 		"avatarDeleted": "アバターが正常に削除されました",
 		"deleteFailed": "アバターの削除に失敗しました",
 		"loginFirst": "最初にログインしてください",
-		"profileUpdated": "プロフィールが正常に更新されました"
+		"profileUpdated": "プロフィールが正常に更新されました",
+		"showMatchHistory": "📊 対戦履歴と統計を表示",
+		"hideMatchHistory": "対戦履歴を非表示"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA が正常に無効化されました",

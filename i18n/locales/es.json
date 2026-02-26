@@ -104,7 +104,9 @@
 		"avatarDeleted": "Avatar eliminado correctamente",
 		"deleteFailed": "Error al eliminar el avatar",
 		"loginFirst": "Por favor inicia sesión primero",
-		"profileUpdated": "Perfil actualizado correctamente"
+		"profileUpdated": "Perfil actualizado correctamente",
+		"showMatchHistory": "📊 Ver Historial de Partidas y Estadísticas",
+		"hideMatchHistory": "Ocultar Historial de Partidas"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA deshabilitado correctamente",

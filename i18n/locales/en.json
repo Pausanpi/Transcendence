@@ -104,7 +104,9 @@
 		"avatarDeleted": "Avatar removed successfully",
 		"deleteFailed": "Failed to remove avatar",
 		"loginFirst": "Please login first",
-		"profileUpdated": "Profile updated successfully"
+		"profileUpdated": "Profile updated successfully",
+		"showMatchHistory": "📊 View Match History & Stats",
+		"hideMatchHistory": "Hide Match History"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA disabled successfully",
