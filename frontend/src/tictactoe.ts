@@ -69,13 +69,15 @@ const themes = {
 /**
  * Setup TicTacToe game with players
  */
-export async function setupTicTacToe(ai: boolean = false, difficulty: number = 3): Promise<void> {
+export async function setupTicTacToe(ai: boolean = false, difficulty: number = 3, p1?: Player, p2?: Player): Promise<void> {
   const currentUser = await getCurrentUser();
   
   // Load customization from localStorage
   loadCustomization();
   
-  if (currentUser) {
+  if (p1) {
+    player1 = p1;
+  } else if (currentUser) {
     player1 = createRegisteredPlayer(currentUser);
   } else {
     player1 = createGuestPlayer('Player 1');
@@ -84,6 +86,9 @@ export async function setupTicTacToe(ai: boolean = false, difficulty: number = 3
   if (ai) {
     player2 = createAIPlayer(difficulty);
     isAI = true;
+  } else if (p2) {
+    player2 = p2;
+    isAI = false;
   } else {
     player2 = createGuestPlayer('Player 2');
     isAI = false;

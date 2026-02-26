@@ -36,6 +36,10 @@
 		"invalidAuthFormat": "Formato de autorización inválido",
 		"invalidToken": "Token inválido o expirado",
 		"termsAcceptanceRequired": "Debe aceptar los Términos de Servicio y la Política de Privacidad para registrarse",
+		"iAgreeTo": "Acepto los",
+		"and": "y la",
+		"termsOfService": "Términos de Servicio",
+		"privacyPolicy": "Política de Privacidad",
 		"authenticationRequired": "Autenticación requerida",
 		"playGame": "Jugar Ahora",
 		"securityList": [
@@ -106,7 +110,9 @@
 		"loginFirst": "Por favor inicia sesión primero",
 		"profileUpdated": "Perfil actualizado correctamente",
 		"showMatchHistory": "📊 Ver Historial de Partidas y Estadísticas",
-		"hideMatchHistory": "Ocultar Historial de Partidas"
+		"hideMatchHistory": "Ocultar Historial de Partidas",
+		"madeBy": "Hecho por DaBesTim",
+		"dashboard": "📊 Panel de control"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA deshabilitado correctamente",

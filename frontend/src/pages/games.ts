@@ -8,6 +8,7 @@ let verifiedPlayer2: any = null;
 // ===== GAME OPTIONS STATE =====
 let pendingGamePlayers: any = null;
 let pendingTicTacToeMode: { isAI: boolean, difficulty?: number } | null = null;
+let gameContext: 'pong' | 'tictactoe' = 'pong';
 let gameOptions = {
   background: 'default',
   difficulty: 'medium'
@@ -65,6 +66,7 @@ function clearPlayer2Verification() {
 }
 // ===== PONG GAME FLOWS =====
 async function startPongPvP() {
+	gameContext = 'pong';
 	const currentUser = await getCurrentUser();
 	if (!currentUser) {
 		// No user logged in - both players must be guests
@@ -298,7 +300,13 @@ async function backToPlayer2Setup() {
 async function confirmGuestVsGuest() {
 	const player1 = createGuestPlayer('Guest');
 	const player2 = createGuestPlayer('Guest');
-	startPongWithPlayers(player1, player2);
+	if (gameContext === 'tictactoe') {
+		pendingGamePlayers = { player1, player2 };
+		hideModal();
+		showTicTacToeOptions(false);
+	} else {
+		startPongWithPlayers(player1, player2);
+	}
 }
 async function confirmPlayer2Setup() {
 	const currentUser = await getCurrentUser();
@@ -321,7 +329,13 @@ async function confirmPlayer2Setup() {
 		// Not verified - always use Guest
 		player2 = createGuestPlayer('Guest');
 	}
-	startPongWithPlayers(player1, player2);
+	if (gameContext === 'tictactoe') {
+		pendingGamePlayers = { player1, player2 };
+		hideModal();
+		showTicTacToeOptions(false);
+	} else {
+		startPongWithPlayers(player1, player2);
+	}
 }
 function startPongWithPlayers(player1: any, player2: any) {
 	// Store players and show game options modal
@@ -543,7 +557,7 @@ function startTicTacToe() {
 			<p class="text-gray-400" data-i18n="game.gameMode">Choose game mode</p>
 			
 			<div class="space-y-2">
-				<button onclick="window.gameUI.showTicTacToeOptions(false)" class="btn btn-green w-full" data-i18n="game.playerVSplayer">👥 Player vs Player</button>
+				<button onclick="window.gameUI.startTicTacToePvP()" class="btn btn-green w-full" data-i18n="game.playerVSplayer">👥 Player vs Player</button>
 				<button onclick="window.gameUI.showTicTacToeOptions(true)" class="btn btn-yellow w-full" data-i18n="game.playerVSAI">🤖 Player vs AI</button>
 			</div>
 			
@@ -551,6 +565,19 @@ function startTicTacToe() {
 		</div>
 	`);
 	applyTranslations();
+}
+
+async function startTicTacToePvP() {
+	gameContext = 'tictactoe';
+	const currentUser = await getCurrentUser();
+	if (!currentUser) {
+		// No user logged in - both players must be guests
+		showGuestVsGuestSetup();
+	}
+	else {
+		// User logged in - show player 2 setup
+		showPlayer2Setup(currentUser);
+	}
 }
 
 function showTicTacToeOptions(isAI: boolean) {
@@ -795,7 +822,9 @@ function confirmTicTacToeOptions(isAI: boolean) {
 		const difficulty = difficultyInput ? parseInt(difficultyInput.value) : 3;
 		setupTicTacToe(true, difficulty);
 	} else {
-		setupTicTacToe(false);
+		const players = pendingGamePlayers;
+		pendingGamePlayers = null;
+		setupTicTacToe(false, 3, players?.player1, players?.player2);
 	}
 }
 
@@ -843,6 +872,7 @@ function focusFirstInput() {
 	confirmGameOptions,
 	cancelGameOptions,
 	// Tic Tac Toe options
+	startTicTacToePvP,
 	confirmTicTacToeOptions,
 	cancelTicTacToeOptions
 };

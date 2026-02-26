@@ -37,6 +37,10 @@
 		"authenticationRequired": "認証が必要です",
 		"invalidToken": "無効または期限切れのトークンです",
 		"termsAcceptanceRequired": "登録するには利用規約とプライバシーポリシーに同意する必要があります",
+		"iAgreeTo": "以下に同意します：",
+		"and": "および",
+		"termsOfService": "利用規約",
+		"privacyPolicy": "プライバシーポリシー",
 		"securityFeatures": "セキュリティ機能",
 		"securityList": [
 			"Web アプリケーションファイアウォール (ModSecurity)",
@@ -105,7 +109,9 @@
 		"loginFirst": "最初にログインしてください",
 		"profileUpdated": "プロフィールが正常に更新されました",
 		"showMatchHistory": "📊 対戦履歴と統計を表示",
-		"hideMatchHistory": "対戦履歴を非表示"
+		"hideMatchHistory": "対戦履歴を非表示",
+		"madeBy": "DaBesTim 製",
+		"dashboard": "📊 ダッシュボード"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA が正常に無効化されました",

@@ -38,6 +38,10 @@
 		"authenticationRequired": "Authentication required",
 		"invalidToken": "Invalid or expired token",
 		"termsAcceptanceRequired": "You must accept the Terms of Service and Privacy Policy to register",
+		"iAgreeTo": "I agree to the",
+		"and": "and",
+		"termsOfService": "Terms of Service",
+		"privacyPolicy": "Privacy Policy",
 		"securityFeatures": "Security Features",
 		"securityList": [
 			"Web Application Firewall (ModSecurity)",
@@ -106,7 +110,9 @@
 		"loginFirst": "Please login first",
 		"profileUpdated": "Profile updated successfully",
 		"showMatchHistory": "📊 View Match History & Stats",
-		"hideMatchHistory": "Hide Match History"
+		"hideMatchHistory": "Hide Match History",
+		"madeBy": "Made by DaBesTim",
+		"dashboard": "📊 Dashboard"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA disabled successfully",
