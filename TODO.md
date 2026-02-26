@@ -57,14 +57,16 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [ ] **013**: Oauth 2 Deactivated, reactivate with API key?. (lcuevas- / todo)
 - [ ] **014**: IA movement overshoots and never stop mooving. (lcuevas- / todo)
 - [X] **015**: Games keep runing in backgorund if we change pages. (lcuevas- / pausanch)
-- [ ] **016**: Tic-Tac-Toe does not track matches. (lcuevas- / todo)
+- [X] **016**: Tic-Tac-Toe does not track matches. (lcuevas- / pausanch)
 - [ ] **017**: Check subject compliance for Games Customization module. (lcuevas- / todo)
 - [ ] **018**: Promehteus and grapahan are deactivated. (lcuevas- / todo)
 - [ ] **019**: Clean references to old users module. (lcuevas- / todo)
 - [ ] **020**: Check GDPR module for new requisites, like requesting data via mail (lcuevas- / todo)
 - [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
-- [ ] **022**: Privacy Policy and Terms of Service are not translated. DOn't know if it needs it (lcuevas- / todo)
+- [ ] **022**: Privacy Policy and Terms of Service are not translated. Don't know if it needs it (lcuevas- / todo)
 - [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
+- [ ] **024**: Match History cut on the bottom in profile (pausanch / todo)
+- [ ] **025**: Match History don't show type of game (pausanch / todo)
 
 # Solved Bug reports
 
@@ -76,3 +78,4 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [X] **015**: Games keep runing in backgorund if we change pages. General strucutre mantained, used listeners to stop game gracefully (lcuevas- / pausanch)
 - [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe. Recicled the button for mail updating. Mail is validated and Also imprived translation and (lcuevas- / lcuevas-)
 - [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
+- [X] **016**: Tic-Tac-Toe does not track matches. Recicle function from pong (lcuevas- / pausanch)

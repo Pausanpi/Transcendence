@@ -64,7 +64,7 @@ other.
 EN teoría todo guy. Pero el juego sigue corirendo si cambio pestaña
 
 • Major: Add another game with user history and matchmaking.
-No está el tracking de partidas del tic-tac-toe
+Ya está el tracking de partidas del tic-tac-toe by Paula
 
 • Minor: Game customization options.
 ◦ Power-ups, attacks, or special abilities.
