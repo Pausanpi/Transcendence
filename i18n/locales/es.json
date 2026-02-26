@@ -410,6 +410,9 @@
 		"classic": "Classic",
 		"neon": "Neon",
 		"minimal": "Minimalista",
-		"tttOptions": "Opciones 3 en línea"
+		"tttOptions": "Opciones 3 en línea",
+		"mode": "Modo",
+		"timed": "Cronometro",
+		"gravity": "Gravedad"
 	}
 }

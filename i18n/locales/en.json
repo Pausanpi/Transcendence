@@ -397,6 +397,9 @@
 		"classic": "Classic",
 		"neon": "Neon",
 		"minimal": "Minimal",
-		"tttOptions": "Tic-Tac-Toe Options"
+		"tttOptions": "Tic-Tac-Toe Options",
+		"mode": "Mode",
+		"timed": "Timed",
+		"gravity": "Gravity"
 	}
 }
