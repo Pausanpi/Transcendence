@@ -394,6 +394,9 @@
 		"classic": "クラシック",
 		"neon": "ネオン",
 		"minimal": "最小限の",
-		"tttOptions": "三目並べのオプション"
+		"tttOptions": "三目並べのオプション",
+		"mode": "モード",
+		"timed": "T計時された",
+		"gravity": "重力"
 	}
 }
