@@ -52,7 +52,7 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
 - [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
 - [ ] **010**: Check friends process and online status (lcuevas- / todo)
-- [ ] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / todo)
+- [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
 - [ ] **012**: Make the leaderboard. (lcuevas- / todo)
 - [ ] **013**: Oauth 2 Deactivated, reactivate with API key?. (lcuevas- / todo)
 - [ ] **014**: IA movement overshoots and never stop mooving. (lcuevas- / todo)
@@ -75,3 +75,4 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
 - [X] **015**: Games keep runing in backgorund if we change pages. General strucutre mantained, used listeners to stop game gracefully (lcuevas- / pausanch)
 - [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe. Recicled the button for mail updating. Mail is validated and Also imprived translation and (lcuevas- / lcuevas-)
+- [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
