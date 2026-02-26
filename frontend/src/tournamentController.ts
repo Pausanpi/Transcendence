@@ -6,7 +6,10 @@ import {
   getCurrentMatch,
   setMatchWinner,
   advanceTournament,
-  getChampion
+  getChampion,
+  saveTournamentMatch,
+  updateTournamentRound,
+  completeTournamentInDB
 } from "./tournamentEngine.js";
 import { startGameSession } from "./gameService.js";
 import { initPongGame, setOnGameEnd, showWinnerOverlay } from "./pong.js";
@@ -27,13 +30,13 @@ export function startCurrentMatch(): void {
 	  isAI: match.player2.id === "AI",
 	  difficulty: match.player2.id === "AI" ? 3 : undefined,
 	  startTime: Date.now(),
-	  tournamentId: null // opcional: crear ID del torneo
+	  tournamentId: tournament.tournamentId || null
 	});
 
 	setOnGameEnd((result) => {
 		showWinnerOverlay(result.winner.name, () => {
-			// Almacenar el ganador del torneo
-			finishMatch(result.winner);
+			// Guardar resultado y avanzar torneo
+			finishMatch(result.winner, result.player1Score, result.player2Score);
 		});
 	});
 
@@ -48,19 +51,61 @@ export function startCurrentMatch(): void {
   }, 100);
 }
 
-export function finishMatch(winner: Player): void {
+export async function finishMatch(
+  winner: Player,
+  player1Score: number,
+  player2Score: number
+): Promise<void> {
   const tournament = loadTournament();
   if (!tournament) return;
 
+  const match = getCurrentMatch(tournament);
+  if (!match) return;
+
+  // Guardar partida en la base de datos si hay tournamentId y al menos un jugador registrado
+  if (tournament.tournamentId) {
+    // Calcular duración de la partida desde la sesión de juego
+    const session = await import('./gameService.js').then(m => m.getGameSession());
+    const matchDuration = session 
+      ? Math.floor((Date.now() - session.startTime) / 1000)
+      : null;
+
+    await saveTournamentMatch(
+      tournament.tournamentId,
+      match.player1,
+      match.player2,
+      player1Score,
+      player2Score,
+      winner,
+      matchDuration || undefined
+    );
+  }
+
+  // Actualizar el torneo localmente
   setMatchWinner(tournament, winner);
+  const previousRound = tournament.currentRoundIndex;
   advanceTournament(tournament);
   saveTournament(tournament);
 
+  // Actualizar ronda en BD si cambió
+  if (tournament.tournamentId && tournament.currentRoundIndex !== previousRound) {
+    await updateTournamentRound(tournament.tournamentId, tournament.currentRoundIndex);
+  }
+
+  // Verificar si hay un campeón
   const champion = getChampion(tournament);
   if (champion) {
-	showChampion(champion);
+    // Completar torneo en BD
+    if (tournament.tournamentId) {
+      await completeTournamentInDB(
+        tournament.tournamentId,
+        champion,
+        tournament.currentRoundIndex
+      );
+    }
+    showChampion(champion);
   } else {
-	navigate("tournament_game");
+    navigate("tournament_game");
   }
 }
 

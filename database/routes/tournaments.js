@@ -248,6 +248,41 @@ export default async function tournamentsRoutes(fastify, options) {
 		}
 	});
 
+	// Batch add participants (for tournament setup)
+	fastify.post('/tournament-participants', async (request, reply) => {
+		const { participants } = request.body;
+
+		if (!participants || !Array.isArray(participants) || participants.length === 0) {
+			return reply.status(400).send({
+				error: 'Participants array is required',
+				success: false,
+				code: 'MISSING_PARTICIPANTS'
+			});
+		}
+
+		try {
+			// Insert all participants
+			for (const participant of participants) {
+				const { tournament_id, user_id, display_name, seed } = participant;
+				
+				await db.run(
+					`INSERT INTO tournament_participants (tournament_id, user_id, display_name, seed, joined_at)
+					VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+					[tournament_id, user_id || null, display_name, seed || null]
+				);
+			}
+
+			return { success: true, count: participants.length };
+		} catch (error) {
+			console.error('Error adding participants:', error);
+			return reply.status(500).send({
+				error: 'Database error',
+				success: false,
+				code: 'DB_ERROR'
+			});
+		}
+	});
+
 	// Get tournament participants
 	fastify.get('/tournaments/:id/participants', async (request, reply) => {
 		const { id } = request.params;
@@ -389,6 +424,89 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, message: 'Tournament started' };
 		} catch (error) {
 			console.error('Error starting tournament:', error);
+			return reply.status(500).send({
+				error: 'Database error',
+				success: false,
+				code: 'DB_ERROR'
+			});
+		}
+	});
+
+	// Start tournament (PATCH version - usado por frontend)
+	fastify.patch('/tournaments/:id/start', async (request, reply) => {
+		const { id } = request.params;
+		const { status, started_at } = request.body;
+
+		try {
+			await db.run(
+				`UPDATE tournaments SET status = ?, started_at = ? WHERE id = ?`,
+				[status || 'active', started_at || new Date().toISOString(), id]
+			);
+
+			return { success: true };
+		} catch (error) {
+			console.error('Error starting tournament:', error);
+			return reply.status(500).send({
+				error: 'Database error',
+				success: false,
+				code: 'DB_ERROR'
+			});
+		}
+	});
+
+	// Update tournament round
+	fastify.patch('/tournaments/:id/round', async (request, reply) => {
+		const { id } = request.params;
+		const { current_round } = request.body;
+
+		if (current_round === undefined) {
+			return reply.status(400).send({
+				error: 'current_round is required',
+				success: false,
+				code: 'MISSING_ROUND'
+			});
+		}
+
+		try {
+			await db.run(
+				`UPDATE tournaments SET current_round = ? WHERE id = ?`,
+				[current_round, id]
+			);
+
+			return { success: true };
+		} catch (error) {
+			console.error('Error updating tournament round:', error);
+			return reply.status(500).send({
+				error: 'Database error',
+				success: false,
+				code: 'DB_ERROR'
+			});
+		}
+	});
+
+	// Complete tournament
+	fastify.patch('/tournaments/:id/complete', async (request, reply) => {
+		const { id } = request.params;
+		const { status, winner_id, winner_name, current_round, completed_at } = request.body;
+
+		try {
+			await db.run(
+				`UPDATE tournaments 
+				SET status = ?, winner_id = ?, winner_name = ?, current_round = ?, completed_at = ?
+				WHERE id = ?`,
+				[
+					status || 'completed',
+					winner_id || null,
+					winner_name,
+					current_round,
+					completed_at || new Date().toISOString(),
+					id
+				]
+			);
+
+			return { success: true };
+		} catch (error) {
+			console.error('Error completing tournament:', error);
 			return reply.status(500).send({
 				error: 'Database error',
 				success: false,
