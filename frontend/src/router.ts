@@ -99,8 +99,6 @@ export function initRouter(): void {
     });
   });
 
-
-
   navigate('home');
 }
 
