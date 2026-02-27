@@ -112,7 +112,8 @@
 		"showMatchHistory": "📊 Ver Historial de Partidas y Estadísticas",
 		"hideMatchHistory": "Ocultar Historial de Partidas",
 		"madeBy": "Hecho por DaBesTim",
-		"dashboard": "📊 Panel de control"
+		"dashboard": "📊 Panel de control",
+		"uploadAvatar2": "Subir Avatar"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA deshabilitado correctamente",
@@ -314,6 +315,8 @@
   },
 
 	"players": {
+		"title": "👥 Jugadores",
+		"search": "🔍 Buscar",
 		"authRequired": "Debes iniciar sesión para ver otros jugadores",
 		"loadError": "No se pudieron cargar los jugadores. Por favor, inténtalo de nuevo más tarde.",
 		"loadErrorProfile": "No se pudo cargar el perfil del jugador. Por favor, inténtalo de nuevo más tarde.",

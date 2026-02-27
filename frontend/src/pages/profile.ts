@@ -75,7 +75,7 @@ export function renderProfile(): string {
           <input type="file" id="avatarFile" accept=".jpg,.jpeg,image/jpeg" class="w-full p-2 rounded bg-gray-700 text-white">
         </div>
 
-        <button onclick="uploadAvatar()" class="btn btn-blue mt-4">Upload Avatar</button>
+        <button onclick="uploadAvatar()" class="btn btn-blue mt-4" data-i18n="profile.uploadAvatar2">Upload Avatar</button>
         <button onclick="deleteAvatar()" class="btn btn-red mt-4" data-i18n="profile.deleteAvatar">🗑️ Remove Avatar</button>
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.updatePersonalInfo">Update Personal Info</button>
 
