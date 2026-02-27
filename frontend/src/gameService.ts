@@ -126,20 +126,15 @@ export async function verifyPlayerByName(playerName: string): Promise<UserProfil
 }
 
 export async function loginPlayer(email: string, password: string): Promise<UserProfile | null> {
-	try {
-		const response = await api<{ success: boolean; user: UserProfile }>('/api/auth/login', {
-			method: 'POST',
-			body: JSON.stringify({ email, password })
-		});
+	const response = await api<{ success: boolean; user: UserProfile }>('/api/auth/login', {
+		method: 'POST',
+		body: JSON.stringify({ email, password })
+	});
 
-		if (response.success && response.user) {
-			return response.user;
-		}
-		return null;
-	} catch (error) {
-		console.error('Failed to login player:', error);
-		return null;
+	if (response.success && response.user) {
+		return response.user;
 	}
+	return null;
 }
 
 // ===== MATCH SAVING =====

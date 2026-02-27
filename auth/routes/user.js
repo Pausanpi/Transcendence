@@ -13,6 +13,7 @@ import { validateLogin, validateRegistration } from '../middleware/validation.js
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from '../config/oauth.js';
 import { authenticateJWT } from '../middleware/auth.js';
+import validationService from '../services/validation.js';
 
 export default async function userRoutes(fastify, options) {
 
@@ -86,7 +87,7 @@ export default async function userRoutes(fastify, options) {
 
 		try {
 			// Only accept snake_case for display name // there are ways to accept both
-			const { display_name, avatar } = request.body;
+			const { display_name, avatar, email } = request.body;
 			const user = await findUserById(userId);
 			if (!user) {
 				return reply.status(404).send({
@@ -94,18 +95,55 @@ export default async function userRoutes(fastify, options) {
 					error: 'messages.userNotFound'
 				});
 			}
+
+			// If email is being updated, validate it
+			if (email !== undefined) {
+				// Validate email format
+				const emailValidation = validationService.validateEmail(email);
+				if (!emailValidation.isValid) {
+					return reply.status(400).send({
+						success: false,
+						error: emailValidation.error
+					});
+				}
+
+				// Check if email is already in use by another user
+				const existingUser = await findUserByEmail(email);
+				if (existingUser && existingUser.id !== userId) {
+					return reply.status(400).send({
+						success: false,
+						error: 'profile.emailInUse'
+					});
+				}
+			}
+
 			const updateData = {};
 			if (display_name !== undefined) updateData.display_name = display_name;
 			if (avatar !== undefined) updateData.avatar = avatar;
+			if (email !== undefined) updateData.email = email;
+
 			if (Object.keys(updateData).length > 0) {
-				await updateUser(user.id, updateData);
+				try {
+					await updateUser(user.id, updateData);
+				} catch (updateError) {
+					// Handle SQLite UNIQUE constraint error
+					if (updateError.message && updateError.message.includes('UNIQUE constraint')) {
+						return reply.status(400).send({
+							success: false,
+							error: 'profile.emailInUse'
+						});
+					}
+					throw updateError;
+				}
 			}
+
 			const updatedUser = await findUserById(userId);
 			return {
 				success: true,
 				user: updatedUser.toSafeJSON()
 			};
 		} catch (error) {
+			console.error('Profile update error:', error);
 			return reply.status(500).send({
 				success: false,
 				error: 'common.internalError'

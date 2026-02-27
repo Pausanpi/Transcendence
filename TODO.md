@@ -1,148 +1,81 @@
 # TODO
 
-## Current Status (2026-01-07)
+**Organization:**
+- **Track contributors**: Add your username when creating tasks (e.g., `lcuevas- / todo`), and note who solved them when completed (e.g., `lcuevas- / pausanch`)
+- **High and Medium Priority**: Active todo lists that can be checked off or expanded as needed.
+- **Low Priority / Bug Reports**: Numbered list for tracking issues. When resolved, move entries to the "Solved Bug Reports" section below.
 
-### 🔧 In Progress: Match Saving Not Working
-- **Issue:** Matches not being saved to database after game ends
-- **Debug added:** Console logs in `saveMatch()` to trace the issue
-- **Next step:** Check browser console for logs when playing a match:
-  - Look for `saveMatch called with: {...}`
-  - Check if player1.id is populated when logged in
-  - Verify `endGameSession` is being called (game reaches 5 points)
 
-### ✅ Fixed Issues
-- [x] Registration error "auth.creationError" → Added `DATABASE_SERVICE_URL` to docker-compose.yml
-- [x] TypeScript changes not reflecting → Recompiled with `npx tsc`
-- [x] Match saving auth requirement → Only saves if at least one player is logged in
-
----
-
-## ✅ Completed (2026-01-07)
+## High Priority
+- [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully.
+Basically when we return an error on a api request, instead of do a condole.error we handle it "gracefully" (lcuevas- / todo)
+- [x] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? Bug report 15 (lcuevas- / todo)
 
 ### Database Schema
-- [x] Extended `users` table (display_name, wins, losses, games_played, online_status, last_seen)
-- [x] Created `friendships` table
-- [x] Created `tournaments` table
-- [x] Created `tournament_participants` table
-- [x] Created `matches` table
-
-### Database Endpoints
-- [x] `database/routes/matches.js` - Match history & user stats
-- [x] `database/routes/tournaments.js` - Tournament CRUD & participants
-- [x] `database/routes/friends.js` - Friend system & online status
-
-### Shared HTTP Client
-- [x] Added client methods for matches, tournaments, friends
-
-### Frontend Game Integration
-- [x] Created `frontend/src/gameService.ts` - Game-to-database bridge
-- [x] Modified `frontend/src/pong.ts` - Player setup & match saving
-- [x] Modified `frontend/src/pages/games.ts` - Uses new setupPongGame()
-- [x] Modified `frontend/src/auth.ts` - Clears user cache on logout
-- [x] Modified `frontend/src/main.ts` - Imports gameService
+- [x] Database schema for README (lcuevas- / lcuevas-)
+- [ ] Database schema must be updated in the final version(lcuevas- / todo)
 
 ### Docker Configuration
-- [x] Added `DATABASE_SERVICE_URL=http://database:3003` to auth service
-- [x] Added `DATABASE_SERVICE_URL=http://database:3003` to users service
+- [ ] Prepare final production version without bind-mounts (lcuevas- / todo)
+- [ ] Nginx must generate the certificates at runtime (lcuevas- / todo)
 
----
+### Git comments
+- [ ] Investigate changing git comments history (lcuevas- / todo)
 
-## 📋 Pending Tasks
+### Authentications
+- [ ] Oauth need api keys to be configured? (lcuevas- / todo)
 
-### High Priority (Next Session)
-- [ ] Debug match saving - check browser console logs
-- [ ] Test complete flow: login → play game → verify match saved
-- [ ] Scoreboard/leaderboard page
+## Medium Priority
+- [ ] Check friends list UI (show friends, online status, send requests) (lcuevas- / todo)
+- [ ] Check tournament UI and matchmaking logic (lcuevas- / todo)
+- [ ] Profile page: show user stats & match history. Bug report 11 (lcuevas- / todo)
+- [ ] Add Leaderboards: Bug report 12 (lcuevas- / todo)
+- [ ] TicTacToe integration with gameService. Bug report 16 (lcuevas- / todo)
+- [ ] Database service is in realuty UserManagement service, should we change anything? (lcuevas- / todo)
 
-### Medium Priority
-- [ ] Friends list UI (show friends, online status, send requests)
-- [ ] Tournament UI and matchmaking logic
-- [ ] Profile page: show user stats & match history
-- [ ] TicTacToe integration with gameService
-
-### Low Priority / Future
-- [ ] Real-time notifications for friend requests
-- [ ] Tournament brackets visualization
-- [ ] Match replay system
-- [ ] Spectator mode
-
----
-
-## 🚀 GitHub Collaboration Setup (Tomorrow)
-
-### Branch Protection Rules
-- [ ] Require pull request reviews before merging
-- [ ] Require status checks to pass
-- [ ] Require branches to be up to date
-
-### GitHub Actions CI
-- [ ] TypeScript compile check
-- [ ] ESLint linting
-- [ ] Docker build test
 
 ### Documentation
-- [ ] Create CONTRIBUTING.md with workflow guidelines
-- [ ] Create issue templates (bug report, feature request)
-- [ ] Update README.md with setup instructions
-
----
-
-## Testing Checklist
-
-### After `make` (container rebuild)
-- [ ] PvP game: Check player name modal appears
-- [ ] PvP game: Verify names display during game
-- [ ] PvP game: Confirm match saves after game ends (check console)
-- [ ] AI game: Verify difficulty selection works
-- [ ] AI game: Confirm match saves with AI as player2
-- [ ] Guest vs Guest: Verify match is NOT saved (skipped)
-- [ ] Check database: `curl -s http://localhost:3003/matches | jq .`
+- [x] Update README.md (lcuevas- / lcuevas-)
+- [x] Privacy Policy and Terms of services, accesible and tick in the registration (lcuevas- / lcuevas-)
+- [ ] Create issue templates (bug report, feature request) (lcuevas- / todo)
 
 
 
-### Elementos borrados (Por si acaso)
+## Low Priority / Bug reports
+- [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe (lcuevas- / lcuevas-)
+- [ ] **002**: Check erase od information and account in GDPR (lcuevas- / todo)
+- [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
+- [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. (lcuevas- / lcuevas-)
+- [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
+- [ ] **006**: Navbar is not translated. Some buttons like "Dashboard" and titlesl ike "Players" in front page also (lcuevas- / TODO)
+- [ ] **007**: Update database scheme in README and image to the last version with tournament and sessions? (lcuevas- / TODO)
+- [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
+- [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
+- [ ] **010**: Check friends process and online status (lcuevas- / todo)
+- [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
+- [ ] **012**: Make the leaderboard. (lcuevas- / todo)
+- [ ] **013**: Oauth 2 Deactivated, reactivate with API key?. (lcuevas- / todo)
+- [ ] **014**: IA movement overshoots and never stop mooving. (lcuevas- / todo)
+- [X] **015**: Games keep runing in backgorund if we change pages. (lcuevas- / pausanch)
+- [X] **016**: Tic-Tac-Toe does not track matches. (lcuevas- / pausanch)
+- [ ] **017**: Check subject compliance for Games Customization module. (lcuevas- / todo)
+- [ ] **018**: Promehteus and grapahan are deactivated. (lcuevas- / todo)
+- [ ] **019**: Clean references to old users module. (lcuevas- / todo)
+- [ ] **020**: Check GDPR module for new requisites, like requesting data via mail (lcuevas- / todo)
+- [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
+- [ ] **022**: Privacy Policy and Terms of Service are not translated. Don't know if it needs it (lcuevas- / todo)
+- [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
+- [ ] **024**: Match History cut on the bottom in profile (pausanch / todo)
+- [ ] **025**: Match History don't show type of game (pausanch / todo)
 
-FROM redis:7.2-alpine
+# Solved Bug reports
 
-USER root
-RUN apk add --no-cache bash && mkdir -p /data && chown redis:redis /data
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-USER redis
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
----
-
-#!/bin/bash
-set -e
-
-exec redis-server \
-    --appendonly yes \
-    --save 900 1 \
-    --save 300 10 \
-    --save 60 10000 \
-    --bind 0.0.0.0 \
-    --port 6379
-
----
-
-  redis:
-    image: redis
-    container_name: redis
-    build:
-      network: host
-      context: redis
-      dockerfile: Dockerfile
-    volumes:
-      - redis-data:/data
-      - logs-data:/var/log/redis
-    networks: [transcendence-net]
-    healthcheck: *redis-healthcheck
-    restart: always
-
-  redis-data:
-    name: redis-data
-
-  redis: &redis-healthcheck
-    test: ["CMD", "redis-cli", "ping"]
+- [x] **003**: Error mensajes in the log due to console.errors in the frontend pages.ts files. some can just be reordenated. Example in loadPLayers in players.ts. We should Check every console.error and console.log (lcuevas- / lcuevas-)
+- [x] **004**: Similarly to 003, there are network errors when the api "fails" even in a expcted way. This is due to the browser DevTools, we CAN NOT silence that, our backend is correct. The frontend handle it gracefully, but hte devtools will launch that everytime since it is monitoring the requests. (lcuevas- / lcuevas-)
+- [x] **005**: Navbar interfered with responsiveness. Improved resnposive changes in general. (lcuevas- / lcuevas-)
+- [x] **008**: Handling fetch error when failing to log a player as second player in a match (lcuevas- / lcuevas-)
+- [x] **009**: You cna play against yourself if logged in (lcuevas- / lcuevas-)
+- [X] **015**: Games keep runing in backgorund if we change pages. General strucutre mantained, used listeners to stop game gracefully (lcuevas- / pausanch)
+- [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe. Recicled the button for mail updating. Mail is validated and Also imprived translation and (lcuevas- / lcuevas-)
+- [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
+- [X] **016**: Tic-Tac-Toe does not track matches. Recicle function from pong (lcuevas- / pausanch)

@@ -1,93 +1,211 @@
-import { type Player } from './gameService.js';
+import { navigate } from './router.js';
+import {
+  type Player
+} from './gameService.js';
 
-// ===== GAME STATE =====
+// Game end callback for external handling
+let onGameEndCallback: ((result: MatchResult) => void) | null = null;
 
-let canvas: HTMLCanvasElement;
-let ctx: CanvasRenderingContext2D;
-let animationId: number;
-let gameOn = false;
+export function setOnGameEnd(callback: (result: MatchResult) => void): void {
+  onGameEndCallback = callback;
+}
 
-// Game objects
-const paddle1 = { x: 10, y: 250, w: 10, h: 100 };
-const paddle2 = { x: 780, y: 250, w: 10, h: 100 };
-const ball = { x: 400, y: 300, r: 10, dx: 5, dy: 5 };
-let score1 = 0;
-let score2 = 0;
-
-// Player info
-let player1: Player;
-let player2: Player;
-let isAI = false;
-let difficulty = 3;
-
-// Input
-const keys: Record<string, boolean> = {};
-
-// ===== GAME CALLBACKS =====
-
-// Callback for when the game ends
-let onGameEndCallback: ((result: {
+interface MatchResult {
   player1: Player;
   player2: Player;
   player1Score: number;
   player2Score: number;
   winner: Player;
-}) => void) | null = null;
-
-export function setOnGameEnd(callback: typeof onGameEndCallback): void {
-  onGameEndCallback = callback;
 }
 
-// ===== GAME INITIALIZATION =====
+interface Paddle {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  dy: number;
+}
 
-export interface PongConfig {
+interface Ball {
+  x: number;
+  y: number;
+  r: number;
+  dx: number;
+  dy: number;
+}
+
+let canvas: HTMLCanvasElement;
+let ctx: CanvasRenderingContext2D;
+let animationId: number;
+let countdownTimer: ReturnType<typeof setInterval> | null = null;
+let initTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let gameOn = false;
+let isAI = false;
+let difficulty = 3;
+let paddleHeight = 100; // Default paddle height
+let backgroundType = 'default'; // Background type
+
+// Player info for current game
+let player1: Player;
+let player2: Player;
+
+const paddle1: Paddle = { x: 10, y: 250, w: 10, h: 100, dy: 0 };
+const paddle2: Paddle = { x: 780, y: 250, w: 10, h: 100, dy: 0 };
+const ball: Ball = { x: 400, y: 300, r: 10, dx: 5, dy: 5 };
+let score1 = 0, score2 = 0;
+const keys: Record<string, boolean> = {};
+
+// Game constants
+const INITIAL_BALL_SPEED = 3;
+const MAX_BALL_SPEED = 15;
+const SPEED_INCREMENT = 0.01;
+const PADDLE_SPEED = 5;
+const COLLISION_MARGIN = 6;
+const IMPACT_ANGLE_FACTOR = 8;
+
+// AI state variables - decision with prediction
+let aiLastUpdate = 0;
+let aiDecision: 'up' | 'down' | '' = '';
+let aiTargetY: number = 250;
+
+export function initPongGame(config: {
   player1: Player;
   player2: Player;
   isAI: boolean;
   difficulty?: number;
-}
-
-export function initPongGame(config: PongConfig): void {
+  gameOptions?: {
+    background: string;
+    difficulty: string;
+  };
+}): void {
   player1 = config.player1;
   player2 = config.player2;
   isAI = config.isAI;
   difficulty = config.difficulty || 3;
 
-  // Wait for DOM to be ready
-  setTimeout(() => {
-    canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    if (!canvas) {
-      console.error('Canvas element not found');
-      return;
+  // Calculate paddle height based on game difficulty
+  if (config.gameOptions) {
+    switch (config.gameOptions.difficulty) {
+      case 'easy':
+        paddleHeight = 150;
+        break;
+      case 'medium':
+        paddleHeight = 100;
+        break;
+      case 'hard':
+        paddleHeight = 60;
+        break;
+      default:
+        paddleHeight = 100;
     }
+    backgroundType = config.gameOptions.background || 'default';
+  }
 
+  navigate('game');
+
+  initTimeoutId = setTimeout(() => {
+    initTimeoutId = null;
+    canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     ctx = canvas.getContext('2d')!;
     canvas.width = 800;
     canvas.height = 600;
 
     // Reset game state
-    score1 = 0;
-    score2 = 0;
+    gameOn = false;
+    score1 = score2 = 0;
     paddle1.y = 250;
+    paddle1.h = paddleHeight;
     paddle2.y = 250;
+    paddle2.h = paddleHeight;
+    paddle1.dy = paddle2.dy = 0;
     resetBall();
-
-    // Start countdown
-    countdown(() => {
-      gameOn = true;
-      loop();
-    });
+    
+    // Reset AI state
+    aiLastUpdate = 0;
+    aiDecision = '';
+    aiTargetY = 250;
+    Object.keys(keys).forEach(key => keys[key] = false);
+    
+    // Show exit button
+    const exitContainer = document.getElementById('exitGameContainer');
+    if (exitContainer) exitContainer.classList.remove('hidden');
+    
+    countdown(() => { gameOn = true; loop(); });
   }, 50);
 }
 
-export function stopPongGame(): void {
-  gameOn = false;
-  if (animationId) {
-    cancelAnimationFrame(animationId);
+function resetBall(direction?: 'left' | 'right'): void {
+  ball.x = 400;
+  ball.y = 300;
+  
+  // If a direction is specified (after scoring), ball goes to that side
+  // Otherwise, random direction (at game start)
+  if (direction === 'left') {
+    ball.dx = -INITIAL_BALL_SPEED;
+  } else if (direction === 'right') {
+    ball.dx = INITIAL_BALL_SPEED;
+  } else {
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  }
+  
+  ball.dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
+  
+  // Update AI target on ball reset
+  if (isAI) {
+    updateAITarget();
   }
 }
 
-// ===== GAME LOOP =====
+/**
+ * Predice dónde estará la bola cuando llegue al paddle de la IA
+ * Considera rebotes en paredes superior e inferior con simulación física
+ */
+function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
+  // Copiar estado para no modificar el original
+  let x = ballState.x;
+  let y = ballState.y;
+  let dx = ballState.dx;
+  let dy = ballState.dy;
+
+  // Si la bola no se dirige hacia la IA, retornar posición actual
+  if (dx <= 0) return y;
+
+  // Simular el movimiento de la bola hasta que alcance la posición X del paddle
+  while (x < paddleX - ballState.r) {
+    x += dx;
+    y += dy;
+
+    // Simular rebotes en paredes superior e inferior
+    if (y - ballState.r < 0) {
+      y = ballState.r;
+      dy = -dy;
+    } else if (y + ballState.r > canvas.height) {
+      y = canvas.height - ballState.r;
+      dy = -dy;
+    }
+  }
+  
+  return y;
+}
+
+/**
+ * Actualiza el objetivo de la IA con predicción mejorada y margen de error
+ */
+function updateAITarget(): void {
+  const predictedY = predictBallYAtPaddle(ball, paddle2.x);
+  
+  // Agregar margen de error aleatorio basado en la dificultad
+  const errorMargin = difficulty === 2 ? 60 : difficulty === 3 ? 40 : 20;
+  const randomOffset = (Math.random() - 0.5) * errorMargin;
+  
+  aiTargetY = predictedY - paddle2.h / 2 + randomOffset;
+  
+  // Mantener dentro de los límites
+  if (aiTargetY < 0) aiTargetY = 0;
+  if (aiTargetY > canvas.height - paddle2.h) {
+    aiTargetY = canvas.height - paddle2.h;
+  }
+}
 
 function loop(): void {
   if (!gameOn) return;
@@ -97,89 +215,220 @@ function loop(): void {
 }
 
 function update(): void {
-  // Player 1 controls (W/S)
-  if (keys['w'] && paddle1.y > 0) paddle1.y -= 5;
-  if (keys['s'] && paddle1.y < 500) paddle1.y += 5;
+  // Player 1 paddle (W/S keys)
+  paddle1.dy = 0;
+  if (keys['w'] && paddle1.y > 0) paddle1.dy = -PADDLE_SPEED;
+  if (keys['s'] && paddle1.y < canvas.height - paddle1.h) paddle1.dy = PADDLE_SPEED;
+  paddle1.y += paddle1.dy;
+  
+  // Clamp paddle1 position
+  if (paddle1.y < 0) paddle1.y = 0;
+  if (paddle1.y > canvas.height - paddle1.h) paddle1.y = canvas.height - paddle1.h;
 
-  // Player 2 controls (AI or Arrow keys)
+  // Player 2 / AI paddle
   if (isAI) {
-    const center = paddle2.y + 50;
-    if (center < ball.y - 10) paddle2.y += difficulty;
-    else if (center > ball.y + 10) paddle2.y -= difficulty;
-    paddle2.y = Math.max(0, Math.min(500, paddle2.y));
-  } else {
-    if (keys['ArrowUp'] && paddle2.y > 0) paddle2.y -= 5;
-    if (keys['ArrowDown'] && paddle2.y < 500) paddle2.y += 5;
+    // AI decision update - ONLY ONCE PER SECOND (requirement)
+    const now = Date.now();
+    if (now - aiLastUpdate >= 1000) {
+      aiLastUpdate = now;
+      updateAITarget();
+      
+      // Calculate AI decision based on prediction
+      const paddleCenter = paddle2.y + paddle2.h / 2;
+      const threshold = 10; // Small margin to avoid oscillation
+      
+      if (paddleCenter < aiTargetY - threshold) {
+        aiDecision = 'down';
+      } else if (paddleCenter > aiTargetY + threshold) {
+        aiDecision = 'up';
+      } else {
+        aiDecision = ''; // Centered, don't move
+      }
+    }
+    
+    // Simulate keyboard input (replicate human behavior - requirement)
+    keys['ArrowUp'] = aiDecision === 'up';
+    keys['ArrowDown'] = aiDecision === 'down';
+  }
+  
+  // Apply arrow key movement for paddle2 (both AI and human use same logic)
+  paddle2.dy = 0;
+  if (keys['ArrowUp'] && paddle2.y > 0) paddle2.dy = -PADDLE_SPEED;
+  if (keys['ArrowDown'] && paddle2.y < canvas.height - paddle2.h) paddle2.dy = PADDLE_SPEED;
+  paddle2.y += paddle2.dy;
+  
+  // Clamp paddle2 position
+  if (paddle2.y < 0) paddle2.y = 0;
+  if (paddle2.y > canvas.height - paddle2.h) paddle2.y = canvas.height - paddle2.h;
+
+  // Progressive ball speed increase
+  if (Math.abs(ball.dx) < MAX_BALL_SPEED) {
+    ball.dx += ball.dx > 0 ? SPEED_INCREMENT : -SPEED_INCREMENT;
   }
 
-  // Ball physics
+  // Store previous position for collision detection
+  const prevX = ball.x;
+  const prevY = ball.y;
+
+  // Ball movement
   ball.x += ball.dx;
   ball.y += ball.dy;
 
-  // Wall collisions
-  if (ball.y < 10 || ball.y > 590) {
-    ball.dy = -ball.dy;
+  // Wall collision (top and bottom) - check first to prevent sticking
+  if (ball.y - ball.r <= 0) {
+    ball.y = ball.r;
+    ball.dy = Math.abs(ball.dy); // Ensure ball goes down
+  } else if (ball.y + ball.r >= canvas.height) {
+    ball.y = canvas.height - ball.r;
+    ball.dy = -Math.abs(ball.dy); // Ensure ball goes up
   }
 
-  // Paddle collisions
-  if (ball.x < 20 && ball.y > paddle1.y && ball.y < paddle1.y + 100) {
-    ball.dx = Math.abs(ball.dx) * 1.05;
+  // Paddle collision detection with continuous collision detection
+  // Left paddle (Player 1) - check if ball is moving left and crossing paddle
+  const leftPaddleRight = paddle1.x + paddle1.w;
+  if (ball.dx < 0 && // Ball moving left
+      ball.x - ball.r <= leftPaddleRight && // Ball reached paddle
+      prevX - ball.r > leftPaddleRight && // Ball was past paddle in previous frame
+      ball.y + ball.r > paddle1.y && // Ball within paddle height
+      ball.y - ball.r < paddle1.y + paddle1.h) {
+    
+    // Collision detected - reflect ball
+    ball.dx = Math.abs(ball.dx);
+    
+    // Calculate impact position (0 to 1) for angle variation
+    const impactPosition = (ball.y - paddle1.y) / paddle1.h;
+    ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
+    
+    // Position ball exactly at paddle edge to prevent penetration
+    ball.x = leftPaddleRight + ball.r;
+    
+    // Update AI target on paddle hit
+    if (isAI) updateAITarget();
   }
-  if (ball.x > 770 && ball.y > paddle2.y && ball.y < paddle2.y + 100) {
-    ball.dx = -Math.abs(ball.dx) * 1.05;
+  
+  // Right paddle (Player 2 / AI) - check if ball is moving right and crossing paddle
+  const rightPaddleLeft = paddle2.x;
+  if (ball.dx > 0 && // Ball moving right
+      ball.x + ball.r >= rightPaddleLeft && // Ball reached paddle
+      prevX + ball.r < rightPaddleLeft && // Ball was before paddle in previous frame
+      ball.y + ball.r > paddle2.y && // Ball within paddle height
+      ball.y - ball.r < paddle2.y + paddle2.h) {
+    
+    // Collision detected - reflect ball
+    ball.dx = -Math.abs(ball.dx);
+    
+    // Calculate impact position (0 to 1) for angle variation
+    const impactPosition = (ball.y - paddle2.y) / paddle2.h;
+    ball.dy = IMPACT_ANGLE_FACTOR * (impactPosition - 0.5);
+    
+    // Position ball exactly at paddle edge to prevent penetration
+    ball.x = rightPaddleLeft - ball.r;
   }
 
-  // Scoring
-  if (ball.x < 0) {
-    score2++;
-    checkWin();
-    resetBall();
-  }
-  if (ball.x > 800) {
-    score1++;
-    checkWin();
-    resetBall();
-  }
+  if (ball.x < 0) { score2++; checkWin(); resetBall('right'); }
+  if (ball.x > 800) { score1++; checkWin(); resetBall('left'); }
 }
 
 function checkWin(): void {
   if (score1 >= 5 || score2 >= 5) {
     gameOn = false;
     const winner = score1 >= 5 ? player1 : player2;
-    
-    // Call the callback if set
+
+    // Create match result
+    const result: MatchResult = {
+      player1,
+      player2,
+      player1Score: score1,
+      player2Score: score2,
+      winner
+    };
+
+    // Call external callback if set
     if (onGameEndCallback) {
-      onGameEndCallback({
-        player1,
-        player2,
-        player1Score: score1,
-        player2Score: score2,
-        winner
-      });
+      onGameEndCallback(result);
+    } else {
+      // Fallback to old behavior
+      showWinner(winner.name);
     }
   }
 }
 
-function resetBall(): void {
-  ball.x = 400;
-  ball.y = 300;
-  ball.dx = (Math.random() > 0.5 ? 1 : -1) * 5;
-  ball.dy = (Math.random() > 0.5 ? 1 : -1) * 5;
+function drawBackground(): void {
+  switch (backgroundType) {
+    case 'space': {
+      // Space background with stars
+      ctx.fillStyle = '#0a0a1a';
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw stars
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 137) % 800;
+        const y = (i * 71) % 600;
+        const size = (i % 3) * 0.5 + 0.5;
+        ctx.fillRect(x, y, size, size);
+      }
+      break;
+    }
+    case 'ocean': {
+      // Ocean background with waves
+      const oceanGradient = ctx.createLinearGradient(0, 0, 0, 600);
+      oceanGradient.addColorStop(0, '#1a3a4a');
+      oceanGradient.addColorStop(1, '#0a1a2a');
+      ctx.fillStyle = oceanGradient;
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw wave pattern
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        for (let x = 0; x < 800; x += 10) {
+          const y = i * 100 + Math.sin(x * 0.05) * 10;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'neon': {
+      // Neon background
+      const neonGradient = ctx.createLinearGradient(0, 0, 800, 600);
+      neonGradient.addColorStop(0, '#1a0033');
+      neonGradient.addColorStop(0.5, '#0a0a1a');
+      neonGradient.addColorStop(1, '#001a33');
+      ctx.fillStyle = neonGradient;
+      ctx.fillRect(0, 0, 800, 600);
+      // Draw neon grid
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 800; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 600);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 600; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+      break;
+    }
+    default:
+      // Default black background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 800, 600);
+  }
 }
 
-// ===== RENDERING =====
-
 function draw(): void {
-  // Background
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, 800, 600);
+  drawBackground();
 
-  // Paddles
   ctx.fillStyle = '#fff';
-  ctx.fillRect(paddle1.x, paddle1.y, 10, 100);
-  ctx.fillRect(paddle2.x, paddle2.y, 10, 100);
+  ctx.fillRect(paddle1.x, paddle1.y, paddle1.w, paddle1.h);
+  ctx.fillRect(paddle2.x, paddle2.y, paddle2.w, paddle2.h);
 
-  // Ball
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, 10, 0, Math.PI * 2);
   ctx.fill();
@@ -198,57 +447,125 @@ function draw(): void {
   ctx.fillText(p2Name, 580 - ctx.measureText(p2Name).width / 2, 85);
 }
 
-// ===== UI HELPERS =====
-
 function countdown(cb: () => void): void {
-  const el = document.getElementById('countdown');
-  const txt = document.getElementById('countdownText');
-  
-  if (!el || !txt) {
-    cb(); // Start immediately if elements not found
-    return;
-  }
-
+  const el = document.getElementById('countdown')!;
+  const txt = document.getElementById('countdownText')!;
   el.classList.remove('hidden');
 
   let n = 3;
   txt.textContent = n.toString();
 
-  const interval = setInterval(() => {
+  countdownTimer = setInterval(() => {
     n--;
-    if (n > 0) {
-      txt.textContent = n.toString();
-    } else if (n === 0) {
-      txt.textContent = 'GO!';
-    } else {
-      clearInterval(interval);
+    if (n > 0) txt.textContent = n.toString();
+    else if (n === 0) txt.textContent = 'GO!';
+    else {
+      clearInterval(countdownTimer!);
+      countdownTimer = null;
       el.classList.add('hidden');
       cb();
     }
   }, 1000);
 }
 
-export function showWinnerOverlay(winnerName: string, onComplete: () => void): void {
-  const el = document.getElementById('countdown');
-  const txt = document.getElementById('countdownText');
-  
-  if (!el || !txt) {
-    onComplete();
-    return;
-  }
-
+export function showWinnerOverlay(winnerName: string, onContinue: () => void): void {
+  const el = document.getElementById('countdown')!;
+  const txt = document.getElementById('countdownText')!;
   el.classList.remove('hidden');
   txt.textContent = `🎉 ${winnerName} Wins!`;
   txt.className = 'text-5xl font-bold text-yellow-300';
 
+  // Hide exit button when game ends
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+
   setTimeout(() => {
     el.classList.add('hidden');
     txt.className = 'text-9xl font-extrabold text-yellow-300';
-    onComplete();
+    onContinue();
   }, 3000);
 }
 
-// ===== INPUT HANDLING =====
+export function stopPongGame(): void {
+  gameOn = false;
 
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+
+  // Cancel pending countdown and init timers
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  if (initTimeoutId !== null) {
+    clearTimeout(initTimeoutId);
+    initTimeoutId = null;
+  }
+
+  // Reset game state
+  Object.keys(keys).forEach(key => keys[key] = false);
+  
+  // Reset AI state
+  aiLastUpdate = 0;
+  aiDecision = '';
+  aiTargetY = 250;
+  
+  // Reset ball and paddles
+  ball.x = 400;
+  ball.y = 300;
+  ball.dx = INITIAL_BALL_SPEED;
+  ball.dy = INITIAL_BALL_SPEED;
+  paddle1.y = paddle2.y = 250;
+  paddle1.h = paddle2.h = 100;
+  paddle1.dy = paddle2.dy = 0;
+  paddleHeight = 100;
+  backgroundType = 'default';
+  score1 = score2 = 0;
+  
+  // Hide exit button
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+}
+
+function showWinner(winner: string): void {
+  const el = document.getElementById('countdown')!;
+  const txt = document.getElementById('countdownText')!;
+  el.classList.remove('hidden');
+  txt.textContent = `🎉 ${winner} Wins!`;
+  txt.className = 'text-5xl font-bold text-yellow-300';
+
+  // Hide exit button when game ends
+  const exitContainer = document.getElementById('exitGameContainer');
+  if (exitContainer) exitContainer.classList.add('hidden');
+
+  setTimeout(() => {
+    el.classList.add('hidden');
+    txt.className = 'text-9xl font-extrabold text-yellow-300';
+    navigate('games');
+  }, 3000);
+}
+
+/**
+ * Exit game without finishing
+ * Stops the game loop and resets state
+ */
+export function exitGame(): void {
+  // Use the stopPongGame function
+  stopPongGame();
+  
+  // Navigate back to games page
+  navigate('games');
+}
+
+// Keyboard
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
+
+// Stop game automatically when navigating away
+window.addEventListener('beforepagechange', () => {
+  stopPongGame();
+});
+
+// Global exports (only keep what's still needed)
+(window as any).exitGame = exitGame;
