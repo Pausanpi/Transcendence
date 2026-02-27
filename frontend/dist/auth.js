@@ -60,6 +60,12 @@ export async function register() {
     const display_name = document.getElementById('regUsername').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
+    const termsAccepted = document.getElementById('termsAccepted')?.checked;
+    // Validate terms acceptance
+    if (!termsAccepted) {
+        showResult('registerResult', 'auth.termsAcceptanceRequired', true);
+        return;
+    }
     try {
         const data = await api('/api/auth/register', {
             method: 'POST',

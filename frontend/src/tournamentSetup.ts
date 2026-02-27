@@ -54,7 +54,7 @@ function generatePlayerSlotHTML(
   
   return `
     <div class="border border-gray-600 rounded-lg p-3">
-      <label class="block text-sm text-gray-400 mb-2">Player ${index + 1}</label>
+      <label class="block text-sm text-gray-400 mb-2"><span data-i18n="tournament.player">Player</span> ${index + 1}</label>
       
       <!-- Type selector -->
       <div class="flex gap-4 mb-2">
@@ -68,7 +68,7 @@ function generatePlayerSlotHTML(
             onchange="window.tournamentUI.togglePlayerType(${index}, 'guest')"
             class="mr-1"
           />
-          <span class="text-sm">🎮 Invitado</span>
+          <span class="text-sm" data-i18n="tournament.guest">🎮 Invitado</span>
         </label>
         <label class="flex items-center cursor-pointer">
           <input 
@@ -80,7 +80,7 @@ function generatePlayerSlotHTML(
             onchange="window.tournamentUI.togglePlayerType(${index}, 'registered')"
             class="mr-1"
           />
-          <span class="text-sm">👤 Registrado</span>
+          <span class="text-sm" data-i18n="tournament.registered">👤 Registrado</span>
         </label>
       </div>
       
@@ -90,6 +90,7 @@ function generatePlayerSlotHTML(
           type="text"
           id="player-guest-${index}"
           placeholder="Nombre del invitado"
+          data-i18n-placeholder="tournament.guestNamePlaceholder"
           value="${isGuest ? defaultName : ''}"
           class="w-full p-2 rounded bg-gray-700 text-white"
         />
@@ -101,10 +102,11 @@ function generatePlayerSlotHTML(
           type="text"
           id="player-registered-${index}"
           placeholder="Nombre de usuario registrado"
+          data-i18n-placeholder="tournament.registeredNamePlaceholder"
           value="${!isGuest ? defaultName : ''}"
           class="w-full p-2 rounded bg-gray-700 text-white"
         />
-        <p class="text-xs text-gray-500 mt-1">Ingresa el nombre de usuario exacto</p>
+        <p class="text-xs text-gray-500 mt-1" data-i18n="tournament.registeredNameHint">Ingresa el nombre de usuario exacto</p>
       </div>
     </div>
   `;
@@ -125,6 +127,14 @@ function hideModal(): void {
   modal.classList.add('hidden');
 }
 
+// ===== UTILITY FUNCTIONS =====
+
+function applyTranslations(): void {
+  if ((window as any).languageManager?.isReady()) {
+    (window as any).languageManager.applyTranslations();
+  }
+}
+
 // ===== TOURNAMENT SETUP =====
 
 export async function setupPongTournament(ai: boolean, diff = 3): Promise<void> {
@@ -142,10 +152,13 @@ async function showTournamentSetupModal(
   // Clear previous slots
   playerSlots.clear();
   
+  const modeLabel = ai ? 'tournament.humanAI' : 'tournament.humanOnly';
+  const modeFallback = ai ? 'Human players + AI' : 'Human players only';
+
   let html = `
     <div class="card text-center space-y-4 max-w-4xl mx-auto">
-      <h2 class="text-2xl font-bold text-yellow-400">🏆 Tournament Setup</h2>
-      <p class="text-sm text-gray-400">${ai ? 'Human players + AI' : 'Human players only'}</p>
+      <h2 class="text-2xl font-bold text-yellow-400" data-i18n="tournament.setup">🏆 Tournament Setup</h2>
+      <p class="text-sm text-gray-400" data-i18n="${modeLabel}">${modeFallback}</p>
       
       <div class="grid grid-cols-2 gap-4 text-left">
   `;
@@ -169,14 +182,15 @@ async function showTournamentSetupModal(
   if (ai) {
     html += `
       <div class="border border-gray-600 rounded-lg p-3">
-        <label class="block text-sm text-gray-400 mb-2">Player ${USERS_TOUR_NUM}</label>
+        <label class="block text-sm text-gray-400 mb-2"><span data-i18n="tournament.player">Player</span> ${USERS_TOUR_NUM}</label>
         <input
           type="text"
+          id="ai-player-input"
           value="AI (Difficulty ${diff})"
           disabled
           class="w-full p-2 rounded bg-gray-600 cursor-not-allowed text-white"
         />
-        <p class="text-xs text-yellow-400 mt-1">🤖 AI Player</p>
+        <p class="text-xs text-yellow-400 mt-1" data-i18n="tournament.aiPlayerLabel">🤖 AI Player</p>
       </div>
     `;
   }
@@ -187,13 +201,24 @@ async function showTournamentSetupModal(
       <div id="tournamentSetupStatus" class="text-sm"></div>
       
       <div class="flex gap-4 mt-6">
-        <button onclick="window.tournamentUI.hideTournamentModal()" class="btn btn-gray flex-1">Cancel</button>
-        <button onclick="window.tournamentUI.confirmTournamentSetup(${ai}, ${diff})" class="btn btn-green flex-1">Start Tournament</button>
+        <button onclick="window.tournamentUI.hideTournamentModal()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
+        <button onclick="window.tournamentUI.confirmTournamentSetup(${ai}, ${diff})" class="btn btn-green flex-1" data-i18n="tournament.start">Start Tournament</button>
       </div>
     </div>
   `;
 
   showModal(html);
+  applyTranslations();
+
+  // Set AI player input value after translations
+  if (ai) {
+    const aiInput = document.getElementById('ai-player-input') as HTMLInputElement;
+    if (aiInput) {
+      const aiLabel = (window as any).languageManager?.t('tournament.ai') ?? 'AI';
+      const diffLabel = (window as any).languageManager?.t('tournament.difficulty') ?? 'Difficulty';
+      aiInput.value = `${aiLabel} (${diffLabel} ${diff})`;
+    }
+  }
   
   // Focus primer input apropiado
   setTimeout(() => {

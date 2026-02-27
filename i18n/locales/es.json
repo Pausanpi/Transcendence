@@ -422,5 +422,33 @@
 		"mode": "Modo",
 		"timed": "Cronometro",
 		"gravity": "Gravedad"
+	},
+	"tournament":{
+		"mode": "Torneo",
+		"pongPvP": "Pong - PVP",
+		"humanOnly": "Sólo jugadores humanos",
+		"pongAI": "Pong - IA",
+		"humanVSComputer": "Jugadores contra ordenador",
+		"ttt":"3 en línea",
+		"setup": "🏆 Configuración del torneo",
+		"player": "Jugador",
+		"guest": "🎮 Invitado",
+		"registered": "👤 Registrado",
+		"guestNamePlaceholder": "Nombre del invitado",
+		"registeredNamePlaceholder": "Nombre de usuario registrado",
+		"registeredNameHint": "Ingresa el nombre de usuario exacto",
+		"aiPlayerLabel": "🤖 Jugador IA",
+		"ai": "IA",
+		"difficulty": "Dificultad",
+		"start": "Iniciar Torneo",
+		"notFound": "NTorneo no enocntrado",
+		"title": "🏆 Torneo de Pong",
+		"round": "Ronda",
+		"current": "(Actual)",
+		"winner": "Ganador",
+		"nextMatch": "⏳ Siguiente Partido",
+		"pending": "Pendiente",
+		"vs" : "contra",
+		"playNext": "▶️ Jugar Siguiente Partido"
 	}
 }

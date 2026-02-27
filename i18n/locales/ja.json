@@ -404,5 +404,33 @@
 		"mode": "モード",
 		"timed": "T計時された",
 		"gravity": "重力"
+	},
+	"tournament": {
+		"mode": "トーナメント",
+		"pongPvP": "ポン - PVP",
+		"humanOnly": "人間プレイヤーのみ",
+		"pongAI": "ポン - AI",
+		"humanVSComputer": "プレイヤー対コンピューター",
+		"ttt": "三目並べ",
+		"setup": "🏆 トーナメント設定",
+		"player": "プレイヤー",
+		"guest": "🎮 ゲスト",
+		"registered": "👤 登録済み",
+		"guestNamePlaceholder": "ゲスト名",
+		"registeredNamePlaceholder": "登録ユーザー名",
+		"registeredNameHint": "正確なユーザー名を入力してください",
+		"aiPlayerLabel": "🤖 AIプレイヤー",
+		"ai": "AI",
+		"difficulty": "難易度",
+		"start": "トーナメント開始",
+		"notFound": "トーナメントが見つかりません",
+		"title": "🏆 ポン・トーナメント",
+		"round": "ラウンド",
+		"current": "（現在）",
+		"winner": "勝者",
+		"nextMatch": "⏳ 次の試合",
+		"pending": "保留中",
+		"vs": "対",
+		"playNext": "▶️ 次の試合をプレイ"
 	}
 }
