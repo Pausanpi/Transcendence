@@ -131,6 +131,8 @@ export function startTicTacToe(): void {
     const canvasSize = 600;
     canvas.width = canvasSize;
     canvas.height = canvasSize;
+    resizeTicTacToe();
+    window.addEventListener('resize', resizeTicTacToe);
     
     // Initialize board based on settings
     board = Array(settings.boardSize).fill(null).map(() => 
@@ -223,14 +225,24 @@ function draw(): void {
   }
 }
 
+function resizeTicTacToe(): void {
+  if (!canvas) return;
+  const maxW = Math.min(window.innerWidth - 32, 600);
+  canvas.style.width = `${maxW}px`;
+  canvas.style.height = `${maxW}px`;
+}
+
 function handleClick(e: MouseEvent): void {
   if (over) return;
   if (!canvas) return;
   if (currentPlayer === 'O' && isAI) return; // AI's turn, ignore clicks
 
   const rect = canvas.getBoundingClientRect();
-  const cellSize = 600 / settings.boardSize;
-  const c = Math.floor((e.clientX - rect.left) / cellSize);
+  // Account for CSS scaling so clicks map correctly to canvas coordinates
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const cellSize = canvas.width / settings.boardSize;
+  const c = Math.floor((e.clientX - rect.left) * scaleX / cellSize);
 
   if (c < 0 || c >= settings.boardSize) return;
 
@@ -243,7 +255,7 @@ function handleClick(e: MouseEvent): void {
     if (targetRow === -1) return; // column full
     makeMove(targetRow, c);
   } else {
-    const r = Math.floor((e.clientY - rect.top) / cellSize);
+    const r = Math.floor((e.clientY - rect.top) * scaleY / cellSize);
     if (r < 0 || r >= settings.boardSize) return;
     if (board[r][c]) return;
     makeMove(r, c);
@@ -548,7 +560,8 @@ export function stopTicTacToe(): void {
   if (animationFrame !== null) { cancelAnimationFrame(animationFrame); animationFrame = null; }
   stopTurnTimer();
 
-  // Remove canvas click listener
+  // Remove canvas click listener and resize listener
+  window.removeEventListener('resize', resizeTicTacToe);
   if (canvas) {
     canvas.removeEventListener('click', handleClick);
     canvas = null;

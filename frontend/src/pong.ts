@@ -109,6 +109,8 @@ export function initPongGame(config: {
     ctx = canvas.getContext('2d')!;
     canvas.width = 800;
     canvas.height = 600;
+    resizePong();
+    window.addEventListener('resize', resizePong);
 
     // Reset game state
     gameOn = false;
@@ -486,8 +488,17 @@ export function showWinnerOverlay(winnerName: string, onContinue: () => void): v
   }, 3000);
 }
 
+function resizePong(): void {
+  if (!canvas) return;
+  const maxW = Math.min(window.innerWidth - 32, 800);
+  const scale = maxW / 800;
+  canvas.style.width = `${Math.round(800 * scale)}px`;
+  canvas.style.height = `${Math.round(600 * scale)}px`;
+}
+
 export function stopPongGame(): void {
   gameOn = false;
+  window.removeEventListener('resize', resizePong);
 
   if (animationId) {
     cancelAnimationFrame(animationId);
