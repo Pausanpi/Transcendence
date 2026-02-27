@@ -1,12 +1,20 @@
 import { initRouter } from './router.js';
 import { initAuth } from './auth.js';
+import { setupPongTournament } from './tournamentSetup.js';
+import { startCurrentMatch } from './tournamentController.js';
 import './i18n.js';
 import './gdpr.js';
 import './pong.js';
 import './tictactoe.js';
 import './gameService.js';
-import { showGlobalMessage } from './auth.js';
-import { navigate } from './router.js';
+import './tournamentSetup.js';
+import './tournamentController.js';
+import './tournamentEngine.js';
+import './tournamentPage.js';
+
+// Exponer funciones globalmente para onclick handlers
+(window as any).setupPongTournament = setupPongTournament;
+(window as any).startCurrentMatch = startCurrentMatch;
 
 document.addEventListener('DOMContentLoaded', async () => {
   initRouter();
@@ -22,15 +30,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.updateAuthBtn();
     }
   }, 200);
-});
-
-
-window.addEventListener('auth-expired', (e: any) => {
-  if (typeof showGlobalMessage === 'function') {
-    showGlobalMessage(e.detail, 'error');
-  }
-
-  setTimeout(() => {
-    navigate('auth');
-  }, 2500);
 });
