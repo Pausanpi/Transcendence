@@ -371,6 +371,9 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 			day: 'numeric',
 			year: 'numeric'
 		});
+		const gameTypeLower = (match.gameType || 'pong').toLowerCase();
+		const gameTypeLabel = gameTypeLower === 'tictactoe' ? '❌⭕ TicTacToe' : '🏓 Pong';
+		const gameTypeBg = gameTypeLower === 'tictactoe' ? 'bg-blue-700' : 'bg-cyan-700';
 
 		return `
 					<div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
@@ -379,6 +382,7 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 								<div class="flex items-center gap-2 mb-1">
 									<span class="text-lg">${resultIcon}</span>
 									<span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+									<span class="text-xs ${gameTypeBg} px-2 py-0.5 rounded">${gameTypeLabel}</span>
 									${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
 								</div>
 								<div class="text-sm text-gray-400">

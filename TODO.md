@@ -65,8 +65,8 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
 - [ ] **022**: Privacy Policy and Terms of Service are not translated. Don't know if it needs it (lcuevas- / todo)
 - [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
-- [ ] **024**: Match History cut on the bottom in profile (pausanch / todo)
-- [ ] **025**: Match History don't show type of game (pausanch / todo)
+- [X] **024**: Match History cut on the bottom in profile (pausanch / pausanch)
+- [X] **025**: Match History don't show type of game (pausanch / pausanch)
 
 # Solved Bug reports
 
@@ -79,3 +79,5 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [x] **001**: Update button in profile page overwrites the image. We can recicle to change the mail, maybe. Recicled the button for mail updating. Mail is validated and Also imprived translation and (lcuevas- / lcuevas-)
 - [x] **011**: Ad button for exra information in profile page, like the cards we render and such (lcuevas- / lcuevas-)
 - [X] **016**: Tic-Tac-Toe does not track matches. Recicle function from pong (lcuevas- / pausanch)
+- [X] **024**: Match History cut on the bottom in profile. The container was cropped so that it does not occupy the footer and does not hide behind it. (pausanch / pausanch)
+- [X] **025**: Match History don't show type of game. I added a new variable so that the game appears in the history. (pausanch / pausanch)

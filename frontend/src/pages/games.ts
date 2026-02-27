@@ -22,7 +22,7 @@ let ticTacToeOptions = {
 export function renderGames() {
 	return `
     <h2 class="text-4xl font-bold text-center text-yellow-400 mb-8" data-i18n="game.select">Select Game</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
       <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="window.gameUI.startPongPvP()">
         <div class="text-6xl mb-4">🏓</div>
         <h3 class="text-xl font-bold" data-i18n="game.pongPvP">Pong - PvP</h3>
@@ -345,50 +345,50 @@ function startPongWithPlayers(player1: any, player2: any) {
 
 function showGameOptionsModal() {
 	showModal(`
-    <div class="card text-center space-y-6 max-w-4xl mx-auto">
+    <div class="card text-center space-y-6 max-w-4xl mx-auto w-full">
       <h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.options">Game Options</h2>
       
       <div class="text-left">
         <label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.background">Background</label>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label class="flex flex-col items-center cursor-pointer group">
             <input type="radio" name="background" value="default" checked data-background="default" class="hidden">
-            <div class="w-48 h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-black flex items-center justify-center text-white text-xs font-bold mb-2 transition-all duration-200 pointer-events-none"></div>
-            <span class="text-white text-sm" data-i18n="game.background1">Default</span>
+            <div class="w-full h-20 sm:h-28 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-black flex items-center justify-center text-white text-xs font-bold mb-2 transition-all duration-200 pointer-events-none"></div>
+            <span class="text-white text-xs sm:text-sm" data-i18n="game.background1">Default</span>
           </label>
           
           <label class="flex flex-col items-center cursor-pointer group">
             <input type="radio" name="background" value="space" data-background="space" class="hidden">
-            <div class="w-48 h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+            <div class="w-full h-20 sm:h-28 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-gray-900 to-black flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
               <div class="absolute w-1 h-1 bg-white rounded-full pointer-events-none" style="top: 20%; left: 20%;"></div>
               <div class="absolute w-0.5 h-0.5 bg-white rounded-full pointer-events-none" style="top: 40%; right: 30%;"></div>
               <div class="absolute w-1 h-1 bg-white rounded-full pointer-events-none" style="bottom: 25%; left: 35%;"></div>
               <div class="absolute w-0.5 h-0.5 bg-white rounded-full pointer-events-none" style="bottom: 15%; right: 20%;"></div>
             </div>
-            <span class="text-white text-sm" data-i18n="game.background2">Space</span>
+            <span class="text-white text-xs sm:text-sm" data-i18n="game.background2">Space</span>
           </label>
           
           <label class="flex flex-col items-center cursor-pointer group">
             <input type="radio" name="background" value="ocean" data-background="ocean" class="hidden">
-            <div class="w-48 h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-blue-900 to-blue-950 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+            <div class="w-full h-20 sm:h-28 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-b from-blue-900 to-blue-950 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
               <div class="absolute inset-0 opacity-30 pointer-events-none" style="background: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);"></div>
             </div>
-            <span class="text-white text-sm" data-i18n="game.background3">Ocean</span>
+            <span class="text-white text-xs sm:text-sm" data-i18n="game.background3">Ocean</span>
           </label>
           
           <label class="flex flex-col items-center cursor-pointer group">
             <input type="radio" name="background" value="neon" data-background="neon" class="hidden">
-            <div class="w-48 h-32 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-br from-purple-900 via-gray-900 to-cyan-900 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
+            <div class="w-full h-20 sm:h-28 rounded border-2 border-gray-600 group-has-[:checked]:border-yellow-400 group-has-[:checked]:border-4 bg-gradient-to-br from-purple-900 via-gray-900 to-cyan-900 flex items-center justify-center relative overflow-hidden mb-2 transition-all duration-200 pointer-events-none">
               <div class="absolute inset-0 opacity-50 pointer-events-none" style="background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,255,255,0.1) 5px, rgba(0,255,255,0.1) 10px);"></div>
             </div>
-            <span class="text-white text-sm" data-i18n="game.background4">Neon</span>
+            <span class="text-white text-xs sm:text-sm" data-i18n="game.background4">Neon</span>
           </label>
         </div>
       </div>
 
       <div class="text-left">
         <label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.dificulty">Difficulty</label>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="difficultyOptions">
+        <div class="grid grid-cols-3 gap-3" id="difficultyOptions">
           <label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-green-900 to-green-700 difficulty-label">
             <input type="radio" name="difficulty" value="easy" data-difficulty="easy" class="hidden">
             <div class="text-3xl mb-2">👶</div>
@@ -584,7 +584,7 @@ function showTicTacToeOptions(isAI: boolean) {
 	const difficultySection = isAI ? `
 		<div class="text-left">
 			<label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.AIdifficulty">AI Difficulty</label>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-difficulty">
+			<div class="grid grid-cols-3 gap-3" id="tictactoe-difficulty">
 				<label class="flex flex-col items-center cursor-pointer group p-4 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-green-900 to-green-700 ttt-difficulty-label">
 					<input type="radio" name="ttt-difficulty" value="2" data-difficulty="2" class="hidden">
 					<div class="text-3xl mb-2">😊</div>
@@ -608,14 +608,14 @@ function showTicTacToeOptions(isAI: boolean) {
 	` : '';
 	
 	showModal(`
-		<div class="card text-center space-y-6 max-w-4xl mx-auto">
+		<div class="card text-center space-y-6 max-w-4xl mx-auto w-full">
 			<h2 class="text-2xl font-bold text-yellow-400" data-i18n="game.tttOptions">Tic-Tac-Toe Options</h2>
 			
 			${difficultySection}
 			
 			<div class="text-left">
 				<label class="block text-sm text-gray-400 mb-3 font-bold": data-i18n="game.theme">Theme</label>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-themes">
+				<div class="grid grid-cols-3 gap-3" id="tictactoe-themes">
 					<label class="flex flex-col items-center cursor-pointer group ttt-theme-label">
 						<input type="radio" name="ttt-theme" value="classic" checked data-theme="classic" class="hidden">
 						<div class="w-full h-32 rounded border-2 border-gray-600 transition-all duration-200 bg-black flex items-center justify-center relative overflow-hidden mb-2">
@@ -665,7 +665,7 @@ function showTicTacToeOptions(isAI: boolean) {
 			
 			<div class="text-left">
 				<label class="block text-sm text-gray-400 mb-3 font-bold" data-i18n="game.mode">Mode</label>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tictactoe-modes">
+				<div class="grid grid-cols-3 gap-3" id="tictactoe-modes">
 					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
 						<input type="radio" name="ttt-mode" value="none" checked data-mode="none" class="hidden">
 						<div class="w-full h-20 rounded border-2 border-gray-600 transition-all duration-200 bg-gray-700 flex items-center justify-center mb-2">
