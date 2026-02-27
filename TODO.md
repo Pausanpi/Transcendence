@@ -8,7 +8,8 @@
 
 ## High Priority
 - [ ] General testing of endpoints. Codes an errors messages seem fine, frontend should handle that gracefully.
-Basically when we return an error on a api request, instead of do a condole.error we handle it "gracefully" (lcuevas- / todo)
+Basically when we return an error on a api request, instead of do a condole.error we handle it "gracefully". 21, 23, 26, 27 
+Also Post, Put, Delete etc... should be protected from unexpeected imput (lcuevas- / todo)
 - [x] Everything is runing dinamically, game keeps running in the background. Maybe load and refresh pages less dinamically? Bug report 15 (lcuevas- / todo)
 
 ### Database Schema
@@ -67,6 +68,10 @@ Basically when we return an error on a api request, instead of do a condole.erro
 - [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
 - [X] **024**: Match History cut on the bottom in profile (pausanch / pausanch)
 - [X] **025**: Match History don't show type of game (pausanch / pausanch)
+- [ ] **026**: Dashboard without loging shows a 502. May be for deprecated fetch, also protect better the endpoint(lcuevas- / todo)
+- [ ] **027**: Like we said, some POST are not protected.  cahnge-lenguaje with nothing inside makes a error 500 (lcuevas- / todo)
+- [ ] **028**: Nickname update is not parsed and can load a text as long as you want. Let's cut it to 10 or something (lcuevas- / todo)
+- [ ] **029**: After Erasing image there is some kind of cors error. Also check if we just make it null, maybe players is trying to load the image and when failing is doing osmething and showing error (lcuevas- / todo)
 
 # Solved Bug reports
 
