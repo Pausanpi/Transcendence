@@ -4,14 +4,16 @@ export default async function matchesRoutes(fastify, options) {
 
 	// Record a new match (secure)
 	fastify.post('/matches', async (request, reply) => {
-		const userId = request.headers['x-user-id'];
-		if (!userId) {
-			return reply.status(401).send({ success: false, error: 'auth.required' });
-		}
-
-
-		// Accept new, minimal payload from frontend
+		// Check if this is a tournament match (has explicit player IDs) or user match
 		const {
+			player1_id,
+			player1_name,
+			player2_id,
+			player2_name,
+			player1_score,
+			player2_score,
+			winner_id,
+			winner_name,
 			opponent_id,
 			opponent_name,
 			user_score,
@@ -22,6 +24,56 @@ export default async function matchesRoutes(fastify, options) {
 			match_duration = null
 		} = request.body;
 
+		// Tournament match format (explicit player IDs)
+		if (player1_id !== undefined && player2_id !== undefined) {
+			// This is a tournament match with explicit players
+			if (!player1_name || !player2_name || player1_score === undefined || player2_score === undefined || !winner_name) {
+				return reply.status(400).send({
+					error: 'Missing required fields for tournament match',
+					success: false,
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			try {
+				const result = await db.run(
+					`INSERT INTO matches (
+						player1_id, player1_name, player2_id, player2_name,
+						player1_score, player2_score, winner_id, winner_name,
+						game_type, tournament_id, match_duration, played_at
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+					[
+						player1_id || null,
+						player1_name,
+						player2_id || null,
+						player2_name,
+						player1_score,
+						player2_score,
+						winner_id || null,
+						winner_name,
+						game_type,
+						tournament_id,
+						match_duration
+					]
+				);
+
+				return { success: true, matchId: result.id };
+			} catch (error) {
+				console.error('Error creating tournament match:', error);
+				return reply.status(500).send({
+					error: 'Database error',
+					success: false,
+					code: 'DB_ERROR'
+				});
+			}
+		}
+
+		// Regular user match format (authenticated user vs opponent)
+		const userId = request.headers['x-user-id'];
+		if (!userId) {
+			return reply.status(401).send({ success: false, error: 'auth.required' });
+		}
+
 		if (!opponent_name || user_score === undefined || opponent_score === undefined || !winner) {
 			return reply.status(400).send({
 				error: 'Missing required fields',
@@ -30,24 +82,23 @@ export default async function matchesRoutes(fastify, options) {
 			});
 		}
 
-
 		// Use authenticated user as player1, opponent as player2
-		const player1_id = userId;
-		const player1_name = winner === opponent_name ? undefined : 'You'; // Optionally fetch from DB
-		const player2_id = opponent_id || null; // Use provided opponent_id if present
-		const player2_name = opponent_name;
-		const player1_score = user_score;
-		const player2_score = opponent_score;
-		const winner_name = winner;
-		let winner_id = null;
-		if (player1_score > player2_score) {
-			winner_id = player1_id;
-		} else if (player2_score > player1_score && player2_id) {
-			winner_id = player2_id;
+		const resolvedPlayer1Id = userId;
+		const player1_name_temp = winner === opponent_name ? undefined : 'You';
+		const resolvedPlayer2Id = opponent_id || null;
+		const resolvedPlayer2Name = opponent_name;
+		const resolvedPlayer1Score = user_score;
+		const resolvedPlayer2Score = opponent_score;
+		const resolvedWinnerName = winner;
+		let resolvedWinnerId = null;
+		if (resolvedPlayer1Score > resolvedPlayer2Score) {
+			resolvedWinnerId = resolvedPlayer1Id;
+		} else if (resolvedPlayer2Score > resolvedPlayer1Score && resolvedPlayer2Id) {
+			resolvedWinnerId = resolvedPlayer2Id;
 		}
 
-		// Optionally, fetch the user's display name from DB for player1_name
-		let resolvedPlayer1Name = player1_name;
+		// Fetch the user's display name from DB for player1_name
+		let resolvedPlayer1Name = player1_name_temp;
 		try {
 			const userRow = await db.get('SELECT display_name, username FROM users WHERE id = ?', [userId]);
 			if (userRow) {
@@ -60,13 +111,13 @@ export default async function matchesRoutes(fastify, options) {
 		try {
 			const result = await db.run(
 				`INSERT INTO matches (
-					       player1_id, player1_name, player2_id, player2_name,
-					       player1_score, player2_score, winner_id, winner_name,
-					       game_type, tournament_id, match_duration, played_at
-				       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-				[
-					player1_id, resolvedPlayer1Name, player2_id, player2_name,
+					player1_id, player1_name, player2_id, player2_name,
 					player1_score, player2_score, winner_id, winner_name,
+					game_type, tournament_id, match_duration, played_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+				[
+					resolvedPlayer1Id, resolvedPlayer1Name, resolvedPlayer2Id, resolvedPlayer2Name,
+					resolvedPlayer1Score, resolvedPlayer2Score, resolvedWinnerId, resolvedWinnerName,
 					game_type, tournament_id, match_duration
 				]
 			);
