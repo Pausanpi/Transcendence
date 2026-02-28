@@ -2,7 +2,6 @@ import { api } from '../api.js';
 import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
-	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -19,7 +18,6 @@ interface PlayerStats {
 interface MatchHistoryItem {
 	id: number;
 	opponent: {
-		id: string;
 		name: string;
 	};
 	playerScore: number;
@@ -32,7 +30,6 @@ interface MatchHistoryItem {
 }
 
 interface PlayerProfile {
-	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -93,12 +90,12 @@ function setupPlayerCardClickHandlers(): void {
 	const playersList = document.getElementById('playersList');
 	if (playersList) {
 		playersList.addEventListener('click', (e) => {
-			const card = (e.target as HTMLElement).closest('[data-player-id]');
+			const card = (e.target as HTMLElement).closest('[data-player-username]');
 			if (card) {
-				const playerId = card.getAttribute('data-player-id');
-				console.log('[DEBUG] Player card clicked, playerId:', playerId);
-				if (playerId) {
-					viewPlayer(playerId);
+				const username = card.getAttribute('data-player-username');
+				console.log('[DEBUG] Player card clicked, username:', username);
+				if (username) {
+					viewPlayer(username);
 				}
 			}
 		});
@@ -155,12 +152,12 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			response.users.forEach(async (player, index) => {
 				try {
 					const avatarUrl = await loadAvatar(player.avatar);
-					const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
+					const imgElement = container.querySelector(`[data-player-username="${player.username}"] img`);
 					if (imgElement && avatarUrl) {
 						(imgElement as HTMLImageElement).src = avatarUrl;
 					}
 				} catch (error) {
-					console.error(`Failed to load avatar for player ${player.id}:`, error);
+					console.error(`Failed to load avatar for player ${player.username}:`, error);
 					// Avatar will remain as default
 				}
 			});
@@ -200,7 +197,7 @@ function renderPlayerCard(player: PlayerListItem): string {
 
 	// REMOVED inline onclick - using event delegation instead
 	return `
-		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}">
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-username="${player.username}">
 			<div class="flex items-center gap-4">
 				<div class="relative">
 					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
@@ -219,8 +216,8 @@ function renderPlayerCard(player: PlayerListItem): string {
 	`;
 }
 
-async function viewPlayer(playerId: string): Promise<void> {
-	console.log('[DEBUG] viewPlayer called for playerId:', playerId);
+async function viewPlayer(username: string): Promise<void> {
+	console.log('[DEBUG] viewPlayer called for username:', username);
 	const modal = document.getElementById('playerModal');
 	const content = document.getElementById('playerModalContent');
 	const addFriendBtn = document.getElementById('addFriendBtn');
@@ -248,7 +245,7 @@ async function viewPlayer(playerId: string): Promise<void> {
 	console.log('[DEBUG] Modal shown, loading player data...');
 
 	try {
-		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${playerId}`);
+		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${encodeURIComponent(username)}`);
 		console.log('[DEBUG] Player profile response:', response);
 
 		if (response.success && response.user) {
@@ -323,10 +320,10 @@ async function viewPlayer(playerId: string): Promise<void> {
 					btn.parentNode?.replaceChild(newBtn, btn);
 					
 					// Set up the click handler on the fresh button
-					newBtn.setAttribute('data-player-id', playerId);
+					newBtn.setAttribute('data-player-username', username);
 					newBtn.addEventListener('click', () => {
 						console.log('[DEBUG] Add Friend button clicked!');
-						addFriend(playerId);
+						addFriend(username);
 					});
 					
 					console.log('[DEBUG] Add Friend button handler attached successfully');
@@ -419,8 +416,8 @@ function closePlayerModal(): void {
 	}
 }
 
-async function addFriend(playerId: string): Promise<void> {
-	console.log('[DEBUG] ===== addFriend called for playerId:', playerId, '=====');
+async function addFriend(username: string): Promise<void> {
+	console.log('[DEBUG] ===== addFriend called for username:', username, '=====');
 	const btn = document.getElementById('addFriendBtn');
 	
 	console.log('[DEBUG] Button found:', btn ? 'YES' : 'NO');
@@ -437,7 +434,7 @@ async function addFriend(playerId: string): Promise<void> {
 		console.log('[DEBUG] Checking friend status...');
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
-			(`/api/database/friends/me/check/${playerId}`);
+			(`/api/database/friends/me/check/${encodeURIComponent(username)}`);
 
 		console.log('[DEBUG] Check response:', checkResponse);
 
@@ -467,7 +464,7 @@ async function addFriend(playerId: string): Promise<void> {
 		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
-			body: JSON.stringify({ friend_id: playerId })
+			body: JSON.stringify({ friend_username: username })
 		});
 
 		console.log('[DEBUG] Friend request response:', response);

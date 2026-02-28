@@ -38,8 +38,6 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 ### Documentation
 - [x] Update README.md (lcuevas- / lcuevas-)
 - [x] Privacy Policy and Terms of services, accesible and tick in the registration (lcuevas- / lcuevas-)
-- [ ] Create issue templates (bug report, feature request) (lcuevas- / todo)
-
 
 
 ## Low Priority / Bug reports
@@ -71,7 +69,11 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [ ] **026**: Dashboard without loging shows a 502. May be for deprecated fetch, also protect better the endpoint(lcuevas- / todo)
 - [ ] **027**: Like we said, some POST are not protected.  cahnge-lenguaje with nothing inside makes a error 500 (lcuevas- / todo)
 - [ ] **028**: Nickname update is not parsed and can load a text as long as you want. Let's cut it to 10 or something (lcuevas- / todo)
-- [ ] **029**: After Erasing image there is some kind of cors error. Also check if we just make it null, maybe players is trying to load the image and when failing is doing osmething and showing error (lcuevas- / todo)
+- [ ] **029**: After Erasing image there is some kind of cors error. Also check if we just make it null, maybe players is trying to load the image and when failing is doing osmething and showing error. Maybe is about the github image (lcuevas- / todo)
+- [x] **030**: PLayers page return too much information?, id and name?. At least ID should not be return. (lcuevas- / lcuevas-)
+- [ ] **031**: Check and edit or take out search button in frineds. At least ID should not be return. (lcuevas- / todo)
+- [ ] **032**: Aded security audit file wiht some problematic endpoints. (lcuevas- / lcuevas-)
+- [ ] **023**: It seems we make a lot of endpoints generate generic errors, 400 or 500, we have to change that to specific ones and handle it in the forntend (lcuevas- / todo)
 
 # Solved Bug reports
 
@@ -86,3 +88,5 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [X] **016**: Tic-Tac-Toe does not track matches. Recicle function from pong (lcuevas- / pausanch)
 - [X] **024**: Match History cut on the bottom in profile. The container was cropped so that it does not occupy the footer and does not hide behind it. (pausanch / pausanch)
 - [X] **025**: Match History don't show type of game. I added a new variable so that the game appears in the history. (pausanch / pausanch)
+- [x] **030**: PLayers page return too much information?, id and name?. At least ID should not be return. Changed to use username as public identifier instead of exposing internal database IDs. (lcuevas- / lcuevas-)
+- [x] **032**: Aded security audit file wiht some problematic endpoints. Fixed 1 and 2, 3 to 6 are from the tournament  (lcuevas- / lcuevas-)
