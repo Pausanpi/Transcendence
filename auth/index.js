@@ -28,7 +28,7 @@ async function startAuthService() {
 	await fastify.register(authRoutes, { prefix: '/auth' });
 	await fastify.register(jwtRoutes, { prefix: '/auth' });
 	await fastify.register(vaultRoutes, { prefix: '/vault' });
-	await fastify.register(oauthRoutes);
+	await fastify.register(oauthRoutes, { prefix: '/oauth' });
 	await fastify.register(twoFARoutes, { prefix: '/2fa' });
 	await fastify.register(gdprRoutes, { prefix: '/gdpr' });
 	await fastify.listen({ host: '0.0.0.0', port: 3001 });

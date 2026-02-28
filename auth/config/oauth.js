@@ -34,6 +34,7 @@ export function configurePassport(passport) {
             const oauthProfile = {
               provider: 'github',
               id: profile.id.toString(),
+              displayName: profile.displayName || profile.username || `github_${profile.id}`,
               username: profile.username || profile.displayName || `github_${profile.id}`,
               email: profile.emails?.[0]?.value || null,
               avatar: profile.photos?.[0]?.value || null,

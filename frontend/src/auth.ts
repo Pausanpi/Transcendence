@@ -9,23 +9,28 @@ let heartbeatTimer: number | null = null;
 export function initAuth(): void {
 	updateAuthBtn();
 	checkOAuthError();
+	handleOAuthRedirect();
 	startHeartbeat();
+}
+
+function handleOAuthRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if (token) {
+    setToken(token);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    window.location.href = '/';
+  }
 }
 
 export function checkOAuthError(): void {
 	const urlParams = new URLSearchParams(window.location.search);
 	const error = urlParams.get('error');
 	const message = urlParams.get('message');
-
 	if (error === 'oauth_not_configured') {
 		showResult('loginResult', 'auth.oauthNotConfigured', true);
-
-		//const newUrl = window.location.pathname;
-		//window.history.replaceState({}, document.title, newUrl);
 	}
 }
-
-
 
 export function updateAuthBtn(): void {
 	const btn = document.getElementById('authBtn');
