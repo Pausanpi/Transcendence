@@ -431,6 +431,11 @@
 		"nextMatch": "⏳ 次の試合",
 		"pending": "保留中",
 		"vs": "対",
-		"playNext": "▶️ 次の試合をプレイ"
+		"playNext": "▶️ 次の試合をプレイ",
+		"humanAI": "人間プレイヤー + AI",
+		"verifyPlayer": "プレイヤーを確認",
+		"verifyPlayerHint": "プレイヤーはログインして本人確認が必要です",
+		"playerAlreadyInTournament": "✗ このプレイヤーはすでにトーナメントに参加しています",
+		"playerVerifiedSuffix": "確認済み!"
 	}
 }

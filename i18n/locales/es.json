@@ -449,6 +449,11 @@
 		"nextMatch": "⏳ Siguiente Partido",
 		"pending": "Pendiente",
 		"vs" : "contra",
-		"playNext": "▶️ Jugar Siguiente Partido"
+		"playNext": "▶️ Jugar Siguiente Partido",
+		"humanAI": "Jugadores humanos + IA",
+		"verifyPlayer": "Verificar Jugador",
+		"verifyPlayerHint": "El jugador debe iniciar sesión para confirmar su identidad",
+		"playerAlreadyInTournament": "✗ Este jugador ya está en el torneo",
+		"playerVerifiedSuffix": "verificado!"
 	}
 }
