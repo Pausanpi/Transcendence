@@ -18,6 +18,17 @@
 		"unsupportedLanguage": "Unsupported language",
 		"languageChanged": "Language changed successfully"
 	},
+	"navBar": {
+		"home": "Home",
+		"games": "Games",
+		"tournament": "Tournament",
+		"players": "Players",
+		"friends": "Friends",
+		"test": "Test",
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"login": "Login"
+	},
 	"auth": {
 		"title": "Authentication",
 		"subtitle": "System protected with ModSecurity and HashiCorp Vault",
@@ -112,7 +123,8 @@
 		"showMatchHistory": "📊 View Match History & Stats",
 		"hideMatchHistory": "Hide Match History",
 		"madeBy": "Made by DaBesTim",
-		"dashboard": "📊 Dashboard"
+		"dashboard": "📊 Dashboard",
+		"uploadAvatar2": "Upload Avatar"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA disabled successfully",
@@ -301,6 +313,7 @@
 	},
 	"players": {
 		"title": "👥 Players",
+		"search": "🔍 Search",
 		"searchPlaceholder": "Search players...",
 		"search": "🔍 Search",
 		"noPlayersFound": "No players found",
