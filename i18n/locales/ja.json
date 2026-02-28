@@ -17,6 +17,17 @@
 		"unsupportedLanguage": "サポートされていない言語",
 		"languageChanged": "言語が正常に変更されました"
 	},
+	"navBar": {
+		"home": "ホーム",
+		"games": "ゲーム",
+		"tournament": "トーナメント",
+		"players": "プレイヤー",
+		"friends": "フレンド",
+		"test": "テスト",
+		"dashboard": "ダッシュボード",
+		"profile": "プロフィール",
+		"login": "ログイン"
+	},
 	"auth": {
 		"title": "認証",
 		"subtitle": "ModSecurity と HashiCorp Vault で保護されたシステム",
@@ -50,13 +61,12 @@
 			"DDoS 対策 レート制限"
 		]
 	},
-   
 	"profile": {
-		"adminPanel": "管理パネル",
-		"manageUsers": "ユーザー管理",
-		"openGrafana": "Grafana を開く",
-		"openVault": "Vault を開く",
-		"adminOnly": "管理者権限が必要です",
+		"adminPanel": "アドミニストレーション パネル",
+		"manageUsers": "マネージ ユーザー",
+		"openGrafana": "Grafana オープン",
+		"openVault": "Vault オープン",
+		"adminOnly": "アドミニストレーター　アクセス　リクワイアド",
 		"notAvailable": "利用不可",
 		"title": "ユーザープロフィール",
 		"user": "ユーザー",
@@ -81,7 +91,7 @@
 		"gamesPlayed": "対戦数",
 		"wins": "勝利数",
 		"losses": "敗北数",
-		"winRate": "勝率",
+		"winRate": "ウインレート",
 		"matchHistory": "📜 対戦履歴",
 		"noMatchHistory": "まだ対戦履歴がありません",
 		"newEmail": "新しいメール",
@@ -111,7 +121,8 @@
 		"showMatchHistory": "📊 対戦履歴と統計を表示",
 		"hideMatchHistory": "対戦履歴を非表示",
 		"madeBy": "DaBesTim チーム",
-		"dashboard": "📊 ダッシュボード"
+		"dashboard": "📊 ダッシュボード",
+		"uploadAvatar2": "アバターをアップロード"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA が正常に無効化されました",
@@ -307,8 +318,8 @@
 		"requestPending": "リクエスト保留中",
 		"alreadyFriends": "すでにフレンドです",
 		"requestSent": "リクエスト送信済み！",
-		"victory": "勝利",
-		"defeat": "敗北",
+		"victory": "ヴィクトリー",
+		"defeat": "打ち負かす",
 		"tournament": "トーナメント",
 		"vs": "vs",
 		"unknown": "不明",
@@ -323,6 +334,7 @@
 	
 	"friends": {
 		"title": "👫 フレンド",
+		"search": "🔍 サーチ",
 		"myFriends": "👥 マイフレンド",
 		"requests": "📬 リクエスト",
 		"sent": "📤 送信済み",
@@ -336,8 +348,8 @@
 		"viewProfile": "👤 プロフィール",
 		"remove": "✖",
 		"wantsToBeYourFriend": "あなたとフレンドになりたい",
-		"accept": "✓ 承認",
-		"reject": "✗ 拒否",
+		"accept": "✓ 受け入れる",
+		"reject": "✗ 拒否する",
 		"pendingRequest": "リクエスト保留中...",
 		"cancel": "✗ キャンセル",
 		"loadError": "読み込みに失敗しました。もう一度お試しください。",
