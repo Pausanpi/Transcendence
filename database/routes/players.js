@@ -36,7 +36,6 @@ export default async function playersRoutes(fastify, options) {
             return {
                 success: true,
                 users: users.map(user => ({
-                    id: user.id,
                     username: user.username,
                     display_name: user.display_name,
                     avatar: user.avatar || '/avatars/default-avatar.png',
@@ -54,12 +53,12 @@ export default async function playersRoutes(fastify, options) {
     });
 
     /**
-     * GET /players/:id
+     * GET /players/:username
      * Returns detailed player profile including stats and match history
      * Requires authentication
      */
-    fastify.get('/players/:id', async (request, reply) => {
-        const { id } = request.params;
+    fastify.get('/players/:username', async (request, reply) => {
+        const { username } = request.params;
 
         // TODO: Add authentication check here
         // if (!request.user) {
@@ -76,8 +75,8 @@ export default async function playersRoutes(fastify, options) {
                 `SELECT id, username, display_name, avatar, online_status, 
                         last_seen, created_at
                  FROM users
-                 WHERE id = ? AND is_active = 1 AND is_anonymized = 0`,
-                [id]
+                 WHERE username = ? AND is_active = 1 AND is_anonymized = 0`,
+                [username]
             );
 
             if (!user) {
@@ -87,6 +86,8 @@ export default async function playersRoutes(fastify, options) {
                     code: 'PLAYER_NOT_FOUND'
                 });
             }
+
+            const userId = user.id; // Keep ID for internal queries only
 
             // Calculate stats from matches table
             const statsQuery = `
@@ -98,7 +99,7 @@ export default async function playersRoutes(fastify, options) {
                 WHERE (player1_id = ? OR player2_id = ?)
             `;
             
-            const stats = await db.get(statsQuery, [id, id, id, id]);
+            const stats = await db.get(statsQuery, [userId, userId, userId, userId]);
 
             // Get recent match history (last 10 matches)
             const matchHistoryQuery = `
@@ -122,18 +123,17 @@ export default async function playersRoutes(fastify, options) {
                 LIMIT 10
             `;
 
-            const matchHistory = await db.all(matchHistoryQuery, [id, id]);
+            const matchHistory = await db.all(matchHistoryQuery, [userId, userId]);
 
             // Format match history for frontend
             const formattedMatches = matchHistory.map(match => {
-                const isPlayer1 = match.player1_id === id;
+                const isPlayer1 = match.player1_id === userId;
                 const opponent = {
-                    id: isPlayer1 ? match.player2_id : match.player1_id,
                     name: isPlayer1 ? match.player2_name : match.player1_name
                 };
                 const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
                 const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-                const won = match.winner_id === id;
+                const won = match.winner_id === userId;
 
                 return {
                     id: match.id,
@@ -148,9 +148,8 @@ export default async function playersRoutes(fastify, options) {
                 };
             });
 
-            // Build complete profile response
+            // Build complete profile response (no ID exposed)
             const profile = {
-                id: user.id,
                 username: user.username,
                 display_name: user.display_name,
                 avatar: user.avatar || '/avatars/default-avatar.png',

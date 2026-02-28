@@ -329,6 +329,26 @@ async function updateProfile(): Promise<void> {
 	const display_name = (document.getElementById('displayName') as HTMLInputElement).value;
 	const email = (document.getElementById('newEmail') as HTMLInputElement).value;
 
+	// Validate display name (required)
+	if (!display_name || display_name.trim() === '') {
+		const msg = window.languageManager?.t('validation.displayNameRequired');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name is required',
+			'error'
+		);
+		return;
+	}
+
+	const trimmed = display_name.trim();
+	if (trimmed.length > 30) {
+		const msg = window.languageManager?.t('validation.displayNameLength');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name must be 30 characters or less',
+			'error'
+		);
+		return;
+	}
+
 	// Validate email if provided
 	if (email && email.trim() !== '') {
 		// Same validation as backend

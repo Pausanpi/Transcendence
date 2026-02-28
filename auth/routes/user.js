@@ -96,6 +96,17 @@ export default async function userRoutes(fastify, options) {
 				});
 			}
 
+			// If display_name is being updated, validate it
+			if (display_name !== undefined) {
+				const displayNameValidation = validationService.validateDisplayName(display_name);
+				if (!displayNameValidation.isValid) {
+					return reply.status(400).send({
+						success: false,
+						error: displayNameValidation.error
+					});
+				}
+			}
+
 			// If email is being updated, validate it
 			if (email !== undefined) {
 				// Validate email format
