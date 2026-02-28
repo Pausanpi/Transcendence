@@ -110,11 +110,11 @@ export default async function friendsRoutes(fastify, options) {
         }
     });
 
-    fastify.get('/friends/me/check/:friendId', async (request, reply) => {
+    fastify.get('/friends/me/check/:username', async (request, reply) => {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { friendId } = request.params;
+            const { username } = request.params;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -123,6 +123,22 @@ export default async function friendsRoutes(fastify, options) {
                     code: 'AUTH_REQUIRED'
                 });
             }
+
+            // Look up friend's ID from username
+            const friend = await db.get(
+                'SELECT id FROM users WHERE username = ? AND is_active = 1',
+                [username]
+            );
+
+            if (!friend) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'User not found',
+                    code: 'USER_NOT_FOUND'
+                });
+            }
+
+            const friendId = friend.id;
 
             const friendship = await db.get(
                 `SELECT * FROM friendships
@@ -148,7 +164,7 @@ export default async function friendsRoutes(fastify, options) {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { friend_id } = request.body;
+            const { friend_username } = request.body;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -158,13 +174,29 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
-            if (!friend_id) {
+            if (!friend_username) {
                 return reply.status(400).send({
-                    error: 'friend_id is required',
+                    error: 'friend_username is required',
                     success: false,
                     code: 'MISSING_FIELDS'
                 });
             }
+
+            // Look up friend's ID from username
+            const friend = await db.get(
+                'SELECT id FROM users WHERE username = ? AND is_active = 1',
+                [friend_username]
+            );
+
+            if (!friend) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'User not found',
+                    code: 'USER_NOT_FOUND'
+                });
+            }
+
+            const friend_id = friend.id;
 
             if (userId === friend_id) {
                 return reply.status(400).send({
@@ -346,6 +378,8 @@ export default async function friendsRoutes(fastify, options) {
 
     // Update friendship status (accept, reject, block)
     fastify.put('/friends/:id', async (request, reply) => {
+        const authenticatedUserId = request.headers['x-user-id'] ||
+            (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
         const { id } = request.params;
         const { status } = request.body;
 
@@ -368,6 +402,15 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
+            // Authorization: Verify the authenticated user is the RECIPIENT of this friend request
+            if (friendship.friend_id !== authenticatedUserId) {
+                return reply.status(403).send({
+                    success: false,
+                    error: 'Forbidden: You can only respond to your own friend requests',
+                    code: 'FORBIDDEN'
+                });
+            }
+
             await db.run(
                 'UPDATE friendships SET status = ? WHERE id = ?',
                 [status, id]
@@ -385,9 +428,31 @@ export default async function friendsRoutes(fastify, options) {
 
     // Delete friendship
     fastify.delete('/friends/:id', async (request, reply) => {
+        const authenticatedUserId = request.headers['x-user-id'] ||
+            (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
         const { id } = request.params;
 
         try {
+            const friendship = await db.get('SELECT * FROM friendships WHERE id = ?', [id]);
+            
+            if (!friendship) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'Friendship not found',
+                    code: 'NOT_FOUND'
+                });
+            }
+
+            // Authorization: Verify the authenticated user is part of this friendship
+            if (friendship.user_id !== authenticatedUserId && 
+                friendship.friend_id !== authenticatedUserId) {
+                return reply.status(403).send({
+                    success: false,
+                    error: 'Forbidden: You can only delete your own friendships',
+                    code: 'FORBIDDEN'
+                });
+            }
+
             await db.run('DELETE FROM friendships WHERE id = ?', [id]);
             return { success: true };
         } catch (error) {
