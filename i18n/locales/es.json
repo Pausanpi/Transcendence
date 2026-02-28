@@ -17,6 +17,17 @@
 		"unsupportedLanguage": "Idioma no soportado",
 		"languageChanged": "Idioma cambiado correctamente"
 	},
+	"navBar": {
+		"home": "Home",
+		"games": "Juegos",
+		"tournament": "Torneo",
+		"players": "Jugadores",
+		"friends": "Amigos",
+		"test": "Test",
+		"dashboard": "Panel de control",
+		"profile": "Perfil",
+		"login": "Iniciar Sesión"
+	},
 	"auth": {
 		"title": "Autenticación",
 		"subtitle": "Sistema protegido con ModSecurity y HashiCorp Vault",
@@ -50,7 +61,6 @@
 			"Rate Limiting anti-DDoS"
 		]
 	},
-   
 	"profile": {
 		"adminPanel": "Panel de Administración",
 		"manageUsers": "Gestionar Usuarios",

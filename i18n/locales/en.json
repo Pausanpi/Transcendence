@@ -18,6 +18,17 @@
 		"unsupportedLanguage": "Unsupported language",
 		"languageChanged": "Language changed successfully"
 	},
+	"navBar": {
+		"home": "Home",
+		"games": "Games",
+		"tournament": "Tournament",
+		"players": "Players",
+		"friends": "Friends",
+		"test": "Test",
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"login": "Login"
+	},
 	"auth": {
 		"title": "Authentication",
 		"subtitle": "System protected with ModSecurity and HashiCorp Vault",

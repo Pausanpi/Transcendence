@@ -17,6 +17,17 @@
 		"unsupportedLanguage": "サポートされていない言語",
 		"languageChanged": "言語が正常に変更されました"
 	},
+	"navBar": {
+		"home": "ホーム",
+		"games": "ゲーム",
+		"tournament": "トーナメント",
+		"players": "プレイヤー",
+		"friends": "フレンド",
+		"test": "テスト",
+		"dashboard": "ダッシュボード",
+		"profile": "プロフィール",
+		"login": "ログイン"
+	},
 	"auth": {
 		"title": "認証",
 		"subtitle": "ModSecurity と HashiCorp Vault で保護されたシステム",
@@ -50,7 +61,6 @@
 			"DDoS 対策 レート制限"
 		]
 	},
-   
 	"profile": {
 		"adminPanel": "アドミニストレーション パネル",
 		"manageUsers": "マネージ ユーザー",
