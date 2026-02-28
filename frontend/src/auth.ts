@@ -33,10 +33,12 @@ export function updateAuthBtn(): void {
 
 	const token = getToken();
 	if (token) {
-		btn.textContent = 'Logout';
+		btn.setAttribute('data-i18n', 'common.logout');
+		btn.textContent = window.languageManager?.t('common.logout') || 'Logout';
 		btn.onclick = logout;
 	} else {
-		btn.textContent = 'Login';
+		btn.setAttribute('data-i18n', 'navBar.login');
+		btn.textContent = window.languageManager?.t('navBar.login') || 'Login';
 		btn.onclick = () => navigate('auth');
 	}
 }
