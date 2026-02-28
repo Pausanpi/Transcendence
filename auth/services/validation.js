@@ -39,6 +39,21 @@ class ValidationService {
 		return { isValid: true };
 	}
 
+	validateDisplayName(displayName) {
+		if (!displayName || typeof displayName !== 'string') {
+			return { isValid: false, error: 'validation.displayNameRequired' };
+		}
+		// Trim the display name to check length
+		const trimmed = displayName.trim();
+		if (trimmed.length === 0) {
+			return { isValid: false, error: 'validation.displayNameRequired' };
+		}
+		if (trimmed.length > 30) {
+			return { isValid: false, error: 'validation.displayNameLength' };
+		}
+		return { isValid: true };
+	}
+
 	validate2FAToken(token) {
 		if (!token || typeof token !== 'string') {
 			return { isValid: false, error: '2FA token is required' };
