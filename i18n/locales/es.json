@@ -28,6 +28,12 @@
 		"profile": "Perfil",
 		"login": "Iniciar Sesión"
 	},
+	"footer": {
+		"copy": "© 2026 Transcendence. Todos los derechos reservados.",
+		"privacyPolicy": "Política de Privacidad",
+		"termsOfService": "Términos de Servicio",
+		"dataManagement": "Manejo de Datos"
+	},
 	"auth": {
 		"title": "Autenticación",
 		"subtitle": "Sistema protegido con ModSecurity y HashiCorp Vault",
