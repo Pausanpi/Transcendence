@@ -26,11 +26,14 @@ export async function fetchAuthenticatedImage(url: string): Promise<string | nul
 }
 
 // Helper to load avatar with fallback
+// Helper to load avatar with fallback
 export async function loadAvatar(avatarUrl: string | null): Promise<string> {
-	if (!avatarUrl) {
-		return '/default-avatar.png';
-	}
+  if (!avatarUrl) return '/default-avatar.png';
 
-	const authenticatedUrl = await fetchAuthenticatedImage(avatarUrl);
-	return authenticatedUrl || '/default-avatar.png';
+  if (avatarUrl.startsWith('http')) {
+    return avatarUrl;
+  }
+
+  const authenticatedUrl = await fetchAuthenticatedImage(avatarUrl);
+  return authenticatedUrl || '/default-avatar.png';
 }
