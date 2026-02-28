@@ -29,6 +29,12 @@
 		"profile": "Profile",
 		"login": "Login"
 	},
+	"footer": {
+		"copy": "© 2026 Transcendence. All rights reserved.",
+		"privacyPolicy": "Privacy Policy",
+		"termsOfService": "Terms of Service",
+		"dataManagement": "Data Management"
+	},
 	"auth": {
 		"title": "Authentication",
 		"subtitle": "System protected with ModSecurity and HashiCorp Vault",
@@ -62,7 +68,6 @@
 			"Anti-DDoS Rate Limiting"
 		]
 	},
-
 	"profile": {
 		"adminPanel": "Administration Panel",
 		"manageUsers": "Manage Users",

@@ -28,6 +28,12 @@
 		"profile": "プロフィール",
 		"login": "ログイン"
 	},
+	"footer": {
+		"copy": "© 2026 Transcendence. 無断複写・転載を禁じます。」",
+		"privacyPolicy": "プライバシーポリシー",
+		"termsOfService": "利用規約",
+		"dataManagement": "データ管理"
+	},
 	"auth": {
 		"title": "認証",
 		"subtitle": "ModSecurity と HashiCorp Vault で保護されたシステム",
@@ -310,6 +316,8 @@
 		"adminRightsRequired": "管理者権限が必要です"
 	},
 	"players": {
+		"title": "👥 プレイヤー",
+		"search": "🔍 サーチ",
 		"authRequired": "他のプレイヤーを見るにはログインが必要です",
 		"loadError": "プレイヤーの読み込みに失敗しました。後でもう一度お試しください。",
 		"loadErrorProfile": "プレイヤープロファイルの読み込みに失敗しました。後でもう一度お試しください。",
