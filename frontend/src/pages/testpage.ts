@@ -1,5 +1,5 @@
 import { getCurrentUser } from '../gameService.js';
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { navigate } from '../router.js';
 
 export function renderTestPage(): string {
@@ -130,7 +130,10 @@ async function verifyPlayer2Test(currentUser: any): Promise<void> {
     }
 
   } catch (error) {
-    console.error('Error checking player:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error checking player:', error);
+    }
     if (statusDiv) {
       statusDiv.innerHTML = window.languageManager?.t('test.checkError') || 'Error checking player';
       statusDiv.className = 'mt-1 text-xs text-red-400';
@@ -220,7 +223,10 @@ async function loginPlayer2Test(player: any, currentUser: any): Promise<void> {
       }
     }
   } catch (error: any) {
-    console.error('Login error:', error);
+    // Only log server errors - auth errors shown to user
+    if (error instanceof ServerError) {
+      console.error('Server error during login:', error);
+    }
     if (statusDiv) {
       statusDiv.innerHTML = window.languageManager?.t('test.invalidCredentials') || 'Invalid credentials';
       statusDiv.className = 'text-red-400';

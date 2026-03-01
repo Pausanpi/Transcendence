@@ -79,7 +79,7 @@ export default async function usersRoutes(fastify, options) {
 
 		const fields = Object.keys(updates);
 		if (fields.length === 0) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'No fields to update',
 				success: false,
 				code: 'NO_UPDATES'
@@ -162,7 +162,7 @@ export default async function usersRoutes(fastify, options) {
 		const { user_id, codes } = request.body;
 
 		if (!user_id || !codes || !Array.isArray(codes)) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Invalid request data',
 				success: false,
 				code: 'INVALID_REQUEST'

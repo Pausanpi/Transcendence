@@ -175,8 +175,7 @@ export default async function friendsRoutes(fastify, options) {
             }
 
             if (!friend_username) {
-                return reply.status(400).send({
-                    error: 'friend_username is required',
+				return reply.status(422).send({
                     success: false,
                     code: 'MISSING_FIELDS'
                 });
@@ -199,8 +198,7 @@ export default async function friendsRoutes(fastify, options) {
             const friend_id = friend.id;
 
             if (userId === friend_id) {
-                return reply.status(400).send({
-                    error: 'Cannot add yourself as friend',
+				return reply.status(403).send({
                     success: false,
                     code: 'SELF_FRIEND'
                 });
@@ -213,7 +211,7 @@ export default async function friendsRoutes(fastify, options) {
             );
 
             if (existing) {
-                return reply.status(400).send({
+                return reply.status(409).send({
                     error: 'Friendship already exists',
                     success: false,
                     code: 'ALREADY_EXISTS',
@@ -244,7 +242,7 @@ export default async function friendsRoutes(fastify, options) {
         const { user_id, friend_id } = request.body;
 
         if (!user_id || !friend_id) {
-            return reply.status(400).send({
+            return reply.status(422).send({
                 error: 'Both user_id and friend_id are required',
                 success: false,
                 code: 'MISSING_FIELDS'
@@ -252,7 +250,7 @@ export default async function friendsRoutes(fastify, options) {
         }
 
         if (user_id === friend_id) {
-            return reply.status(400).send({
+			return reply.status(403).send({
                 error: 'Cannot add yourself as friend',
                 success: false,
                 code: 'SELF_FRIEND'
@@ -268,7 +266,7 @@ export default async function friendsRoutes(fastify, options) {
             );
 
             if (existing) {
-                return reply.status(400).send({
+                return reply.status(409).send({
                     error: 'Friendship already exists',
                     success: false,
                     code: 'ALREADY_EXISTS',
@@ -385,7 +383,7 @@ export default async function friendsRoutes(fastify, options) {
 
         const allowedStatuses = ['accepted', 'rejected', 'blocked'];
         if (!status || !allowedStatuses.includes(status)) {
-            return reply.status(400).send({
+			return reply.status(422).send({
                 error: 'Invalid status. Must be: accepted, rejected, or blocked',
                 success: false,
                 code: 'INVALID_STATUS'
@@ -496,7 +494,7 @@ export default async function friendsRoutes(fastify, options) {
 
         const allowedStatuses = ['online', 'offline', 'in_game'];
         if (!online_status || !allowedStatuses.includes(online_status)) {
-            return reply.status(400).send({
+			return reply.status(422).send({
                 error: 'Invalid status. Must be: online, offline, or in_game',
                 success: false,
                 code: 'INVALID_STATUS'

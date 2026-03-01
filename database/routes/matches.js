@@ -28,7 +28,7 @@ export default async function matchesRoutes(fastify, options) {
 		if (player1_id !== undefined && player2_id !== undefined) {
 			// This is a tournament match with explicit players
 			if (!player1_name || !player2_name || player1_score === undefined || player2_score === undefined || !winner_name) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Missing required fields for tournament match',
 					success: false,
 					code: 'MISSING_FIELDS'
@@ -75,7 +75,7 @@ export default async function matchesRoutes(fastify, options) {
 		}
 
 		if (!opponent_name || user_score === undefined || opponent_score === undefined || !winner) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Missing required fields',
 				success: false,
 				code: 'MISSING_FIELDS'

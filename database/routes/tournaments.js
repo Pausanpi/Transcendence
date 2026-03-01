@@ -11,7 +11,7 @@ export default async function tournamentsRoutes(fastify, options) {
 		} = request.body;
 
 		if (!name) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Tournament name is required',
 				success: false,
 				code: 'MISSING_NAME'
@@ -118,7 +118,7 @@ export default async function tournamentsRoutes(fastify, options) {
 		const fields = Object.keys(updates).filter(f => allowedFields.includes(f));
 
 		if (fields.length === 0) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'No valid fields to update',
 				success: false,
 				code: 'NO_UPDATES'
@@ -163,7 +163,7 @@ export default async function tournamentsRoutes(fastify, options) {
 		const { user_id = null, display_name } = request.body;
 
 		if (!display_name) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Display name is required',
 				success: false,
 				code: 'MISSING_DISPLAY_NAME'
@@ -182,7 +182,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			}
 
 			if (tournament.status !== 'pending') {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Tournament already started',
 					success: false,
 					code: 'TOURNAMENT_STARTED'
@@ -196,7 +196,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 
 			if (currentCount.count >= tournament.max_players) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Tournament is full',
 					success: false,
 					code: 'TOURNAMENT_FULL'
@@ -210,7 +210,7 @@ export default async function tournamentsRoutes(fastify, options) {
 					[id, user_id]
 				);
 				if (existing) {
-					return reply.status(400).send({
+					return reply.status(409).send({
 						error: 'User already in tournament',
 						success: false,
 						code: 'ALREADY_JOINED'
@@ -224,7 +224,7 @@ export default async function tournamentsRoutes(fastify, options) {
 				[id, display_name]
 			);
 			if (nameExists) {
-				return reply.status(400).send({
+				return reply.status(409).send({
 					error: 'Display name already taken in this tournament',
 					success: false,
 					code: 'NAME_TAKEN'
@@ -253,7 +253,7 @@ export default async function tournamentsRoutes(fastify, options) {
 		const { participants } = request.body;
 
 		if (!participants || !Array.isArray(participants) || participants.length === 0) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Participants array is required',
 				success: false,
 				code: 'MISSING_PARTICIPANTS'
@@ -327,7 +327,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			}
 
 			if (updates.length === 0) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'No fields to update',
 					success: false,
 					code: 'NO_UPDATES'
@@ -386,7 +386,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			}
 
 			if (tournament.status !== 'pending') {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Tournament already started',
 					success: false,
 					code: 'ALREADY_STARTED'
@@ -399,7 +399,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 
 			if (participants.length < 2) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Need at least 2 participants',
 					success: false,
 					code: 'NOT_ENOUGH_PLAYERS'
@@ -460,7 +460,7 @@ export default async function tournamentsRoutes(fastify, options) {
 		const { current_round } = request.body;
 
 		if (current_round === undefined) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'current_round is required',
 				success: false,
 				code: 'MISSING_ROUND'

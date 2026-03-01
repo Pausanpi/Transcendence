@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
@@ -158,16 +158,11 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
-		let isAuthError = false;
-		if (error && error.message === 'auth.authenticationRequired') {
-			isAuthError = true;
+		// Only log server errors - auth errors shown to user
+		if (error instanceof ServerError) {
+			console.error('Server error loading players:', error);
 		}
-		// Only log unexpected errors
-		if (!isAuthError) {
-			console.error('Unexpected error loading players:', error);
-		}
-		let message = isAuthError
+		let message = error instanceof AuthError
 			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
 			: '<p data-i18n="players.loadError">Failed to load players</p>';
 		container.innerHTML = `
@@ -435,6 +430,10 @@ async function addFriend(username: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error sending friend request:', error);
+		}
 		if (btn) {
 			btn.removeAttribute('disabled');
 			btn.setAttribute('data-i18n', 'players.addFriend');

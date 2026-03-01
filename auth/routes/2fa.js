@@ -10,7 +10,7 @@ export default async function twoFactorRoutes(fastify) {
 			const { token: totpToken, tempToken } = request.body;
 
 			if (!totpToken || !tempToken) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.tokenRequired'
 				});
@@ -26,7 +26,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const user = await findUserById(decoded.id);
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
@@ -34,7 +34,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(user.two_factor_secret, totpToken);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -70,7 +70,7 @@ export default async function twoFactorRoutes(fastify) {
 			}
 
 			if (user.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.alreadyEnabled'
 				});
@@ -103,7 +103,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const decoded = await jwtService.verifyToken(setupToken);
 			if (!decoded?.setup2FA) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.setupExpired'
 				});
@@ -111,7 +111,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(decoded.secret, token);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -145,7 +145,7 @@ export default async function twoFactorRoutes(fastify) {
 			const user = await findUserById(request.user.id);
 
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
@@ -153,7 +153,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(user.two_factor_secret, token);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -182,7 +182,7 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const user = await findUserById(request.user.id);
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});

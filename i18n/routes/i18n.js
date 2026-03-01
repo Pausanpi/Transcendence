@@ -21,7 +21,7 @@ export default async function i18nRoutes(fastify, options) {
         const { language } = request.body;
 
         if (!language || !['en', 'es', 'ja'].includes(language)) {
-            return reply.status(400).send({
+            return reply.status(422).send({
                 success: false,
                 error: 'common.unsupportedLanguage'
             });

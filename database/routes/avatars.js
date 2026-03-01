@@ -49,7 +49,7 @@ export default async function avatarRoutes(fastify, options) {
 			if (!data) {
 				console.log('❌ Database: No file data received');
 				console.log('❌ Database: Request is multipart?', request.isMultipart());
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'No file uploaded'
 				});
@@ -61,7 +61,7 @@ export default async function avatarRoutes(fastify, options) {
 			
 			if (mimeType !== 'image/jpeg' && mimeType !== 'image/jpg') {
 				console.log('❌ Database: Invalid mimetype');
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'Only JPG/JPEG files are allowed'
 				});

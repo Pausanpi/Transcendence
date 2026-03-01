@@ -74,7 +74,7 @@ export default async function heartbeatRoutes(fastify, options) {
 			
 			// Check if it's a database error
 			if (error.code === 'SQLITE_ERROR' || error.code === 'SQLITE_CONSTRAINT') {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'database.updateFailed',
 					code: 'DB_UPDATE_ERROR',

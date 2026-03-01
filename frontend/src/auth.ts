@@ -1,4 +1,4 @@
-import { api, setToken, clearToken, getToken } from './api.js';
+import { api, setToken, clearToken, getToken, ValidationError, ConflictError, AuthError, ServerError } from './api.js';
 import { navigate } from './router.js';
 import { clearUserCache } from './gameService.js';
 
@@ -69,7 +69,17 @@ export async function login(): Promise<void> {
 		startHeartbeat(); // Start heartbeat after successful login
 		navigate('profile');
 	} catch (error: any) {
-		showResult('loginResult', error.message, true);
+		// Validation errors (422) and auth errors (401) should show user message
+		// No console.error since these are expected user input errors
+		if (error instanceof ValidationError || error instanceof AuthError) {
+			showResult('loginResult', error.message, true);
+		} else if (error instanceof ServerError) {
+			// Only log actual server errors to console
+			console.error('Login server error:', error);
+			showResult('loginResult', 'common.internalError', true);
+		} else {
+			showResult('loginResult', error.message, true);
+		}
 	}
 }
 
@@ -98,7 +108,20 @@ export async function register(): Promise<void> {
 		navigate('profile');
 		showResult('registerResult', 'messages.registrationSuccess', false);
 	} catch (error: any) {
-		showResult('registerResult', error.message, true);
+		// Validation errors (422) and conflicts (409) should show user message
+		// No console.error for validation/conflict errors
+		if (error instanceof ValidationError) {
+			showResult('registerResult', error.message, true);
+		} else if (error instanceof ConflictError) {
+			// Email/username already exists
+			showResult('registerResult', error.message, true);
+		} else if (error instanceof ServerError) {
+			// Only log actual server errors
+			console.error('Registration server error:', error);
+			showResult('registerResult', 'common.internalError', true);
+		} else {
+			showResult('registerResult', error.message, true);
+		}
 	}
 }
 
@@ -132,13 +155,17 @@ async function sendHeartbeat(): Promise<void> {
 			body: JSON.stringify({}) // <-- send an empty object
 		});
 	} catch (error) {
-		console.error('Heartbeat error:', error);
-		// If token is invalid, stop heartbeat and logout
-		if (error && (error as any).message === 'auth.authenticationRequired') {
+		// Don't log validation/auth errors to console - heartbeat failures are expected
+		if (error instanceof AuthError) {
+			// Token invalid - stop heartbeat and logout
 			stopHeartbeat();
 			clearToken();
 			updateAuthBtn();
+		} else if (error instanceof ServerError) {
+			// Only log actual server errors
+			console.error('Heartbeat server error:', error);
 		}
+		// Silently ignore other errors (network issues, etc.)
 	}
 }
 
