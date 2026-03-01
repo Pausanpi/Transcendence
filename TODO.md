@@ -61,7 +61,7 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [ ] **018**: Promehteus and grapahan are deactivated. (lcuevas- / todo)
 - [ ] **019**: Clean references to old users module. (lcuevas- / todo)
 - [ ] **020**: Check GDPR module for new requisites, like requesting data via mail (lcuevas- / todo)
-- [ ] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
+- [x] **021**: Logout button behaves weirdly. Check browser console nad network (lcuevas- / todo)
 - [X] **022**: Privacy Policy and Terms of Service are not translated. Don't know if it needs it (lcuevas- / pausanch)
 - [ ] **023**: Log out button make a strange network error. Also console shows 400 bad request. SHould look into that (lcuevas- / todo)
 - [X] **024**: Match History cut on the bottom in profile (pausanch / pausanch)
@@ -74,6 +74,7 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **031**: Check and edit or take out search button in frineds. At least ID should not be return. (lcuevas- / lcuevas-)
 - [ ] **032**: Aded security audit file wiht some problematic endpoints. (lcuevas- / lcuevas-)
 - [ ] **033**: It seems we make a lot of endpoints generate generic errors, 400 or 500, we have to change that to specific ones and handle it in the forntend (lcuevas- / todo)
+- [ ] **034**: Better check the responsivnes of the profile page, seem to have some limits (lcuevas- / todo)
 
 # Solved Bug reports
 
@@ -92,3 +93,27 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **032**: Aded security audit file wiht some problematic endpoints. Fixed 1 and 2, 3 to 6 are from the tournament  (lcuevas- / lcuevas-)
 - [x] **028**: Nickname update is not parsed and can load a text as long as you want. Parsed on frotnend and backend (lcuevas- / lcuevas-)
 - [x] **006**: Navbar is not translated. Some buttons like "Dashboard" and titles  like "Players" in front page also (lcuevas- / pausanch)
+- [x] **021**: Logout button behaves weirdly. Check browser console nad network. The endpoint was deprecated, enrouted to a valid exisiting one and parsed some errors. Also it needed a body to be accepted
+Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
+
+
+
+That seem to do the trick, in the same vein we should adjust the endpoints we call from the frontend.
+
+Because some malignant agent could fabricate a fetch with their user token to try and attack the server.
+
+In that sense the project says:
+
+Browser Compatibility
+Does the application run on the latest stable Google Chrome without errors
+or warnings in the console?
+Open Chrome DevTools and verify the console.
+There should be no errors or warnings visible in the browser console.
+Minor warnings from third-party libraries may be acceptable if explained.
+
+We are mostly cool at the moment but we have endpoint in our backend in general that return error 400 and 500 in case anything goes wrong, without parsing the input, they trust the frontend when it should not do it, it should parse the input.
+
+I want to do an audit of all those points.
+SO let's do it step but step.
+
+First let's locate them and diagnosticate them and then we will fix the code one by one.

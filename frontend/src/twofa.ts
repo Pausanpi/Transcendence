@@ -196,7 +196,8 @@ export class TwoFAManager {
   async generateBackupCodes(): Promise<void> {
     try {
       const result = await api<any>('/api/2fa/backup-codes/generate', {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({})
       });
 
       if (result.success) {

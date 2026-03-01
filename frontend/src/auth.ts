@@ -103,16 +103,13 @@ export async function register(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-	try {
-		// Call backend logout endpoint to set user offline
-		await api('/api/auth/logout', {
-			method: 'POST'
-		}).catch(() => {
-			// Ignore errors, we're logging out anyway
-		});
-	} catch (error) {
-		console.error('Logout API error:', error);
-	}
+	// Call backend logout endpoint to set user offline
+	await api('/api/database/logout', {
+		method: 'POST',
+		body: JSON.stringify({})
+	}).catch(() => {
+		// Ignore errors, we're logging out anyway
+	});
 
 	stopHeartbeat(); // Stop heartbeat
 	clearToken();
