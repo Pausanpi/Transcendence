@@ -20,7 +20,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true, user };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -44,7 +44,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true, user };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -65,7 +65,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true, userId: id };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -97,7 +97,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -111,7 +111,7 @@ export default async function usersRoutes(fastify, options) {
 			await db.run('DELETE FROM users WHERE id = ?', [id]);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -124,7 +124,7 @@ export default async function usersRoutes(fastify, options) {
 			const users = await db.all('SELECT * FROM users ORDER BY created_at DESC');
 			return { success: true, users };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -150,7 +150,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -180,7 +180,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -197,7 +197,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true, codes };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -214,7 +214,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'

@@ -189,8 +189,9 @@ class Database {
 	}
 
 	async run(sql, params = []) {
+		const self = this; // Save reference to Database instance
 		return new Promise(async (resolve, reject) => {
-			this.db.run(sql, params, async (err) => {
+			this.db.run(sql, params, async function (err) {
 				if (err) {
 					console.error('SQL Error:', err);
 					console.error('SQL Statement:', sql);
@@ -199,10 +200,10 @@ class Database {
 					// Auto-recovery for readonly database
 					if (err.code === 'SQLITE_READONLY' || err.code === 'SQLITE_CANTOPEN') {
 						console.log('🔄 Database write failed, attempting immediate recovery...');
-						const recovered = await this.reinitialize();
+						const recovered = await self.reinitialize();
 						if (recovered) {
 							// Retry the operation once after recovery
-							this.db.run(sql, params, function (retryErr) {
+							self.db.run(sql, params, function (retryErr) {
 								if (retryErr) {
 									console.error('❌ Retry after recovery failed:', retryErr);
 									reject(retryErr);

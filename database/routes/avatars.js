@@ -30,7 +30,8 @@ export default async function avatarRoutes(fastify, options) {
 				console.log('❌ Database: No user ID in header');
 				return reply.status(401).send({
 					success: false,
-					error: 'auth.authenticationRequired'
+					error: 'auth.authenticationRequired',
+					code: 'AUTH_REQUIRED'
 				});
 			}
 
@@ -51,7 +52,8 @@ export default async function avatarRoutes(fastify, options) {
 				console.log('❌ Database: Request is multipart?', request.isMultipart());
 				return reply.status(422).send({
 					success: false,
-					error: 'No file uploaded'
+					error: 'No file uploaded',
+					code: 'NO_FILE'
 				});
 			}
 
@@ -63,7 +65,8 @@ export default async function avatarRoutes(fastify, options) {
 				console.log('❌ Database: Invalid mimetype');
 				return reply.status(422).send({
 					success: false,
-					error: 'Only JPG/JPEG files are allowed'
+					error: 'Only JPG/JPEG files are allowed',
+					code: 'INVALID_FILE_TYPE'
 				});
 			}
 
@@ -108,9 +111,10 @@ export default async function avatarRoutes(fastify, options) {
 			console.error('❌ Database: Avatar upload error:', error);
 			console.error('❌ Database: Error stack:', error.stack);
 			fastify.log.error('Avatar upload error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
-				error: 'Failed to upload avatar: ' + error.message
+				error: 'Failed to upload avatar: ' + error.message,
+				code: 'DB_ERROR'
 			});
 		}
 	});
@@ -142,7 +146,7 @@ export default async function avatarRoutes(fastify, options) {
 
 		} catch (error) {
 			fastify.log.error('Avatar retrieval error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'Failed to retrieve avatar'
 			});
@@ -188,7 +192,7 @@ export default async function avatarRoutes(fastify, options) {
 
 		} catch (error) {
 			fastify.log.error('Avatar deletion error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'Failed to delete avatar'
 			});

@@ -44,7 +44,7 @@ export default async function playersRoutes(fastify, options) {
             };
         } catch (error) {
             console.error('Error loading players:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 success: false,
                 error: 'common.internalError',
                 code: 'DB_ERROR'
@@ -170,7 +170,7 @@ export default async function playersRoutes(fastify, options) {
             return { success: true, user: profile };
         } catch (error) {
             console.error('Error loading player profile:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 success: false,
                 error: 'common.internalError',
                 code: 'DB_ERROR'
