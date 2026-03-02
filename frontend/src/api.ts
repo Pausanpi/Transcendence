@@ -67,6 +67,28 @@ export class ServerError extends Error {
 	}
 }
 
+export class BadGatewayError extends Error {
+	status: number = 502;
+	code?: string;
+
+	constructor(message: string, code?: string) {
+		super(message);
+		this.name = 'BadGatewayError';
+		this.code = code;
+	}
+}
+
+export class ServiceUnavailableError extends Error {
+	status: number = 503;
+	code?: string;
+
+	constructor(message: string, code?: string) {
+		super(message);
+		this.name = 'ServiceUnavailableError';
+		this.code = code;
+	}
+}
+
 // Fallback in-memory storage for private browsing mode
 let memoryStorage: { [key: string]: string } = {};
 

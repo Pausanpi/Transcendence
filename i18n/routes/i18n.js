@@ -20,10 +20,23 @@ export default async function i18nRoutes(fastify, options) {
     fastify.post('/change-language', async (request, reply) => {
         const { language } = request.body;
 
+        // Validate body fields
+        const allowedFields = ['language'];
+        const receivedFields = Object.keys(request.body || {});
+        const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+        if (unexpectedFields.length > 0) {
+            return reply.status(422).send({
+                success: false,
+                error: 'validation.unexpectedFields',
+                code: 'UNEXPECTED_FIELDS'
+            });
+        }
+
         if (!language || !['en', 'es', 'ja'].includes(language)) {
             return reply.status(422).send({
                 success: false,
-                error: 'common.unsupportedLanguage'
+                error: 'common.unsupportedLanguage',
+                code: 'UNSUPPORTED_LANGUAGE'
             });
         }
 

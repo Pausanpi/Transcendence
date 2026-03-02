@@ -27,7 +27,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, tournamentId: result.id };
 		} catch (error) {
 			console.error('Error creating tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -74,7 +74,7 @@ export default async function tournamentsRoutes(fastify, options) {
 				}
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -101,7 +101,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			const tournaments = await db.all(sql, params);
 			return { success: true, tournaments };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -133,7 +133,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			await db.run(`UPDATE tournaments SET ${updateFields} WHERE id = ?`, values);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -149,7 +149,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			await db.run('DELETE FROM tournaments WHERE id = ?', [id]);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -240,7 +240,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, participantId: result.id };
 		} catch (error) {
 			console.error('Error adding participant:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -252,12 +252,110 @@ export default async function tournamentsRoutes(fastify, options) {
 	fastify.post('/tournament-participants', async (request, reply) => {
 		const { participants } = request.body;
 
+		// Validate body fields
+		const allowedFields = ['participants'];
+		const receivedFields = Object.keys(request.body || {});
+		const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+		if (unexpectedFields.length > 0) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.unexpectedFields',
+				code: 'UNEXPECTED_FIELDS'
+			});
+		}
+
 		if (!participants || !Array.isArray(participants) || participants.length === 0) {
 			return reply.status(422).send({
 				error: 'Participants array is required',
 				success: false,
 				code: 'MISSING_PARTICIPANTS'
 			});
+		}
+
+		// Prevent DoS: limit array size
+		if (participants.length > 100) {
+			return reply.status(422).send({
+				error: 'Too many participants (max 100)',
+				success: false,
+				code: 'TOO_MANY_PARTICIPANTS'
+			});
+		}
+
+		// Validate each participant object
+		for (let i = 0; i < participants.length; i++) {
+			const participant = participants[i];
+
+			// Validate participant is an object
+			if (!participant || typeof participant !== 'object' || Array.isArray(participant)) {
+				return reply.status(422).send({
+					error: `Participant at index ${i} must be an object`,
+					success: false,
+					code: 'INVALID_PARTICIPANT'
+				});
+			}
+
+			// Validate participant fields
+			const allowedParticipantFields = ['tournament_id', 'user_id', 'display_name', 'seed'];
+			const receivedParticipantFields = Object.keys(participant);
+			const unexpectedParticipantFields = receivedParticipantFields.filter(f => !allowedParticipantFields.includes(f));
+			if (unexpectedParticipantFields.length > 0) {
+				return reply.status(422).send({
+					success: false,
+					error: `Participant at index ${i} has unexpected fields`,
+					code: 'UNEXPECTED_FIELDS'
+				});
+			}
+
+			// Required fields
+			if (!participant.tournament_id) {
+				return reply.status(422).send({
+					error: `Participant at index ${i} missing tournament_id`,
+					success: false,
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			if (!participant.display_name) {
+				return reply.status(422).send({
+					error: `Participant at index ${i} missing display_name`,
+					success: false,
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Type validation
+			if (typeof participant.tournament_id !== 'number' && typeof participant.tournament_id !== 'string') {
+				return reply.status(422).send({
+					error: `Participant at index ${i} has invalid tournament_id type`,
+					success: false,
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			if (participant.user_id !== null && participant.user_id !== undefined && 
+				typeof participant.user_id !== 'number' && typeof participant.user_id !== 'string') {
+				return reply.status(422).send({
+					error: `Participant at index ${i} has invalid user_id type`,
+					success: false,
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			if (typeof participant.display_name !== 'string' || participant.display_name.length === 0 || participant.display_name.length > 255) {
+				return reply.status(422).send({
+					error: `Participant at index ${i} has invalid display_name`,
+					success: false,
+					code: 'INVALID_DISPLAY_NAME'
+				});
+			}
+
+			if (participant.seed !== null && participant.seed !== undefined && typeof participant.seed !== 'number') {
+				return reply.status(422).send({
+					error: `Participant at index ${i} has invalid seed type`,
+					success: false,
+					code: 'INVALID_TYPE'
+				});
+			}
 		}
 
 		try {
@@ -275,7 +373,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, count: participants.length };
 		} catch (error) {
 			console.error('Error adding participants:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -296,7 +394,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 			return { success: true, participants };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -344,7 +442,7 @@ export default async function tournamentsRoutes(fastify, options) {
 
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -363,7 +461,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -424,7 +522,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, message: 'Tournament started' };
 		} catch (error) {
 			console.error('Error starting tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -437,6 +535,39 @@ export default async function tournamentsRoutes(fastify, options) {
 		const { id } = request.params;
 		const { status, started_at } = request.body;
 
+		// Validate body fields
+		const allowedFields = ['status', 'started_at'];
+		const receivedFields = Object.keys(request.body || {});
+		const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+		if (unexpectedFields.length > 0) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.unexpectedFields',
+				code: 'UNEXPECTED_FIELDS'
+			});
+		}
+
+		// Validate status field
+		if (status !== undefined) {
+			const allowedStatuses = ['pending', 'active', 'in_progress', 'completed'];
+			if (!allowedStatuses.includes(status)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidStatus',
+					code: 'INVALID_STATUS'
+				});
+			}
+		}
+
+		// Validate started_at field
+		if (started_at !== undefined && typeof started_at !== 'string') {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.invalidType',
+				code: 'INVALID_TYPE'
+			});
+		}
+
 		try {
 			await db.run(
 				`UPDATE tournaments SET status = ?, started_at = ? WHERE id = ?`,
@@ -446,7 +577,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error starting tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -459,11 +590,32 @@ export default async function tournamentsRoutes(fastify, options) {
 		const { id } = request.params;
 		const { current_round } = request.body;
 
+		// Validate body fields
+		const allowedFields = ['current_round'];
+		const receivedFields = Object.keys(request.body || {});
+		const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+		if (unexpectedFields.length > 0) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.unexpectedFields',
+				code: 'UNEXPECTED_FIELDS'
+			});
+		}
+
 		if (current_round === undefined) {
 			return reply.status(422).send({
 				error: 'current_round is required',
 				success: false,
 				code: 'MISSING_ROUND'
+			});
+		}
+
+		// Validate current_round type and range
+		if (typeof current_round !== 'number' || current_round < 1 || current_round > 100) {
+			return reply.status(422).send({
+				error: 'current_round must be a number between 1 and 100',
+				success: false,
+				code: 'INVALID_ROUND'
 			});
 		}
 
@@ -476,7 +628,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error updating tournament round:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -488,6 +640,97 @@ export default async function tournamentsRoutes(fastify, options) {
 	fastify.patch('/tournaments/:id/complete', async (request, reply) => {
 		const { id } = request.params;
 		const { status, winner_id, winner_name, current_round, completed_at } = request.body;
+
+		try {
+			// Check if tournament exists and is not already completed
+			const tournament = await db.get('SELECT * FROM tournaments WHERE id = ?', [id]);
+			
+			if (!tournament) {
+				return reply.status(404).send({
+					success: false,
+					error: 'Tournament not found',
+					code: 'TOURNAMENT_NOT_FOUND'
+				});
+			}
+
+			if (tournament.status === 'completed') {
+				return reply.status(409).send({
+					success: false,
+					error: 'Tournament already completed',
+					code: 'ALREADY_COMPLETED'
+				});
+			}
+		} catch (error) {
+			console.error('Error checking tournament:', error);
+			return reply.status(503).send({
+				error: 'Database error',
+				success: false,
+				code: 'DB_ERROR'
+			});
+		}
+
+		// Validate body fields
+		const allowedFields = ['status', 'winner_id', 'winner_name', 'current_round', 'completed_at'];
+		const receivedFields = Object.keys(request.body || {});
+		const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+		if (unexpectedFields.length > 0) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.unexpectedFields',
+				code: 'UNEXPECTED_FIELDS'
+			});
+		}
+
+		// Validate status field
+		if (status !== undefined) {
+			const allowedStatuses = ['pending', 'active', 'in_progress', 'completed'];
+			if (!allowedStatuses.includes(status)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidStatus',
+					code: 'INVALID_STATUS'
+				});
+			}
+		}
+
+		// Validate winner_id type
+		if (winner_id !== undefined && winner_id !== null && 
+			typeof winner_id !== 'number' && typeof winner_id !== 'string') {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.invalidType',
+				code: 'INVALID_TYPE'
+			});
+		}
+
+		// Validate winner_name type
+		if (winner_name !== undefined && winner_name !== null && 
+			(typeof winner_name !== 'string' || winner_name.length === 0 || winner_name.length > 255)) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.invalidWinnerName',
+				code: 'INVALID_WINNER_NAME'
+			});
+		}
+
+		// Validate current_round type
+		if (current_round !== undefined && current_round !== null && 
+			(typeof current_round !== 'number' || current_round < 1 || current_round > 100)) {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.invalidRound',
+				code: 'INVALID_ROUND'
+			});
+		}
+
+		// Validate completed_at type
+		if (completed_at !== undefined && typeof completed_at !== 'string') {
+			return reply.status(422).send({
+				success: false,
+				error: 'validation.invalidType',
+				code: 'INVALID_TYPE'
+			});
+		}
 
 		try {
 			await db.run(
@@ -507,7 +750,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error completing tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'

@@ -17,7 +17,7 @@ export default async function sessionsRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -31,7 +31,7 @@ export default async function sessionsRoutes(fastify, options) {
 			await db.run('DELETE FROM user_sessions WHERE user_id = ?', [userId]);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -48,7 +48,7 @@ export default async function sessionsRoutes(fastify, options) {
 			);
 			return { success: true, sessions };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
