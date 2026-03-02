@@ -36,7 +36,7 @@ export default async function userRoutes(fastify, options) {
 			}));
 			return { success: true, users: safeUsers };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'admin.errorLoading',
 				code: 'USERS_LOAD_ERROR'
 			});
@@ -67,7 +67,7 @@ export default async function userRoutes(fastify, options) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -155,7 +155,7 @@ export default async function userRoutes(fastify, options) {
 			};
 		} catch (error) {
 			console.error('Profile update error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -198,7 +198,7 @@ export default async function userRoutes(fastify, options) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});

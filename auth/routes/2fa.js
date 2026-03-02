@@ -52,7 +52,7 @@ export default async function twoFactorRoutes(fastify) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -90,7 +90,7 @@ export default async function twoFactorRoutes(fastify) {
 				}, { expiresIn: '10m' })
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -132,7 +132,7 @@ export default async function twoFactorRoutes(fastify) {
 				backupCodes
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -171,7 +171,7 @@ export default async function twoFactorRoutes(fastify) {
 				message: 'messages.2faDisabled'
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -196,7 +196,7 @@ export default async function twoFactorRoutes(fastify) {
 				codes: backupCodes
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});

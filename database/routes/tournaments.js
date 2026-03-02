@@ -27,7 +27,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, tournamentId: result.id };
 		} catch (error) {
 			console.error('Error creating tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -74,7 +74,7 @@ export default async function tournamentsRoutes(fastify, options) {
 				}
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -101,7 +101,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			const tournaments = await db.all(sql, params);
 			return { success: true, tournaments };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -133,7 +133,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			await db.run(`UPDATE tournaments SET ${updateFields} WHERE id = ?`, values);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -149,7 +149,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			await db.run('DELETE FROM tournaments WHERE id = ?', [id]);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -240,7 +240,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, participantId: result.id };
 		} catch (error) {
 			console.error('Error adding participant:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -275,7 +275,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, count: participants.length };
 		} catch (error) {
 			console.error('Error adding participants:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -296,7 +296,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 			return { success: true, participants };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -344,7 +344,7 @@ export default async function tournamentsRoutes(fastify, options) {
 
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -363,7 +363,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -424,7 +424,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true, message: 'Tournament started' };
 		} catch (error) {
 			console.error('Error starting tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -446,7 +446,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error starting tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -476,7 +476,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error updating tournament round:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -507,7 +507,7 @@ export default async function tournamentsRoutes(fastify, options) {
 			return { success: true };
 		} catch (error) {
 			console.error('Error completing tournament:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'

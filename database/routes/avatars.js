@@ -108,7 +108,7 @@ export default async function avatarRoutes(fastify, options) {
 			console.error('❌ Database: Avatar upload error:', error);
 			console.error('❌ Database: Error stack:', error.stack);
 			fastify.log.error('Avatar upload error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'Failed to upload avatar: ' + error.message
 			});
@@ -142,7 +142,7 @@ export default async function avatarRoutes(fastify, options) {
 
 		} catch (error) {
 			fastify.log.error('Avatar retrieval error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'Failed to retrieve avatar'
 			});
@@ -188,7 +188,7 @@ export default async function avatarRoutes(fastify, options) {
 
 		} catch (error) {
 			fastify.log.error('Avatar deletion error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'Failed to delete avatar'
 			});

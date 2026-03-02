@@ -50,7 +50,7 @@ export default async function gdprRoutes(fastify, options) {
 			};
 		} catch (error) {
 			fastify.log.error('GDPR user-data error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -78,7 +78,7 @@ export default async function gdprRoutes(fastify, options) {
 				}
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -102,7 +102,7 @@ export default async function gdprRoutes(fastify, options) {
 			}
 			const success = await gdprService.anonymizeUserData(user.id);
 			if (!success) {
-				return reply.status(500).send({
+				return reply.status(503).send({
 					success: false,
 					error: 'gdpr.anonymizationError'
 				});
@@ -113,7 +113,7 @@ export default async function gdprRoutes(fastify, options) {
 				message: 'messages.dataAnonymized'
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: `gdpr.anonymizationError ${request.user.id}`
 			});
@@ -137,7 +137,7 @@ export default async function gdprRoutes(fastify, options) {
 
 			const exportData = await gdprService.exportUserData(user.id);
 			if (!exportData) {
-				return reply.status(500).send({
+				return reply.status(503).send({
 					success: false,
 					error: 'gdpr.exportError'
 				});
@@ -150,7 +150,7 @@ export default async function gdprRoutes(fastify, options) {
 				generatedAt: new Date().toISOString()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'gdpr.exportError'
 			});
@@ -181,7 +181,7 @@ export default async function gdprRoutes(fastify, options) {
 
 			const success = await gdprService.deleteUserAccount(user.id);
 			if (!success) {
-				return reply.status(500).send({
+				return reply.status(503).send({
 					success: false,
 					error: 'gdpr.deletionError'
 				});
@@ -192,7 +192,7 @@ export default async function gdprRoutes(fastify, options) {
 				message: 'messages.accountDeleted'
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'gdpr.deletionError'
 			});
@@ -221,7 +221,7 @@ export default async function gdprRoutes(fastify, options) {
 			});
 
 			if (!success) {
-				return reply.status(500).send({
+				return reply.status(503).send({
 					success: false,
 					error: 'gdpr.consentUpdateError'
 				});
@@ -232,7 +232,7 @@ export default async function gdprRoutes(fastify, options) {
 				message: 'messages.preferencesUpdated'
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'gdpr.consentUpdateError'
 			});

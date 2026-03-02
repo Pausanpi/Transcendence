@@ -85,7 +85,7 @@ async function startGateway() {
 		const token = authHeader.substring(7).trim();
 
 		if (!jwtSecret) {
-			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
+			return reply.status(502).send({ success: false, error: 'JWT secret not available' });
 		}
 
 		try {
@@ -193,7 +193,7 @@ async function startGateway() {
 		} catch (error) {
 			console.error('❌ Gateway: Avatar upload error:', error);
 			fastify.log.error('Avatar upload error:', error);
-			return reply.status(500).send({
+			return reply.status(502).send({
 				success: false,
 				error: 'Failed to upload avatar: ' + error.message
 			});
@@ -232,7 +232,7 @@ async function startGateway() {
 
 		} catch (error) {
 			fastify.log.error('Avatar retrieval error:', error);
-			return reply.status(500).send({
+			return reply.status(502).send({
 				success: false,
 				error: 'Failed to retrieve avatar'
 			});

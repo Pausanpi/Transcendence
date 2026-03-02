@@ -27,7 +27,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, requests };
         } catch (error) {
             console.error('Error loading friend requests:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -70,7 +70,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friends };
         } catch (error) {
             console.error('Error loading friends:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -102,7 +102,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, requests };
         } catch (error) {
             console.error('Error loading sent requests:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -152,7 +152,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, status: friendship.status, friendship };
         } catch (error) {
             console.error('Error checking friendship:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -228,7 +228,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friendshipId: result.id };
         } catch (error) {
             console.error('Error adding friend:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -283,7 +283,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friendshipId: result.id };
         } catch (error) {
             console.error('Error creating friendship:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -318,7 +318,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, friends };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -342,7 +342,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, requests };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -366,7 +366,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, requests };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -416,7 +416,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -454,7 +454,7 @@ export default async function friendsRoutes(fastify, options) {
             await db.run('DELETE FROM friendships WHERE id = ?', [id]);
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -479,7 +479,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, status: friendship.status, friendship };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -508,7 +508,7 @@ export default async function friendsRoutes(fastify, options) {
             );
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
