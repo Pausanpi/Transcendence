@@ -1,4 +1,4 @@
-import { api } from './api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from './api.js';
 
 export async function loadUserData(): Promise<any> {
   try {
@@ -9,7 +9,10 @@ export async function loadUserData(): Promise<any> {
       throw new Error(data.error);
     }
   } catch (error: any) {
-    console.error('Error loading user data:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error loading user data:', error);
+    }
     throw error;
   }
 }
@@ -37,7 +40,10 @@ export async function exportUserData(): Promise<void> {
       throw new Error(result.error);
     }
   } catch (error: any) {
-    console.error('Error exporting data:', error);
+    // Only log server errors - validation errors shown via message
+    if (error instanceof ServerError) {
+      console.error('Server error exporting data:', error);
+    }
     showGDPRMessage('gdpr.exportError', 'error');
   }
 }
@@ -59,7 +65,10 @@ export async function anonymizeUserData(): Promise<void> {
       showGDPRMessage(result.error, 'error');
     }
   } catch (error: any) {
-    console.error('Error anonymizing data:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error anonymizing data:', error);
+    }
     showGDPRMessage('messages.connectionError', 'error');
   }
 }
@@ -81,7 +90,10 @@ export async function deleteAccount(confirmationText: string): Promise<void> {
       showGDPRMessage(result.error, 'error');
     }
   } catch (error: any) {
-    console.error('Error deleting account:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error deleting account:', error);
+    }
     showGDPRMessage('messages.connectionError', 'error');
   }
 }
@@ -94,7 +106,10 @@ export async function loadUserConsent(): Promise<any> {
     }
     return null;
   } catch (error) {
-    console.error('Error loading user consent:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error loading user consent:', error);
+    }
     return null;
   }
 }
@@ -114,7 +129,10 @@ export async function updateConsent(consentData: any): Promise<boolean> {
       return false;
     }
   } catch (error: any) {
-    console.error('Error updating consent:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error updating consent:', error);
+    }
     showGDPRMessage('messages.connectionError', 'error');
     return false;
   }

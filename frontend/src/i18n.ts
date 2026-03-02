@@ -1,4 +1,4 @@
-import { api } from './api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from './api.js';
 
 type Language = 'en' | 'es' | 'ja';
 
@@ -69,7 +69,10 @@ export class LanguageManager {
 
 			await this.syncWithServer();
 		} catch (error) {
-			console.error('Error loading current language:', error);
+			// Only log server errors
+			if (error instanceof ServerError) {
+				console.error('Server error loading current language:', error);
+			}
 			this.currentLanguage =
 				(localStorage.getItem('preferredLanguage') as Language) || 'en';
 		}
@@ -94,7 +97,10 @@ if (!result?.success) {
 
 			await result;
 		} catch (error) {
-			console.warn('Could not sync language with server:', error);
+			// Sync failure is not critical, only log server errors
+			if (error instanceof ServerError) {
+				console.warn('Server error syncing language:', error);
+			}
 		}
 	}
 
@@ -111,7 +117,10 @@ if (!result?.success) {
 			this.translations = await result;
         
 		} catch (error) {
-			console.error('Error loading translations:', error);
+			// Only log server errors - fallback handles loading failure
+			if (error instanceof ServerError) {
+				console.error('Server error loading translations:', error);
+			}
 			await this.loadFallbackTranslations();
 		}
 	}
@@ -126,7 +135,10 @@ if (!result?.success) {
 				this.translations = await result;
 			}
 		} catch (error) {
-			console.error('Error loading fallback translations:', error);
+			// Only log server errors
+			if (error instanceof ServerError) {
+				console.error('Server error loading fallback translations:', error);
+			}
 			this.translations = {};
 		}
 	}
@@ -228,7 +240,10 @@ if (!result?.success) {
 			window.applyTranslationsToProfile?.();
 			return true;
 		} catch (error) {
-			console.error('Error changing language:', error);
+			// Only log server errors
+			if (error instanceof ServerError) {
+				console.error('Server error changing language:', error);
+			}
 			this.currentLanguage = 'en';
 			localStorage.setItem('preferredLanguage', 'en');
 			return false;

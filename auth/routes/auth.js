@@ -81,7 +81,7 @@ export default async function authRoutes(fastify, options) {
 
 		const existingUser = await findUserByEmail(email);
 		if (existingUser) {
-			return reply.status(400).send({
+			return reply.status(409).send({
 				success: false,
 				error: 'auth.userExists'
 			});

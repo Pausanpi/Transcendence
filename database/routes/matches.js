@@ -28,7 +28,7 @@ export default async function matchesRoutes(fastify, options) {
 		if (player1_id !== undefined && player2_id !== undefined) {
 			// This is a tournament match with explicit players
 			if (!player1_name || !player2_name || player1_score === undefined || player2_score === undefined || !winner_name) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					error: 'Missing required fields for tournament match',
 					success: false,
 					code: 'MISSING_FIELDS'
@@ -60,10 +60,10 @@ export default async function matchesRoutes(fastify, options) {
 				return { success: true, matchId: result.id };
 			} catch (error) {
 				console.error('Error creating tournament match:', error);
-				return reply.status(500).send({
-					error: 'Database error',
+				return reply.status(503).send({
+					error: 'database.writeError',
 					success: false,
-					code: 'DB_ERROR'
+					code: 'DB_WRITE_ERROR'
 				});
 			}
 		}
@@ -75,7 +75,7 @@ export default async function matchesRoutes(fastify, options) {
 		}
 
 		if (!opponent_name || user_score === undefined || opponent_score === undefined || !winner) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Missing required fields',
 				success: false,
 				code: 'MISSING_FIELDS'
@@ -125,10 +125,10 @@ export default async function matchesRoutes(fastify, options) {
 			return { success: true, matchId: result.id };
 		} catch (error) {
 			console.error('Error creating match:', error);
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.writeError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_WRITE_ERROR'
 			});
 		}
 	});
@@ -148,10 +148,10 @@ export default async function matchesRoutes(fastify, options) {
 			}
 			return { success: true, match };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -171,10 +171,10 @@ export default async function matchesRoutes(fastify, options) {
 			);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -192,10 +192,10 @@ export default async function matchesRoutes(fastify, options) {
 			);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -219,10 +219,10 @@ export default async function matchesRoutes(fastify, options) {
 			const matches = await db.all(sql, params);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -265,10 +265,10 @@ export default async function matchesRoutes(fastify, options) {
 				recentMatches
 			};
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});

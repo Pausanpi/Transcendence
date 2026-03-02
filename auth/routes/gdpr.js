@@ -173,7 +173,7 @@ export default async function gdprRoutes(fastify, options) {
 
 			const confirmationText = 'DELETE MY ACCOUNT';
 			if (confirmation !== confirmationText) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'gdpr.invalidConfirmation'
 				});

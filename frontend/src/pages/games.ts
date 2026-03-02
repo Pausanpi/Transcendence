@@ -2,6 +2,7 @@ import { navigate } from '../router.js';
 import { getCurrentUser, createRegisteredPlayer, createGuestPlayer, createAIPlayer, startGameSession, endGameSession, loginPlayer } from '../gameService.js';
 import { initPongGame, setOnGameEnd, showWinnerOverlay } from '../pong.js';
 import { setupTicTacToe } from '../tictactoe.js';
+import { ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 // ===== PLAYER SETUP STATE =====
 let verifiedPlayer2: any = null;
 
@@ -268,22 +269,14 @@ async function loginPlayer2Direct() {
 			applyTranslations();
 		}
 	} catch (error: any) {
-		// Handle different error types gracefully
+		// Handle different error types using instanceof
 		let errorMessage = '<span class="text-red-400" data-i18n="game.loginFailed">✗ Login failed. Please try again</span>';
 		
-		if (error && error.message === 'auth.invalidToken') {
-			errorMessage = '<span class="text-red-400" data-i18n="game.sessionExpired">✗ Session expired</span>';
-		} else if (error && error.message === 'auth.authenticationRequired') {
+		if (error instanceof AuthError) {
 			errorMessage = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
-		} else if (error && error.message === 'messages.invalidCredentials') {
-			errorMessage = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
-		}
-		
-		// Only log unexpected errors (not i18n error keys from API)
-		// Expected errors look like: auth.*, messages.*, common.*
-		const isExpectedError = error && error.message && /^[a-z]+\.[a-zA-Z]+/.test(error.message);
-		if (error && !isExpectedError) {
-			console.error('Unexpected error during player 2 login:', error);
+		} else if (error instanceof ServerError) {
+			// Only log server errors
+			console.error('Server error during player 2 login:', error);
 		}
 		
 		statusDiv.innerHTML = errorMessage;

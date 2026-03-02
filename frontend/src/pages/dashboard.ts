@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 
 export function renderDashboard(): string {
   setTimeout(checkServices, 100);
@@ -71,6 +71,10 @@ export async function checkServices(): Promise<void> {
 
       setStatus(s.name, isOk, status);
     } catch (error: any) {
+      // Only log server errors - expected errors shown as status
+      if (error instanceof ServerError) {
+        console.error(`Server error checking ${s.name}:`, error);
+      }
       const errorMsg = error.message || 'DOWN';
       setStatus(s.name, false, errorMsg);
     }

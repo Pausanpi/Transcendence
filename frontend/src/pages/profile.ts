@@ -1,4 +1,4 @@
-import { api, getToken } from '../api.js';
+import { api, getToken, ValidationError, ConflictError, AuthError, ServerError } from '../api.js';
 import { TwoFAManager } from '../twofa.js';
 import { navigate } from '../router.js';
 import { removeAuthToken } from '../api.js';
@@ -219,7 +219,10 @@ async function loadProfile(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error) {
-		console.error('Error loading profile:', error);
+		// Only log server errors - auth errors handled by auth system
+		if (error instanceof ServerError) {
+			console.error('Server error loading profile:', error);
+		}
 		const infoDiv = document.getElementById('profileInfo');
 		if (infoDiv) {
 			infoDiv.innerHTML = '<p class="text-red-400" data-i18n="profile.failedToLoad">Failed to load profile</p>';
@@ -303,7 +306,10 @@ async function uploadAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		console.error('Upload error:', error);
+		// Only log server errors - validation errors (422) shown to user without logging
+		if (error instanceof ServerError) {
+			console.error('Server error uploading avatar:', error);
+		}
 		const errorMsg = window.languageManager?.t('profile.uploadFailed');
 		showProfileMessage(
 			errorMsg !== null ? errorMsg : (error.message || 'Failed to upload avatar'),
@@ -405,6 +411,10 @@ async function updateProfile(): Promise<void> {
 
 		loadProfile();
 	} catch (error: any) {
+		// Only log server errors - validation/conflict errors shown to user
+		if (error instanceof ServerError) {
+			console.error('Server error updating email:', error);
+		}
 		let errorMsg: string;
 		if (error.error) {
 			const translated = window.languageManager?.t(error.error);
@@ -435,6 +445,10 @@ async function anonymize(): Promise<void> {
 			resultDiv.textContent = 'Account anonymized successfully';
 		}
 	} catch (error) {
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error anonymizing account:', error);
+		}
 		const resultDiv = document.getElementById('dangerResult');
 		if (resultDiv) {
 			resultDiv.classList.remove('hidden');
@@ -467,6 +481,10 @@ async function deleteAcc(): Promise<void> {
 			window.location.href = '/';
 		}, 2000);
 	} catch (error) {
+		// Only log server errors - validation errors (422) shown to user
+		if (error instanceof ServerError) {
+			console.error('Server error deleting account:', error);
+		}
 		const resultDiv = document.getElementById('dangerResult');
 		if (resultDiv) {
 			resultDiv.classList.remove('hidden');
@@ -521,7 +539,10 @@ async function deleteAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		console.error('Delete avatar error:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error deleting avatar:', error);
+		}
 		const msg = window.languageManager?.t('profile.deleteFailed');
 		showProfileMessage(
 			msg !== null ? msg : (error.message || 'Failed to remove avatar'),
@@ -683,11 +704,11 @@ async function loadMatchHistory(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		console.error('Error loading match history:', error);
-		let isAuthError = false;
-		if (error && error.message === 'auth.authenticationRequired') {
-			isAuthError = true;
+		// Only log server errors - auth errors handled by auth system
+		if (error instanceof ServerError) {
+			console.error('Server error loading match history:', error);
 		}
+		let isAuthError = error instanceof AuthError;
 		let message = isAuthError
 			? '<p class="text-red-400 text-center" data-i18n="auth.authenticationRequired">Authentication required</p>'
 			: '<p class="text-red-400 text-center" data-i18n="profile.failedToLoad">Failed to load match history</p>';

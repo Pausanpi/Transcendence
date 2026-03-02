@@ -100,7 +100,7 @@ export default async function userRoutes(fastify, options) {
 			if (display_name !== undefined) {
 				const displayNameValidation = validationService.validateDisplayName(display_name);
 				if (!displayNameValidation.isValid) {
-					return reply.status(400).send({
+					return reply.status(422).send({
 						success: false,
 						error: displayNameValidation.error
 					});
@@ -112,7 +112,7 @@ export default async function userRoutes(fastify, options) {
 				// Validate email format
 				const emailValidation = validationService.validateEmail(email);
 				if (!emailValidation.isValid) {
-					return reply.status(400).send({
+					return reply.status(422).send({
 						success: false,
 						error: emailValidation.error
 					});
@@ -121,7 +121,7 @@ export default async function userRoutes(fastify, options) {
 				// Check if email is already in use by another user
 				const existingUser = await findUserByEmail(email);
 				if (existingUser && existingUser.id !== userId) {
-					return reply.status(400).send({
+					return reply.status(409).send({
 						success: false,
 						error: 'profile.emailInUse'
 					});
@@ -139,7 +139,7 @@ export default async function userRoutes(fastify, options) {
 				} catch (updateError) {
 					// Handle SQLite UNIQUE constraint error
 					if (updateError.message && updateError.message.includes('UNIQUE constraint')) {
-						return reply.status(400).send({
+						return reply.status(409).send({
 							success: false,
 							error: 'profile.emailInUse'
 						});

@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { isLoggedIn } from '../gameService.js';
 import { loadAvatar } from '../imageUtils.js';
 
@@ -164,7 +164,10 @@ async function loadTab(tab: string): Promise<void> {
       await loadSentRequests(container);
     }
   } catch (error) {
-    console.error('Error loading tab:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error loading tab:', error);
+    }
     container.innerHTML = `
       <div class="card text-center text-red-400">
         <p data-i18n="friends.loadError">Failed to load. Please try again.</p>
@@ -410,7 +413,10 @@ async function updateRequestsBadge(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('Error updating badge:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error updating badge:', error);
+    }
   }
 }
 
@@ -481,12 +487,11 @@ async function viewPlayer(playerId: string): Promise<void> {
       window.languageManager?.applyTranslations();
     }
   } catch (error: any) {
-    console.error('Error loading player profile:', error);
-    let isAuthError = false;
-    if (error && error.message === 'auth.authenticationRequired') {
-      isAuthError = true;
+    // Only log server errors - auth errors handled by displaying message
+    if (error instanceof ServerError) {
+      console.error('Server error loading player profile:', error);
     }
-    let message = isAuthError
+    let message = error instanceof AuthError
       ? '<p class="text-red-400 text-center" data-i18n="players.authRequired">Authentication required</p>'
       : '<p class="text-red-400 text-center" data-i18n="friends.loadErrorProfile">Failed to load player profile</p>';
     content.innerHTML = message;
@@ -581,7 +586,10 @@ async function acceptRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    console.error('Error accepting request:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error accepting request:', error);
+    }
     showToast('friends.error', 'error');
   }
 }
@@ -605,7 +613,10 @@ async function rejectRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    console.error('Error rejecting request:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error rejecting request:', error);
+    }
     showToast('friends.error', 'error');
   }
 }
@@ -629,7 +640,10 @@ async function cancelRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    console.error('Error cancelling request:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error cancelling request:', error);
+    }
     showToast('friends.error', 'error');
   }
 }
@@ -659,7 +673,10 @@ async function removeFriend(friendshipId: number, username: string): Promise<voi
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    console.error('Error removing friend:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error removing friend:', error);
+    }
     showToast('friends.error', 'error');
   }
 }

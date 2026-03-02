@@ -141,7 +141,7 @@ async function startGateway() {
 
 			if (!data) {
 				console.log('❌ Gateway: No file data received');
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'No file uploaded at gateway'
 				});
@@ -150,7 +150,7 @@ async function startGateway() {
 			// Validate file type
 			if (data.mimetype !== 'image/jpeg' && data.mimetype !== 'image/jpg') {
 				console.log('❌ Gateway: Invalid mimetype:', data.mimetype);
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'Only JPG/JPEG files are allowed'
 				});

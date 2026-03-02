@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
@@ -41,7 +41,6 @@ interface PlayerProfile {
 }
 
 export function renderPlayers(): string {
-	console.log('[DEBUG] renderPlayers called');
 	setTimeout(() => {
 		loadPlayers();
 		setupPlayerCardClickHandlers();
@@ -84,8 +83,6 @@ export function renderPlayers(): string {
 }
 
 function setupPlayerCardClickHandlers(): void {
-	console.log('[DEBUG] Setting up player card click handlers');
-	
 	// Event delegation for player cards
 	const playersList = document.getElementById('playersList');
 	if (playersList) {
@@ -93,20 +90,17 @@ function setupPlayerCardClickHandlers(): void {
 			const card = (e.target as HTMLElement).closest('[data-player-username]');
 			if (card) {
 				const username = card.getAttribute('data-player-username');
-				console.log('[DEBUG] Player card clicked, username:', username);
 				if (username) {
 					viewPlayer(username);
 				}
 			}
 		});
-		console.log('[DEBUG] Player card click handler attached');
 	}
 	
 	// Search button
 	const searchBtn = document.getElementById('searchPlayersBtn');
 	if (searchBtn) {
 		searchBtn.addEventListener('click', searchPlayers);
-		console.log('[DEBUG] Search button handler attached');
 	}
 	
 	// Search on Enter key
@@ -117,22 +111,18 @@ function setupPlayerCardClickHandlers(): void {
 				searchPlayers();
 			}
 		});
-		console.log('[DEBUG] Search input Enter key handler attached');
 	}
 	
 	// Close modal button
 	const closeBtn = document.getElementById('closeModalBtn');
 	if (closeBtn) {
 		closeBtn.addEventListener('click', closePlayerModal);
-		console.log('[DEBUG] Close modal button handler attached');
 	}
 }
 
 async function loadPlayers(search: string = ''): Promise<void> {
-	console.log('[DEBUG] loadPlayers called with search:', search);
 	const container = document.getElementById('playersList');
 	if (!container) {
-		console.error('[DEBUG] playersList container not found!');
 		return;
 	}
 
@@ -140,8 +130,6 @@ async function loadPlayers(search: string = ''): Promise<void> {
 		const response = await api<{ success: boolean; users: PlayerListItem[] }>(
 			`/api/database/players?search=${encodeURIComponent(search)}&limit=50`
 		);
-
-		console.log('[DEBUG] loadPlayers response:', response);
 
 		if (response.success && response.users.length > 0) {
 			// Render immediately with default avatars for speed
@@ -170,16 +158,11 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
-		let isAuthError = false;
-		if (error && error.message === 'auth.authenticationRequired') {
-			isAuthError = true;
+		// Only log server errors - auth errors shown to user
+		if (error instanceof ServerError) {
+			console.error('Server error loading players:', error);
 		}
-		// Only log unexpected errors
-		if (!isAuthError) {
-			console.error('Unexpected error loading players:', error);
-		}
-		let message = isAuthError
+		let message = error instanceof AuthError
 			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
 			: '<p data-i18n="players.loadError">Failed to load players</p>';
 		container.innerHTML = `
@@ -217,19 +200,11 @@ function renderPlayerCard(player: PlayerListItem): string {
 }
 
 async function viewPlayer(username: string): Promise<void> {
-	console.log('[DEBUG] viewPlayer called for username:', username);
 	const modal = document.getElementById('playerModal');
 	const content = document.getElementById('playerModalContent');
 	const addFriendBtn = document.getElementById('addFriendBtn');
 
-	console.log('[DEBUG] DOM elements:', { 
-		modal: modal ? 'found' : 'NOT FOUND', 
-		content: content ? 'found' : 'NOT FOUND',
-		addFriendBtn: addFriendBtn ? 'found' : 'NOT FOUND'
-	});
-
 	if (!modal || !content) {
-		console.error('[DEBUG] Required DOM elements not found!');
 		return;
 	}
 
@@ -242,11 +217,9 @@ async function viewPlayer(username: string): Promise<void> {
 		</div>
 	`;
 	modal.classList.remove('hidden');
-	console.log('[DEBUG] Modal shown, loading player data...');
 
 	try {
 		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${encodeURIComponent(username)}`);
-		console.log('[DEBUG] Player profile response:', response);
 
 		if (response.success && response.user) {
 			const player = response.user;
@@ -293,27 +266,16 @@ async function viewPlayer(username: string): Promise<void> {
 				</div>
 			`;
 
-			console.log('[DEBUG] Content updated, applying translations...');
-			
 			// Apply translations first
 			if (window.languageManager) {
 				window.languageManager.applyTranslations();
-				console.log('[DEBUG] Translations applied');
-			} else {
-				console.warn('[DEBUG] languageManager not available');
 			}
 			
 			// Set up the Add Friend button handler
 			setTimeout(() => {
 				const btn = document.getElementById('addFriendBtn');
-				console.log('[DEBUG] Setting up Add Friend button handler, button found:', btn ? 'YES' : 'NO');
 				
 				if (btn) {
-					console.log('[DEBUG] Button current state:', {
-						innerHTML: btn.innerHTML,
-						disabled: btn.hasAttribute('disabled'),
-						classes: btn.className
-					});
 					
 					// Remove any existing click handler
 					const newBtn = btn.cloneNode(true) as HTMLButtonElement;
@@ -322,19 +284,12 @@ async function viewPlayer(username: string): Promise<void> {
 					// Set up the click handler on the fresh button
 					newBtn.setAttribute('data-player-username', username);
 					newBtn.addEventListener('click', () => {
-						console.log('[DEBUG] Add Friend button clicked!');
 						addFriend(username);
 					});
-					
-					console.log('[DEBUG] Add Friend button handler attached successfully');
-				} else {
-					console.error('[DEBUG] addFriendBtn not found in DOM!');
-					console.log('[DEBUG] All buttons in modal:', document.querySelectorAll('#playerModal button'));
 				}
 			}, 50);
 		}
 	} catch (error: any) {
-		console.error('[DEBUG] Error loading player profile:', error);
 		let isAuthError = false;
 		if (error && error.message === 'auth.authenticationRequired') {
 			isAuthError = true;
@@ -409,7 +364,6 @@ function formatDuration(seconds: number): string {
 }
 
 function closePlayerModal(): void {
-	console.log('[DEBUG] closePlayerModal called');
 	const modal = document.getElementById('playerModal');
 	if (modal) {
 		modal.classList.add('hidden');
@@ -417,13 +371,9 @@ function closePlayerModal(): void {
 }
 
 async function addFriend(username: string): Promise<void> {
-	console.log('[DEBUG] ===== addFriend called for username:', username, '=====');
 	const btn = document.getElementById('addFriendBtn');
 	
-	console.log('[DEBUG] Button found:', btn ? 'YES' : 'NO');
-	
 	if (btn) {
-		console.log('[DEBUG] Disabling button and showing loading state...');
 		btn.setAttribute('disabled', 'true');
 		btn.setAttribute('data-i18n', 'players.sendingRequest');
 		btn.innerHTML = '⏳ Sending...';
@@ -431,25 +381,20 @@ async function addFriend(username: string): Promise<void> {
 	}
 
 	try {
-		console.log('[DEBUG] Checking friend status...');
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
 			(`/api/database/friends/me/check/${encodeURIComponent(username)}`);
-
-		console.log('[DEBUG] Check response:', checkResponse);
 
 		if (checkResponse.success && checkResponse.status !== 'none') {
 			if (btn) {
 				btn.removeAttribute('disabled');
 				if (checkResponse.status === 'pending') {
-					console.log('[DEBUG] Request already pending');
 					btn.setAttribute('data-i18n', 'players.requestPending');
 					btn.innerHTML = '⏳ Request Pending';
 					btn.classList.remove('btn-green');
 					btn.classList.add('btn-gray');
 					window.languageManager?.applyTranslations();
 				} else if (checkResponse.status === 'accepted') {
-					console.log('[DEBUG] Already friends');
 					btn.setAttribute('data-i18n', 'players.alreadyFriends');
 					btn.innerHTML = '✓ Already Friends';
 					btn.classList.remove('btn-green');
@@ -460,17 +405,13 @@ async function addFriend(username: string): Promise<void> {
 			return;
 		}
 
-		console.log('[DEBUG] Sending friend request...');
 		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
 			body: JSON.stringify({ friend_username: username })
 		});
 
-		console.log('[DEBUG] Friend request response:', response);
-
 		if (response.success) {
-			console.log('[DEBUG] Friend request sent successfully!');
 			if (btn) {
 				btn.setAttribute('data-i18n', 'players.requestSent');
 				btn.innerHTML = '✓ Request Sent!';
@@ -480,7 +421,6 @@ async function addFriend(username: string): Promise<void> {
 			}
 			showToast('Friend request sent!', 'success');
 		} else {
-			console.error('[DEBUG] Friend request failed:', response.error);
 			if (btn) {
 				btn.removeAttribute('disabled');
 				btn.setAttribute('data-i18n', 'players.addFriend');
@@ -490,7 +430,10 @@ async function addFriend(username: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
-		console.error('[DEBUG] Error in addFriend:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error sending friend request:', error);
+		}
 		if (btn) {
 			btn.removeAttribute('disabled');
 			btn.setAttribute('data-i18n', 'players.addFriend');
@@ -502,7 +445,6 @@ async function addFriend(username: string): Promise<void> {
 }
 
 function showToast(message: string, type: 'success' | 'error'): void {
-	console.log('[DEBUG] showToast:', message, type);
 	// Use i18n for known messages if possible
 	let translated = message;
 	if (window.languageManager?.t) {
@@ -530,7 +472,6 @@ function showToast(message: string, type: 'success' | 'error'): void {
 }
 
 function searchPlayers(): void {
-	console.log('[DEBUG] searchPlayers called');
 	const searchInput = document.getElementById('playerSearch') as HTMLInputElement;
 	if (searchInput) {
 		loadPlayers(searchInput.value);
@@ -546,12 +487,6 @@ declare global {
 	}
 }
 
-console.log('[DEBUG] Exposing functions to window...');
 window.viewPlayer = viewPlayer;
 window.closePlayerModal = closePlayerModal;
 window.searchPlayers = searchPlayers;
-console.log('[DEBUG] Functions exposed:', {
-	viewPlayer: typeof window.viewPlayer,
-	closePlayerModal: typeof window.closePlayerModal,
-	searchPlayers: typeof window.searchPlayers
-});

@@ -1,6 +1,6 @@
 import { verify2FALogin } from '../twofa.js';
 import { navigate } from '../router.js';
-import { setToken } from '../api.js';
+import { setToken, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { updateAuthBtn } from '../auth.js';
 
 export function renderTwoFAVerify(): string {
@@ -83,7 +83,10 @@ async function verifyToken(): Promise<void> {
       tokenInput.focus();
     }
   } catch (error) {
-    console.error('Verification error:', error);
+    // Only log server errors - auth/validation errors shown to user
+    if (error instanceof ServerError) {
+      console.error('Server error during 2FA verification:', error);
+    }
     showMessage('Connection error. Please try again.', 'error');
   }
 }

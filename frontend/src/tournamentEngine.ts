@@ -1,5 +1,5 @@
 import type { Player } from "./gameService";
-import { api } from './api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from './api.js';
 
 export type Match = {
   player1: Player;
@@ -125,7 +125,10 @@ export async function createTournamentInDB(
     }
     return null;
   } catch (error) {
-    console.error('Failed to create tournament in DB:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error creating tournament:', error);
+    }
     return null;
   }
 }
@@ -150,7 +153,10 @@ async function saveTournamentParticipants(
       body: JSON.stringify({ participants })
     });
   } catch (error) {
-    console.error('Failed to save tournament participants:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error saving tournament participants:', error);
+    }
   }
 }
 
@@ -167,7 +173,10 @@ export async function startTournamentInDB(tournamentId: number): Promise<void> {
       })
     });
   } catch (error) {
-    console.error('Failed to start tournament in DB:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error starting tournament:', error);
+    }
   }
 }
 
@@ -217,7 +226,10 @@ export async function saveTournamentMatch(
 
     return { success: true, matchId: response.matchId };
   } catch (error) {
-    console.error('Failed to save tournament match:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error saving tournament match:', error);
+    }
     return { success: false };
   }
 }
@@ -242,7 +254,10 @@ export async function completeTournamentInDB(
       })
     });
   } catch (error) {
-    console.error('Failed to complete tournament in DB:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error completing tournament:', error);
+    }
   }
 }
 
@@ -261,6 +276,9 @@ export async function updateTournamentRound(
       })
     });
   } catch (error) {
-    console.error('Failed to update tournament round:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error updating tournament round:', error);
+    }
   }
 }
