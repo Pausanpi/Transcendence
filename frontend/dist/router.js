@@ -12,6 +12,8 @@ import { renderTwoFAVerify } from './pages/twofaverify.js';
 import { renderPlayers } from './pages/players.js';
 import { renderFriends } from './pages/friends.js';
 import { renderTestPage } from './pages/testpage.js';
+import { renderPrivacyPolicy } from './pages/privacy-policy.js';
+import { renderTermsOfService } from './pages/terms-of-service.js';
 const routes = {
     home: renderHome,
     games: renderGames,
@@ -26,15 +28,24 @@ const routes = {
     players: renderPlayers,
     friends: renderFriends,
     testpage: renderTestPage,
+    'privacy-policy': renderPrivacyPolicy,
+    'terms-of-service': renderTermsOfService,
 };
 let currentPage = 'home';
 export function navigate(page) {
     const app = document.getElementById('app');
     const render = routes[page];
     if (render) {
+        // Signal active games/components to stop before replacing DOM
+        window.dispatchEvent(new CustomEvent('beforepagechange', { detail: page }));
         app.innerHTML = render();
         if (window.languageManager?.isReady()) {
             window.languageManager.applyTranslations();
+        }
+        // Hide TicTacToe settings when leaving the game page
+        const tictactoeSettings = document.getElementById('tictactoeSettings');
+        if (tictactoeSettings && page !== 'game') {
+            tictactoeSettings.classList.add('hidden');
         }
         currentPage = page;
         updateNav();

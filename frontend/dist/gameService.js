@@ -72,20 +72,14 @@ export async function verifyPlayerByName(playerName) {
     }
 }
 export async function loginPlayer(email, password) {
-    try {
-        const response = await api('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password })
-        });
-        if (response.success && response.user) {
-            return response.user;
-        }
-        return null;
+    const response = await api('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+    });
+    if (response.success && response.user) {
+        return response.user;
     }
-    catch (error) {
-        console.error('Failed to login player:', error);
-        return null;
-    }
+    return null;
 }
 // ===== MATCH SAVING =====
 export async function saveMatch(result) {
