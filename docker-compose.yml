@@ -79,6 +79,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth
     networks: [transcendence-net]
+    env_file: .env
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root

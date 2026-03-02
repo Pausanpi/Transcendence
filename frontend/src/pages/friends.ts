@@ -75,7 +75,10 @@ export function renderFriends(): string {
     `;
   }
 
-  setTimeout(() => loadTab('friends'), 100);
+  setTimeout(() => {
+    loadTab('friends');
+    setupFriendsSearchHandlers();
+  }, 100);
 
   return `
     <div class="max-w-4xl mx-auto">
@@ -96,6 +99,15 @@ export function renderFriends(): string {
                 class="btn btn-gray flex-1" data-i18n="friends.sent">
           📤 Sent
         </button>
+      </div>
+
+      <!-- Search Box (only visible in friends tab) -->
+      <div id="friendsSearchBox" class="card mb-6 hidden">
+        <div class="flex gap-4">
+          <input id="friendsSearch" type="text" placeholder="Search friends..."
+                 class="input flex-1" data-i18n-placeholder="friends.searchPlaceholder" />
+          <button id="searchFriendsBtn" class="btn btn-blue" data-i18n="friends.search">🔍 Search</button>
+        </div>
       </div>
 
       <!-- Content -->
@@ -126,6 +138,16 @@ async function loadTab(tab: string): Promise<void> {
 
   const container = document.getElementById('friendsContent');
   if (!container) return;
+
+  // Show/hide search box based on tab
+  const searchBox = document.getElementById('friendsSearchBox');
+  if (searchBox) {
+    if (tab === 'friends') {
+      searchBox.classList.remove('hidden');
+    } else {
+      searchBox.classList.add('hidden');
+    }
+  }
 
   container.innerHTML = `
     <div class="card animate-pulse">
@@ -171,31 +193,56 @@ function updateTabStyles(): void {
   });
 }
 
-async function loadFriends(container: HTMLElement): Promise<void> {
+async function loadFriends(container: HTMLElement, search: string = ''): Promise<void> {
   const response = await api<{ success: boolean; friends: Friend[] }>('/api/database/friends/me');
 
   if (response.success && response.friends && response.friends.length > 0) {
-    // Render immediately for speed
-    container.innerHTML = response.friends.map(friend => renderFriendCard(friend)).join('');
-    window.languageManager?.applyTranslations();
-    
-    // Load avatars progressively in background
-    response.friends.forEach(async (friend) => {
-      try {
-        const avatarUrl = await loadAvatar(friend.avatar);
-        const imgElement = container.querySelector(`[data-friend-id="${friend.id}"] img`);
-        if (imgElement && avatarUrl) {
-          (imgElement as HTMLImageElement).src = avatarUrl;
+    // Filter friends based on search term (client-side)
+    let filteredFriends = response.friends;
+    if (search.trim() !== '') {
+      const searchLower = search.toLowerCase();
+      filteredFriends = response.friends.filter(friend => 
+        friend.username.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (filteredFriends.length > 0) {
+      // Render immediately for speed
+      container.innerHTML = filteredFriends.map(friend => renderFriendCard(friend)).join('');
+      window.languageManager?.applyTranslations();
+      
+      // Load avatars progressively in background
+      filteredFriends.forEach(async (friend) => {
+        try {
+          const avatarUrl = await loadAvatar(friend.avatar);
+          const imgElement = container.querySelector(`[data-friend-id="${friend.id}"] img`);
+          if (imgElement && avatarUrl) {
+            (imgElement as HTMLImageElement).src = avatarUrl;
+          }
+        } catch (error) {
+          console.error(`Failed to load avatar for friend ${friend.id}:`, error);
         }
-      } catch (error) {
-        console.error(`Failed to load avatar for friend ${friend.id}:`, error);
-      }
-    });
+      });
+    } else {
+      // No friends match the search
+      container.innerHTML = `
+        <div class="card text-center text-gray-400">
+          <p data-i18n="friends.noFriendsFound">No friends found matching "${search}"</p>
+        </div>
+      `;
+      window.languageManager?.applyTranslations();
+    }
   } else {
+    // Hide search box when no friends
+    const searchBox = document.getElementById('friendsSearchBox');
+    if (searchBox) {
+      searchBox.classList.add('hidden');
+    }
+    
     container.innerHTML = `
       <div class="card text-center">
         <p class="text-gray-400 mb-4" data-i18n="friends.noFriends">You don't have any friends yet.</p>
-        <a href="#players" class="btn btn-blue" data-i18n="friends.findPlayers">🔍 Find Players</a>
+        <button onclick="navigate('players')" class="btn btn-blue" data-i18n="friends.findPlayers">🔍 Find Players</button>
       </div>
     `;
     window.languageManager?.applyTranslations();
@@ -468,6 +515,9 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
           day: 'numeric',
           year: 'numeric'
         });
+		const gameTypeLower = (match.gameType || 'pong').toLowerCase();
+		const gameTypeLabel = gameTypeLower === 'tictactoe' ? '❌⭕ TicTacToe' : '🏓 Pong';
+		const gameTypeBg = gameTypeLower === 'tictactoe' ? 'bg-blue-700' : 'bg-cyan-700';
 
         return `
           <div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
@@ -476,6 +526,7 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
                 <div class="flex items-center gap-2 mb-1">
                   <span class="text-lg">${resultIcon}</span>
                   <span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+				  <span class="text-xs ${gameTypeBg} px-2 py-0.5 rounded">${gameTypeLabel}</span>
                   ${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
                 </div>
                 <div class="text-sm text-gray-400">
@@ -635,6 +686,32 @@ function switchFriendsTab(tab: string): void {
   }
 
   loadTab(tab);
+}
+
+function setupFriendsSearchHandlers(): void {
+  // Search button
+  const searchBtn = document.getElementById('searchFriendsBtn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', searchFriends);
+  }
+  
+  // Search on Enter key
+  const searchInput = document.getElementById('friendsSearch') as HTMLInputElement;
+  if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchFriends();
+      }
+    });
+  }
+}
+
+function searchFriends(): void {
+  const searchInput = document.getElementById('friendsSearch') as HTMLInputElement;
+  const container = document.getElementById('friendsContent');
+  if (searchInput && container) {
+    loadFriends(container, searchInput.value);
+  }
 }
 
 // Expose functions globally

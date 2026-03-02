@@ -18,6 +18,23 @@
 		"unsupportedLanguage": "Unsupported language",
 		"languageChanged": "Language changed successfully"
 	},
+	"navBar": {
+		"home": "Home",
+		"games": "Games",
+		"tournament": "Tournament",
+		"players": "Players",
+		"friends": "Friends",
+		"test": "Test",
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"login": "Login"
+	},
+	"footer": {
+		"copy": "© 2026 Transcendence. All rights reserved.",
+		"privacyPolicy": "Privacy Policy",
+		"termsOfService": "Terms of Service",
+		"dataManagement": "Data Management"
+	},
 	"auth": {
 		"title": "Authentication",
 		"subtitle": "System protected with ModSecurity and HashiCorp Vault",
@@ -51,7 +68,6 @@
 			"Anti-DDoS Rate Limiting"
 		]
 	},
-
 	"profile": {
 		"adminPanel": "Administration Panel",
 		"manageUsers": "Manage Users",
@@ -112,7 +128,8 @@
 		"showMatchHistory": "📊 View Match History & Stats",
 		"hideMatchHistory": "Hide Match History",
 		"madeBy": "Made by DaBesTim",
-		"dashboard": "📊 Dashboard"
+		"dashboard": "📊 Dashboard",
+		"uploadAvatar2": "Upload Avatar"
 	},
 	"2fa": {
 		"disabledSuccess": "2FA disabled successfully",
@@ -260,6 +277,9 @@
 		"usernameLength": "Username must be between 3 and 30 characters",
 		"usernameInvalidChars": "Username can only contain letters, numbers, underscores, and hyphens",
 		"usernameReserved": "This username is not allowed",
+		"displayNameRequired": "Display name is required",
+		"displayNameInvalid": "Display name must be a valid text",
+		"displayNameLength": "Display name must be 30 characters or less",
 		"passwordMinLength": "Password must be at least 8 characters long",
 		"passwordUppercase": "Password must contain at least one uppercase letter",
 		"passwordLowercase": "Password must contain at least one lowercase letter",
@@ -298,6 +318,7 @@
 	},
 	"players": {
 		"title": "👥 Players",
+		"search": "🔍 Search",
 		"searchPlaceholder": "Search players...",
 		"search": "🔍 Search",
 		"noPlayersFound": "No players found",
@@ -329,7 +350,10 @@
 		"requests": "📬 Requests",
 		"sent": "📤 Sent",
 		"noFriends": "You don't have any friends yet.",
-		"findPlayers": "🔍 Find Players",
+		"findPlayers": "🔍 Find Friends",
+		"searchPlaceholder": "Search friends...",
+		"search": "🔍 Search",
+		"noFriendsFound": "No friends found",
 		"noRequests": "No pending friend requests.",
 		"noSent": "No pending sent requests.",
 		"viewProfile": "👤 Profile",
@@ -409,38 +433,5 @@
 		"mode": "Mode",
 		"timed": "Timed",
 		"gravity": "Gravity"
-	},
-	"tournament":{
-		"mode": "Tournament",
-		"pongPvP": "Pong - PVP",
-		"humanOnly": "Human players only",
-		"pongAI": "Pong - AI",
-		"humanVSComputer": "Players vs computer",
-		"ttt":"Tic-Tac-Toe",
-		"setup": "🏆 Tournament Setup",
-		"player": "Player",
-		"guest": "🎮 Guest",
-		"registered": "👤 Registered",
-		"guestNamePlaceholder": "Guest name",
-		"registeredNamePlaceholder": "Registered username",
-		"registeredNameHint": "Enter the exact username",
-		"aiPlayerLabel": "🤖 AI Player",
-		"ai": "AI",
-		"difficulty": "Difficulty",
-		"start": "Start Tournament",
-		"notFound": "No tournament found",
-		"title": "🏆 Pong Tournament",
-		"round": "Round",
-		"current": "(Current)",
-		"winner": "Winner",
-		"nextMatch": "⏳ Next Match",
-		"pending": "Pending",
-		"vs" : "vs",
-		"playNext": "▶️ Play Next Match",
-		"humanAI": "Human players + AI",
-		"verifyPlayer": "Verify Player",
-		"verifyPlayerHint": "The player must log in to confirm their identity",
-		"playerAlreadyInTournament": "✗ This player is already in the tournament",
-		"playerVerifiedSuffix": "verified!"
 	}
 }

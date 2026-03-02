@@ -42,8 +42,8 @@ let initTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let gameOn = false;
 let isAI = false;
 let difficulty = 3;
-let paddleHeight = 100; // Default paddle height
-let backgroundType = 'default'; // Background type
+let paddleHeight = 100;
+let backgroundType = 'default';
 
 // Player info for current game
 let player1: Player;
@@ -109,6 +109,8 @@ export function initPongGame(config: {
     ctx = canvas.getContext('2d')!;
     canvas.width = 800;
     canvas.height = 600;
+    resizePong();
+    window.addEventListener('resize', resizePong);
 
     // Reset game state
     gameOn = false;
@@ -119,14 +121,12 @@ export function initPongGame(config: {
     paddle2.h = paddleHeight;
     paddle1.dy = paddle2.dy = 0;
     resetBall();
-    
-    // Reset AI state
+
     aiLastUpdate = 0;
     aiDecision = '';
     aiTargetY = 250;
     Object.keys(keys).forEach(key => keys[key] = false);
-    
-    // Show exit button
+
     const exitContainer = document.getElementById('exitGameContainer');
     if (exitContainer) exitContainer.classList.remove('hidden');
     
@@ -137,9 +137,7 @@ export function initPongGame(config: {
 function resetBall(direction?: 'left' | 'right'): void {
   ball.x = 400;
   ball.y = 300;
-  
-  // If a direction is specified (after scoring), ball goes to that side
-  // Otherwise, random direction (at game start)
+
   if (direction === 'left') {
     ball.dx = -INITIAL_BALL_SPEED;
   } else if (direction === 'right') {
@@ -149,33 +147,24 @@ function resetBall(direction?: 'left' | 'right'): void {
   }
   
   ball.dy = (Math.random() > 0.5 ? 1 : -1) * INITIAL_BALL_SPEED;
-  
-  // Update AI target on ball reset
+
   if (isAI) {
     updateAITarget();
   }
 }
 
-/**
- * Predice dónde estará la bola cuando llegue al paddle de la IA
- * Considera rebotes en paredes superior e inferior con simulación física
- */
 function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
-  // Copiar estado para no modificar el original
   let x = ballState.x;
   let y = ballState.y;
   let dx = ballState.dx;
   let dy = ballState.dy;
 
-  // Si la bola no se dirige hacia la IA, retornar posición actual
   if (dx <= 0) return y;
 
-  // Simular el movimiento de la bola hasta que alcance la posición X del paddle
   while (x < paddleX - ballState.r) {
     x += dx;
     y += dy;
 
-    // Simular rebotes en paredes superior e inferior
     if (y - ballState.r < 0) {
       y = ballState.r;
       dy = -dy;
@@ -188,19 +177,14 @@ function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
   return y;
 }
 
-/**
- * Actualiza el objetivo de la IA con predicción mejorada y margen de error
- */
 function updateAITarget(): void {
   const predictedY = predictBallYAtPaddle(ball, paddle2.x);
-  
-  // Agregar margen de error aleatorio basado en la dificultad
+
   const errorMargin = difficulty === 2 ? 60 : difficulty === 3 ? 40 : 20;
   const randomOffset = (Math.random() - 0.5) * errorMargin;
   
   aiTargetY = predictedY - paddle2.h / 2 + randomOffset;
-  
-  // Mantener dentro de los límites
+
   if (aiTargetY < 0) aiTargetY = 0;
   if (aiTargetY > canvas.height - paddle2.h) {
     aiTargetY = canvas.height - paddle2.h;
@@ -486,8 +470,17 @@ export function showWinnerOverlay(winnerName: string, onContinue: () => void): v
   }, 3000);
 }
 
+function resizePong(): void {
+  if (!canvas) return;
+  const maxW = Math.min(window.innerWidth - 32, 800);
+  const scale = maxW / 800;
+  canvas.style.width = `${Math.round(800 * scale)}px`;
+  canvas.style.height = `${Math.round(600 * scale)}px`;
+}
+
 export function stopPongGame(): void {
   gameOn = false;
+  window.removeEventListener('resize', resizePong);
 
   if (animationId) {
     cancelAnimationFrame(animationId);

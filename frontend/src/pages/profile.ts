@@ -75,7 +75,7 @@ export function renderProfile(): string {
           <input type="file" id="avatarFile" accept=".jpg,.jpeg,image/jpeg" class="w-full p-2 rounded bg-gray-700 text-white">
         </div>
 
-        <button onclick="uploadAvatar()" class="btn btn-blue mt-4">Upload Avatar</button>
+        <button onclick="uploadAvatar()" class="btn btn-blue mt-4" data-i18n="profile.uploadAvatar2">Upload Avatar</button>
         <button onclick="deleteAvatar()" class="btn btn-red mt-4" data-i18n="profile.deleteAvatar">🗑️ Remove Avatar</button>
         <button onclick="updateProfile()" class="btn btn-blue mt-4" data-i18n="profile.updatePersonalInfo">Update Personal Info</button>
 
@@ -329,6 +329,26 @@ async function updateProfile(): Promise<void> {
 	const display_name = (document.getElementById('displayName') as HTMLInputElement).value;
 	const email = (document.getElementById('newEmail') as HTMLInputElement).value;
 
+	// Validate display name (required)
+	if (!display_name || display_name.trim() === '') {
+		const msg = window.languageManager?.t('validation.displayNameRequired');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name is required',
+			'error'
+		);
+		return;
+	}
+
+	const trimmed = display_name.trim();
+	if (trimmed.length > 30) {
+		const msg = window.languageManager?.t('validation.displayNameLength');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name must be 30 characters or less',
+			'error'
+		);
+		return;
+	}
+
 	// Validate email if provided
 	if (email && email.trim() !== '') {
 		// Same validation as backend
@@ -531,6 +551,9 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 			day: 'numeric',
 			year: 'numeric'
 		});
+		const gameTypeLower = (match.gameType || 'pong').toLowerCase();
+		const gameTypeLabel = gameTypeLower === 'tictactoe' ? '❌⭕ TicTacToe' : '🏓 Pong';
+		const gameTypeBg = gameTypeLower === 'tictactoe' ? 'bg-blue-700' : 'bg-cyan-700';
 
 		return `
 					<div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
@@ -539,6 +562,7 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 								<div class="flex items-center gap-2 mb-1">
 									<span class="text-lg">${resultIcon}</span>
 									<span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+									<span class="text-xs ${gameTypeBg} px-2 py-0.5 rounded">${gameTypeLabel}</span>
 									${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
 								</div>
 								<div class="text-sm text-gray-400">
