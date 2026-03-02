@@ -9,10 +9,39 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token: totpToken, tempToken } = request.body;
 
+			// Validate required fields
 			if (!totpToken || !tempToken) {
 				return reply.status(422).send({
 					success: false,
-					error: '2fa.tokenRequired'
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof totpToken !== 'string' || typeof tempToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(totpToken)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
+			// Validate tempToken length
+			if (tempToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
 				});
 			}
 
@@ -101,6 +130,42 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token, setupToken } = request.body;
 
+			// Validate required fields
+			if (!token || !setupToken) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof token !== 'string' || typeof setupToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(token)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
+			// Validate setupToken length
+			if (setupToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
+				});
+			}
+
 			const decoded = await jwtService.verifyToken(setupToken);
 			if (!decoded?.setup2FA) {
 				return reply.status(422).send({
@@ -142,6 +207,34 @@ export default async function twoFactorRoutes(fastify) {
 	fastify.post('/disable', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
 			const { token } = request.body;
+
+			// Validate required field
+			if (!token) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_TOKEN'
+				});
+			}
+
+			// Validate type
+			if (typeof token !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(token)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
 			const user = await findUserById(request.user.id);
 
 			if (!user?.two_factor_enabled) {

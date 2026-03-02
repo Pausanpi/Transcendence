@@ -174,10 +174,41 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
+            // Validate body fields
+            const allowedFields = ['friend_username'];
+            const receivedFields = Object.keys(request.body || {});
+            const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+            if (unexpectedFields.length > 0) {
+                return reply.status(422).send({
+                    success: false,
+                    error: 'validation.unexpectedFields',
+                    code: 'UNEXPECTED_FIELDS'
+                });
+            }
+
             if (!friend_username) {
 				return reply.status(422).send({
                     success: false,
+                    error: 'validation.missingFields',
                     code: 'MISSING_FIELDS'
+                });
+            }
+
+            // Validate friend_username format
+            if (typeof friend_username !== 'string' || friend_username.length === 0 || friend_username.length > 255) {
+                return reply.status(422).send({
+                    success: false,
+                    error: 'validation.invalidUsername',
+                    code: 'INVALID_USERNAME'
+                });
+            }
+
+            // Basic sanitization check (alphanumeric, underscore, hyphen only)
+            if (!/^[a-zA-Z0-9_-]+$/.test(friend_username)) {
+                return reply.status(422).send({
+                    success: false,
+                    error: 'validation.invalidUsername',
+                    code: 'INVALID_USERNAME'
                 });
             }
 
@@ -200,6 +231,7 @@ export default async function friendsRoutes(fastify, options) {
             if (userId === friend_id) {
 				return reply.status(403).send({
                     success: false,
+                    error: 'validation.cannotAddSelf',
                     code: 'SELF_FRIEND'
                 });
             }
@@ -380,6 +412,18 @@ export default async function friendsRoutes(fastify, options) {
             (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
         const { id } = request.params;
         const { status } = request.body;
+
+        // Validate body fields
+        const allowedFields = ['status'];
+        const receivedFields = Object.keys(request.body || {});
+        const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+        if (unexpectedFields.length > 0) {
+            return reply.status(422).send({
+                success: false,
+                error: 'validation.unexpectedFields',
+                code: 'UNEXPECTED_FIELDS'
+            });
+        }
 
         const allowedStatuses = ['accepted', 'rejected', 'blocked'];
         if (!status || !allowedStatuses.includes(status)) {

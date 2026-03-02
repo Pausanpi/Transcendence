@@ -89,9 +89,20 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			if (request.body && request.body._dummy) {
-      delete request.body._dummy;
-    }
+			// Validate body - only _dummy field allowed (workaround for empty POST)
+			if (request.body) {
+				const allowedFields = ['_dummy'];
+				const receivedFields = Object.keys(request.body);
+				const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+				if (unexpectedFields.length > 0) {
+					return reply.status(422).send({
+						success: false,
+						error: 'validation.unexpectedFields',
+						code: 'UNEXPECTED_FIELDS'
+					});
+				}
+				delete request.body._dummy;
+			}
 
 			const user = await findUserById(request.user.id);
 			if (!user) {
@@ -104,7 +115,8 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(503).send({
 					success: false,
-					error: 'gdpr.anonymizationError'
+					error: 'gdpr.anonymizationError',
+					code: 'ANONYMIZATION_FAILED'
 				});
 			}
 
@@ -115,7 +127,8 @@ export default async function gdprRoutes(fastify, options) {
 		} catch (error) {
 			return reply.status(503).send({
 				success: false,
-				error: `gdpr.anonymizationError ${request.user.id}`
+				error: `gdpr.anonymizationError ${request.user.id}`,
+				code: 'INTERNAL_ERROR'
 			});
 		}
 	});
@@ -124,9 +137,21 @@ export default async function gdprRoutes(fastify, options) {
 		preHandler: authenticateUser
 	}, async (request, reply) => {
 		try {
-			if (request.body && request.body._dummy) {
-      delete request.body._dummy;
-    }
+			// Validate body - only _dummy field allowed (workaround for empty POST)
+			if (request.body) {
+				const allowedFields = ['_dummy'];
+				const receivedFields = Object.keys(request.body);
+				const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+				if (unexpectedFields.length > 0) {
+					return reply.status(422).send({
+						success: false,
+						error: 'validation.unexpectedFields',
+						code: 'UNEXPECTED_FIELDS'
+					});
+				}
+				delete request.body._dummy;
+			}
+
 			const user = await findUserById(request.user.id);
 			if (!user) {
 				return reply.status(404).send({
@@ -139,7 +164,8 @@ export default async function gdprRoutes(fastify, options) {
 			if (!exportData) {
 				return reply.status(503).send({
 					success: false,
-					error: 'gdpr.exportError'
+					error: 'gdpr.exportError',
+					code: 'EXPORT_FAILED'
 				});
 			}
 
@@ -152,7 +178,8 @@ export default async function gdprRoutes(fastify, options) {
 		} catch (error) {
 			return reply.status(503).send({
 				success: false,
-				error: 'gdpr.exportError'
+				error: 'gdpr.exportError',
+				code: 'INTERNAL_ERROR'
 			});
 		}
 	});
@@ -162,6 +189,36 @@ export default async function gdprRoutes(fastify, options) {
 	}, async (request, reply) => {
 		try {
 			const { confirmation } = request.body;
+
+			// Validate body fields
+			const allowedFields = ['confirmation'];
+			const receivedFields = Object.keys(request.body || {});
+			const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+			if (unexpectedFields.length > 0) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.unexpectedFields',
+					code: 'UNEXPECTED_FIELDS'
+				});
+			}
+
+			// Validate confirmation field
+			if (!confirmation) {
+				return reply.status(422).send({
+					success: false,
+					error: 'gdpr.confirmationRequired',
+					code: 'MISSING_CONFIRMATION'
+				});
+			}
+
+			if (typeof confirmation !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
 			const user = await findUserById(request.user.id);
 
 			if (!user) {
@@ -175,7 +232,8 @@ export default async function gdprRoutes(fastify, options) {
 			if (confirmation !== confirmationText) {
 				return reply.status(422).send({
 					success: false,
-					error: 'gdpr.invalidConfirmation'
+					error: 'gdpr.invalidConfirmation',
+					code: 'INVALID_CONFIRMATION'
 				});
 			}
 
@@ -183,7 +241,8 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(503).send({
 					success: false,
-					error: 'gdpr.deletionError'
+					error: 'gdpr.deletionError',
+					code: 'DELETION_FAILED'
 				});
 			}
 
@@ -194,7 +253,8 @@ export default async function gdprRoutes(fastify, options) {
 		} catch (error) {
 			return reply.status(503).send({
 				success: false,
-				error: 'gdpr.deletionError'
+				error: 'gdpr.deletionError',
+				code: 'INTERNAL_ERROR'
 			});
 		}
 	});
@@ -204,12 +264,58 @@ export default async function gdprRoutes(fastify, options) {
 	}, async (request, reply) => {
 		try {
 			const { marketingEmails, analytics, dataProcessing } = request.body;
+
+			// Validate body fields
+			const allowedFields = ['marketingEmails', 'analytics', 'dataProcessing'];
+			const receivedFields = Object.keys(request.body || {});
+			const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+			if (unexpectedFields.length > 0) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.unexpectedFields',
+					code: 'UNEXPECTED_FIELDS'
+				});
+			}
+
+			// Validate types (should be boolean or convertible to boolean)
+			const validateBooleanField = (field, value) => {
+				if (value !== undefined && typeof value !== 'boolean' && typeof value !== 'number' && typeof value !== 'string') {
+					return false;
+				}
+				return true;
+			};
+
+			if (!validateBooleanField('marketingEmails', marketingEmails)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			if (!validateBooleanField('analytics', analytics)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			if (!validateBooleanField('dataProcessing', dataProcessing)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
 			const user = await findUserById(request.user.id);
 
 			if (!user) {
 				return reply.status(404).send({
 					success: false,
-					error: 'messages.userNotFound'
+					error: 'messages.userNotFound',
+					code: 'USER_NOT_FOUND'
 				});
 			}
 
@@ -223,7 +329,8 @@ export default async function gdprRoutes(fastify, options) {
 			if (!success) {
 				return reply.status(503).send({
 					success: false,
-					error: 'gdpr.consentUpdateError'
+					error: 'gdpr.consentUpdateError',
+					code: 'CONSENT_UPDATE_ERROR'
 				});
 			}
 
@@ -234,7 +341,8 @@ export default async function gdprRoutes(fastify, options) {
 		} catch (error) {
 			return reply.status(503).send({
 				success: false,
-				error: 'gdpr.consentUpdateError'
+				error: 'gdpr.consentUpdateError',
+				code: 'INTERNAL_ERROR'
 			});
 		}
 	});
