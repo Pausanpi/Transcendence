@@ -75,6 +75,8 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [ ] **032**: Aded security audit file wiht some problematic endpoints. (lcuevas- / lcuevas-)
 - [ ] **033**: It seems we make a lot of endpoints generate generic errors, 400 or 500, we have to change that to specific ones and handle it in the forntend (lcuevas- / todo)
 - [ ] **034**: Better check the responsivnes of the profile page, seem to have some limits (lcuevas- / todo)
+- [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
+- [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)
 
 # Solved Bug reports
 
@@ -95,3 +97,6 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **006**: Navbar is not translated. Some buttons like "Dashboard" and titles  like "Players" in front page also (lcuevas- / pausanch)
 - [x] **021**: Logout button behaves weirdly. Check browser console nad network. The endpoint was deprecated, enrouted to a valid exisiting one and parsed some errors. Also it needed a body to be accepted
 Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
+- [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
+Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
+- [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)

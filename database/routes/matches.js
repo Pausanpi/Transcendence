@@ -60,10 +60,10 @@ export default async function matchesRoutes(fastify, options) {
 				return { success: true, matchId: result.id };
 			} catch (error) {
 				console.error('Error creating tournament match:', error);
-				return reply.status(500).send({
-					error: 'Database error',
+				return reply.status(503).send({
+					error: 'database.writeError',
 					success: false,
-					code: 'DB_ERROR'
+					code: 'DB_WRITE_ERROR'
 				});
 			}
 		}
@@ -125,10 +125,10 @@ export default async function matchesRoutes(fastify, options) {
 			return { success: true, matchId: result.id };
 		} catch (error) {
 			console.error('Error creating match:', error);
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.writeError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_WRITE_ERROR'
 			});
 		}
 	});
@@ -148,10 +148,10 @@ export default async function matchesRoutes(fastify, options) {
 			}
 			return { success: true, match };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -171,10 +171,10 @@ export default async function matchesRoutes(fastify, options) {
 			);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -192,10 +192,10 @@ export default async function matchesRoutes(fastify, options) {
 			);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -219,10 +219,10 @@ export default async function matchesRoutes(fastify, options) {
 			const matches = await db.all(sql, params);
 			return { success: true, matches };
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});
@@ -265,10 +265,10 @@ export default async function matchesRoutes(fastify, options) {
 				recentMatches
 			};
 		} catch (error) {
-			return reply.status(500).send({
-				error: 'Database error',
+			return reply.status(503).send({
+				error: 'database.queryError',
 				success: false,
-				code: 'DB_ERROR'
+				code: 'DB_QUERY_ERROR'
 			});
 		}
 	});

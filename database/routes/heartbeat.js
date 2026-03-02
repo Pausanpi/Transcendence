@@ -44,9 +44,10 @@ export default async function heartbeatRoutes(fastify, options) {
 			};
 		} catch (error) {
 			console.error('Heartbeat error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
-				error: 'common.internalError'
+				error: 'database.writeError',
+				code: 'DB_WRITE_ERROR'
 			});
 		}
 	});
@@ -83,10 +84,10 @@ export default async function heartbeatRoutes(fastify, options) {
 			}
 			
 			// Database connection or other critical errors
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
-				error: 'database.connectionError',
-				code: 'DB_CONNECTION_ERROR',
+				error: 'database.writeError',
+				code: 'DB_WRITE_ERROR',
 				details: error.message
 			});
 		}
