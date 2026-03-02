@@ -21,7 +21,7 @@ export function startCurrentMatch(): void {
 	const match = getCurrentMatch(tournament);
 	if (!match) return;
 
-	console.log("Starting match:", match.player1.name, "vs", match.player2.name);
+	//console.log("Starting match:", match.player1.name, "vs", match.player2.name);
 
 	startGameSession({
 		player1: match.player1,

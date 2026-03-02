@@ -154,7 +154,7 @@ export async function saveMatch(result: MatchResult): Promise<{
 	// Only save matches where at least one player is logged in
 	const hasLoggedInPlayer = result.player1.id !== null || result.player2.id !== null;
 	if (!hasLoggedInPlayer) {
-		console.log('Match not saved: no logged-in players (guest vs guest)');
+		//console.log('Match not saved: no logged-in players (guest vs guest)');
 		return { success: true, skipped: true };
 	}
 

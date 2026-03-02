@@ -197,7 +197,7 @@ export async function saveTournamentMatch(
 	const hasRegisteredPlayer = !player1.isGuest || !player2.isGuest;
 
 	if (!hasRegisteredPlayer) {
-		console.log('Match not saved: both players are guests');
+		//console.log('Match not saved: both players are guests');
 		return { success: true };
 	}
 
