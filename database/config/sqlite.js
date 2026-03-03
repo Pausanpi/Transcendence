@@ -53,17 +53,6 @@ class Database {
             )
         `;
 
-		const sessionsTable = `
-            CREATE TABLE IF NOT EXISTS user_sessions (
-                id TEXT PRIMARY KEY,
-                user_id TEXT,
-                jwt_token TEXT,
-                expires_at DATETIME,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-            )
-        `;
-
 		const backupCodesTable = `
             CREATE TABLE IF NOT EXISTS backup_codes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,10 +134,6 @@ class Database {
 
 		this.run(usersTable).catch(err => {
 			console.error('Error creating users table:', err);
-		});
-
-		this.run(sessionsTable).catch(err => {
-			console.error('Error creating sessions table:', err);
 		});
 
 		this.run(backupCodesTable).catch(err => {

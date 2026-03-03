@@ -59,6 +59,7 @@ async function startGateway() {
 
 		const publicRoutes = [
 			'/api/2fa/verify-login',
+			'/api/2fa/verify-backup-code',
 			'/api/oauth/github',
 			'/api/oauth/github/callback',
 			'/api/auth/health',

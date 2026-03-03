@@ -16,7 +16,6 @@ export default async function databaseRoutes(fastify, options) {
 					'/users/email/:email',
 					'/users',
 					'/users/all',
-					'/sessions',
 					'/backup-codes',
 					'/query'
 				]

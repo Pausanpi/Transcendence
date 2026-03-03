@@ -77,6 +77,8 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [ ] **034**: Better check the responsivnes of the profile page, seem to have some limits (lcuevas- / todo)
 - [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
 - [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)
+- [x] **037**: 2fa recovery codes can't be used. (lcuevas- / lcuevas-)
+
 
 # Solved Bug reports
 
@@ -107,3 +109,4 @@ Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
 - [x] **018**: Promehteus and grapahan are deactivated. THey will be out ot the final product for the time being(lcuevas- / csubires)
 - [x] **014**: IA movement overshoots and never stop mooving. It is better now with higer difficulties. Even tho is true that it is always mooving, but that makes it able to loose (lcuevas- / pausanch)
 - [x] **013**: Oauth 2 Deactivated, reactivate with API key?. Reactivated, now we need a .env with some credentials, csubires are the ones that we use at the moment (lcuevas- / csubires)
+- [x] **037**: 2fa recovery codes can't be used. They needed to be regostered as a public route and logic had to be updated. Translation updated (lcuevas- / lcuevas-)
