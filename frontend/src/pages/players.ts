@@ -1,8 +1,7 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
-	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -14,12 +13,12 @@ interface PlayerStats {
 	wins: number;
 	losses: number;
 	win_rate: number;
+	tournament_wins: number;
 }
 
 interface MatchHistoryItem {
 	id: number;
 	opponent: {
-		id: string;
 		name: string;
 	};
 	playerScore: number;
@@ -32,7 +31,6 @@ interface MatchHistoryItem {
 }
 
 interface PlayerProfile {
-	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -43,8 +41,15 @@ interface PlayerProfile {
 	match_history: MatchHistoryItem[];
 }
 
+interface LeaderboardEntry {
+	username: string;
+	display_name: string | null;
+	avatar: string | null;
+	online_status: string;
+	stats: PlayerStats;
+}
+
 export function renderPlayers(): string {
-	console.log('[DEBUG] renderPlayers called');
 	setTimeout(() => {
 		loadPlayers();
 		setupPlayerCardClickHandlers();
@@ -59,6 +64,7 @@ export function renderPlayers(): string {
           <input id="playerSearch" type="text" placeholder="Search players..."
                  class="input flex-1" data-i18n-placeholder="players.searchPlaceholder" />
           <button id="searchPlayersBtn" class="btn btn-blue" data-i18n="players.search">🔍 Search</button>
+          <button id="leaderboardBtn" class="btn btn-yellow" data-i18n="players.leaderboard">🏆 Leaderboard</button>
         </div>
       </div>
 
@@ -82,34 +88,42 @@ export function renderPlayers(): string {
           </div>
         </div>
       </div>
+
+      <!-- Leaderboard Modal -->
+      <div id="leaderboardModal" class="modal hidden">
+        <div class="modal-content card max-w-4xl max-h-[90vh] overflow-y-auto">
+          <h3 class="text-2xl font-bold text-yellow-400 mb-6 text-center" data-i18n="players.leaderboardTitle">🏆 Top Players Leaderboard</h3>
+          <div id="leaderboardContent"></div>
+          <div class="flex gap-4 mt-6">
+            <button id="closeLeaderboardBtn" class="btn btn-gray flex-1" data-i18n="common.close">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
 
 function setupPlayerCardClickHandlers(): void {
-	console.log('[DEBUG] Setting up player card click handlers');
-	
 	// Event delegation for player cards
 	const playersList = document.getElementById('playersList');
 	if (playersList) {
 		playersList.addEventListener('click', (e) => {
-			const card = (e.target as HTMLElement).closest('[data-player-id]');
+			const card = (e.target as HTMLElement).closest('[data-player-username]');
 			if (card) {
-				const playerId = card.getAttribute('data-player-id');
-				console.log('[DEBUG] Player card clicked, playerId:', playerId);
-				if (playerId) {
-					viewPlayer(playerId);
+				const username = card.getAttribute('data-player-username');
+				if (username) {
+					viewPlayer(username);
 				}
 			}
 		});
-		console.log('[DEBUG] Player card click handler attached');
 	}
 	
 	// Search button
 	const searchBtn = document.getElementById('searchPlayersBtn');
 	if (searchBtn) {
 		searchBtn.addEventListener('click', searchPlayers);
-		console.log('[DEBUG] Search button handler attached');
 	}
 	
 	// Search on Enter key
@@ -120,22 +134,30 @@ function setupPlayerCardClickHandlers(): void {
 				searchPlayers();
 			}
 		});
-		console.log('[DEBUG] Search input Enter key handler attached');
+	}
+	
+	// Leaderboard button
+	const leaderboardBtn = document.getElementById('leaderboardBtn');
+	if (leaderboardBtn) {
+		leaderboardBtn.addEventListener('click', showLeaderboard);
 	}
 	
 	// Close modal button
 	const closeBtn = document.getElementById('closeModalBtn');
 	if (closeBtn) {
 		closeBtn.addEventListener('click', closePlayerModal);
-		console.log('[DEBUG] Close modal button handler attached');
+	}
+	
+	// Close leaderboard button
+	const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+	if (closeLeaderboardBtn) {
+		closeLeaderboardBtn.addEventListener('click', closeLeaderboardModal);
 	}
 }
 
 async function loadPlayers(search: string = ''): Promise<void> {
-	console.log('[DEBUG] loadPlayers called with search:', search);
 	const container = document.getElementById('playersList');
 	if (!container) {
-		console.error('[DEBUG] playersList container not found!');
 		return;
 	}
 
@@ -143,8 +165,6 @@ async function loadPlayers(search: string = ''): Promise<void> {
 		const response = await api<{ success: boolean; users: PlayerListItem[] }>(
 			`/api/database/players?search=${encodeURIComponent(search)}&limit=50`
 		);
-
-		console.log('[DEBUG] loadPlayers response:', response);
 
 		if (response.success && response.users.length > 0) {
 			// Render immediately with default avatars for speed
@@ -155,12 +175,12 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			response.users.forEach(async (player, index) => {
 				try {
 					const avatarUrl = await loadAvatar(player.avatar);
-					const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
+					const imgElement = container.querySelector(`[data-player-username="${player.username}"] img`);
 					if (imgElement && avatarUrl) {
 						(imgElement as HTMLImageElement).src = avatarUrl;
 					}
 				} catch (error) {
-					console.error(`Failed to load avatar for player ${player.id}:`, error);
+					console.error(`Failed to load avatar for player ${player.username}:`, error);
 					// Avatar will remain as default
 				}
 			});
@@ -173,13 +193,11 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		console.error('Error loading players:', error);
-		// Show authRequired if backend error is 'auth.authenticationRequired', else show loadError
-		let isAuthError = false;
-		if (error && error.message === 'auth.authenticationRequired') {
-			isAuthError = true;
+		// Only log server errors - auth errors shown to user
+		if (error instanceof ServerError) {
+			console.error('Server error loading players:', error);
 		}
-		let message = isAuthError
+		let message = error instanceof AuthError
 			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
 			: '<p data-i18n="players.loadError">Failed to load players</p>';
 		container.innerHTML = `
@@ -197,7 +215,7 @@ function renderPlayerCard(player: PlayerListItem): string {
 
 	// REMOVED inline onclick - using event delegation instead
 	return `
-		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}">
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-username="${player.username}">
 			<div class="flex items-center gap-4">
 				<div class="relative">
 					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
@@ -216,20 +234,12 @@ function renderPlayerCard(player: PlayerListItem): string {
 	`;
 }
 
-async function viewPlayer(playerId: string): Promise<void> {
-	console.log('[DEBUG] viewPlayer called for playerId:', playerId);
+async function viewPlayer(username: string): Promise<void> {
 	const modal = document.getElementById('playerModal');
 	const content = document.getElementById('playerModalContent');
 	const addFriendBtn = document.getElementById('addFriendBtn');
 
-	console.log('[DEBUG] DOM elements:', { 
-		modal: modal ? 'found' : 'NOT FOUND', 
-		content: content ? 'found' : 'NOT FOUND',
-		addFriendBtn: addFriendBtn ? 'found' : 'NOT FOUND'
-	});
-
 	if (!modal || !content) {
-		console.error('[DEBUG] Required DOM elements not found!');
 		return;
 	}
 
@@ -242,11 +252,9 @@ async function viewPlayer(playerId: string): Promise<void> {
 		</div>
 	`;
 	modal.classList.remove('hidden');
-	console.log('[DEBUG] Modal shown, loading player data...');
 
 	try {
-		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${playerId}`);
-		console.log('[DEBUG] Player profile response:', response);
+		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${encodeURIComponent(username)}`);
 
 		if (response.success && response.user) {
 			const player = response.user;
@@ -267,7 +275,7 @@ async function viewPlayer(playerId: string): Promise<void> {
 				</div>
 
 				<!-- Stats Grid -->
-				<div class="grid grid-cols-4 gap-3 mb-6">
+				<div class="grid grid-cols-5 gap-3 mb-6">
 					<div class="bg-gray-800 rounded-lg p-3 text-center">
 						<p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
@@ -284,6 +292,10 @@ async function viewPlayer(playerId: string): Promise<void> {
 						<p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
 					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-purple-400">${player.stats.tournament_wins || 0}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
+					</div>
 				</div>
 
 				<!-- Match History -->
@@ -293,48 +305,30 @@ async function viewPlayer(playerId: string): Promise<void> {
 				</div>
 			`;
 
-			console.log('[DEBUG] Content updated, applying translations...');
-			
 			// Apply translations first
 			if (window.languageManager) {
 				window.languageManager.applyTranslations();
-				console.log('[DEBUG] Translations applied');
-			} else {
-				console.warn('[DEBUG] languageManager not available');
 			}
 			
 			// Set up the Add Friend button handler
 			setTimeout(() => {
 				const btn = document.getElementById('addFriendBtn');
-				console.log('[DEBUG] Setting up Add Friend button handler, button found:', btn ? 'YES' : 'NO');
 				
 				if (btn) {
-					console.log('[DEBUG] Button current state:', {
-						innerHTML: btn.innerHTML,
-						disabled: btn.hasAttribute('disabled'),
-						classes: btn.className
-					});
 					
 					// Remove any existing click handler
 					const newBtn = btn.cloneNode(true) as HTMLButtonElement;
 					btn.parentNode?.replaceChild(newBtn, btn);
 					
 					// Set up the click handler on the fresh button
-					newBtn.setAttribute('data-player-id', playerId);
+					newBtn.setAttribute('data-player-username', username);
 					newBtn.addEventListener('click', () => {
-						console.log('[DEBUG] Add Friend button clicked!');
-						addFriend(playerId);
+						addFriend(username);
 					});
-					
-					console.log('[DEBUG] Add Friend button handler attached successfully');
-				} else {
-					console.error('[DEBUG] addFriendBtn not found in DOM!');
-					console.log('[DEBUG] All buttons in modal:', document.querySelectorAll('#playerModal button'));
 				}
 			}, 50);
 		}
 	} catch (error: any) {
-		console.error('[DEBUG] Error loading player profile:', error);
 		let isAuthError = false;
 		if (error && error.message === 'auth.authenticationRequired') {
 			isAuthError = true;
@@ -368,6 +362,9 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 			day: 'numeric',
 			year: 'numeric'
 		});
+		const gameTypeLower = (match.gameType || 'pong').toLowerCase();
+		const gameTypeLabel = gameTypeLower === 'tictactoe' ? '❌⭕ TicTacToe' : '🏓 Pong';
+		const gameTypeBg = gameTypeLower === 'tictactoe' ? 'bg-blue-700' : 'bg-cyan-700';
 
 		return `
 					<div class="border ${resultColor} rounded-lg p-3 hover:shadow-lg transition-shadow">
@@ -376,6 +373,7 @@ function renderMatchHistory(matches: MatchHistoryItem[]): string {
 								<div class="flex items-center gap-2 mb-1">
 									<span class="text-lg">${resultIcon}</span>
 									<span class="font-bold ${match.won ? 'text-green-400' : 'text-red-400'}" data-i18n="${resultKey}">${resultDefault}</span>
+									<span class="text-xs ${gameTypeBg} px-2 py-0.5 rounded">${gameTypeLabel}</span>
 									${match.tournamentId ? `<span class="text-xs bg-purple-600 px-2 py-0.5 rounded" data-i18n="players.tournament">Tournament</span>` : ''}
 								</div>
 								<div class="text-sm text-gray-400">
@@ -405,21 +403,16 @@ function formatDuration(seconds: number): string {
 }
 
 function closePlayerModal(): void {
-	console.log('[DEBUG] closePlayerModal called');
 	const modal = document.getElementById('playerModal');
 	if (modal) {
 		modal.classList.add('hidden');
 	}
 }
 
-async function addFriend(playerId: string): Promise<void> {
-	console.log('[DEBUG] ===== addFriend called for playerId:', playerId, '=====');
+async function addFriend(username: string): Promise<void> {
 	const btn = document.getElementById('addFriendBtn');
 	
-	console.log('[DEBUG] Button found:', btn ? 'YES' : 'NO');
-	
 	if (btn) {
-		console.log('[DEBUG] Disabling button and showing loading state...');
 		btn.setAttribute('disabled', 'true');
 		btn.setAttribute('data-i18n', 'players.sendingRequest');
 		btn.innerHTML = '⏳ Sending...';
@@ -427,25 +420,20 @@ async function addFriend(playerId: string): Promise<void> {
 	}
 
 	try {
-		console.log('[DEBUG] Checking friend status...');
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
-			(`/api/database/friends/me/check/${playerId}`);
-
-		console.log('[DEBUG] Check response:', checkResponse);
+			(`/api/database/friends/me/check/${encodeURIComponent(username)}`);
 
 		if (checkResponse.success && checkResponse.status !== 'none') {
 			if (btn) {
 				btn.removeAttribute('disabled');
 				if (checkResponse.status === 'pending') {
-					console.log('[DEBUG] Request already pending');
 					btn.setAttribute('data-i18n', 'players.requestPending');
 					btn.innerHTML = '⏳ Request Pending';
 					btn.classList.remove('btn-green');
 					btn.classList.add('btn-gray');
 					window.languageManager?.applyTranslations();
 				} else if (checkResponse.status === 'accepted') {
-					console.log('[DEBUG] Already friends');
 					btn.setAttribute('data-i18n', 'players.alreadyFriends');
 					btn.innerHTML = '✓ Already Friends';
 					btn.classList.remove('btn-green');
@@ -456,17 +444,13 @@ async function addFriend(playerId: string): Promise<void> {
 			return;
 		}
 
-		console.log('[DEBUG] Sending friend request...');
 		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
-			body: JSON.stringify({ friend_id: playerId })
+			body: JSON.stringify({ friend_username: username })
 		});
 
-		console.log('[DEBUG] Friend request response:', response);
-
 		if (response.success) {
-			console.log('[DEBUG] Friend request sent successfully!');
 			if (btn) {
 				btn.setAttribute('data-i18n', 'players.requestSent');
 				btn.innerHTML = '✓ Request Sent!';
@@ -476,7 +460,6 @@ async function addFriend(playerId: string): Promise<void> {
 			}
 			showToast('Friend request sent!', 'success');
 		} else {
-			console.error('[DEBUG] Friend request failed:', response.error);
 			if (btn) {
 				btn.removeAttribute('disabled');
 				btn.setAttribute('data-i18n', 'players.addFriend');
@@ -486,7 +469,10 @@ async function addFriend(playerId: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
-		console.error('[DEBUG] Error in addFriend:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error sending friend request:', error);
+		}
 		if (btn) {
 			btn.removeAttribute('disabled');
 			btn.setAttribute('data-i18n', 'players.addFriend');
@@ -498,7 +484,6 @@ async function addFriend(playerId: string): Promise<void> {
 }
 
 function showToast(message: string, type: 'success' | 'error'): void {
-	console.log('[DEBUG] showToast:', message, type);
 	// Use i18n for known messages if possible
 	let translated = message;
 	if (window.languageManager?.t) {
@@ -526,10 +511,133 @@ function showToast(message: string, type: 'success' | 'error'): void {
 }
 
 function searchPlayers(): void {
-	console.log('[DEBUG] searchPlayers called');
 	const searchInput = document.getElementById('playerSearch') as HTMLInputElement;
 	if (searchInput) {
 		loadPlayers(searchInput.value);
+	}
+}
+
+async function showLeaderboard(): Promise<void> {
+	const modal = document.getElementById('leaderboardModal');
+	const content = document.getElementById('leaderboardContent');
+	
+	if (!modal || !content) {
+		return;
+	}
+
+	// Show loading state
+	content.innerHTML = `
+		<div class="animate-pulse space-y-4">
+			<div class="h-20 bg-gray-700 rounded"></div>
+			<div class="h-20 bg-gray-700 rounded"></div>
+			<div class="h-20 bg-gray-700 rounded"></div>
+		</div>
+	`;
+	modal.classList.remove('hidden');
+
+	try {
+		const response = await api<{ success: boolean; leaderboard: LeaderboardEntry[] }>('/api/database/players/leaderboard?limit=5');
+
+		if (response.success && response.leaderboard.length > 0) {
+			// Load avatars for all players
+			const leaderboardWithAvatars = await Promise.all(
+				response.leaderboard.map(async (player, index) => {
+					const avatarUrl = await loadAvatar(player.avatar);
+					return { ...player, avatarUrl, rank: index + 1 };
+				})
+			);
+
+			content.innerHTML = `
+				<div class="space-y-4">
+					${leaderboardWithAvatars.map(player => renderLeaderboardCard(player)).join('')}
+				</div>
+			`;
+			window.languageManager?.applyTranslations();
+		} else {
+			content.innerHTML = `
+				<div class="card text-center text-gray-400">
+					<p data-i18n="players.noLeaderboardData">No leaderboard data available yet</p>
+				</div>
+			`;
+			window.languageManager?.applyTranslations();
+		}
+	} catch (error: any) {
+		let message = error instanceof AuthError
+			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
+			: '<p data-i18n="players.leaderboardError">Failed to load leaderboard</p>';
+		content.innerHTML = `
+			<div class="card text-center text-red-400">
+				${message}
+			</div>
+		`;
+		window.languageManager?.applyTranslations();
+	}
+}
+
+function renderLeaderboardCard(player: LeaderboardEntry & { avatarUrl: string; rank: number }): string {
+	const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
+	const rankColor = player.rank <= 3 ? rankColors[player.rank - 1] : 'text-cyan-400';
+	const rankEmojis = ['🥇', '🥈', '🥉'];
+	const rankEmoji = player.rank <= 3 ? rankEmojis[player.rank - 1] : `#${player.rank}`;
+	const statusColor = player.online_status === 'online' ? 'text-green-400' : 'text-gray-400';
+
+	return `
+		<div class="card border-2 ${player.rank === 1 ? 'border-yellow-400 bg-yellow-900/10' : player.rank === 2 ? 'border-gray-300 bg-gray-700/10' : player.rank === 3 ? 'border-orange-400 bg-orange-900/10' : 'border-gray-700'} cursor-pointer hover:border-cyan-400 transition-all" 
+		     data-player-username="${player.username}"
+		     onclick="window.viewPlayer('${player.username}')">
+			<div class="flex items-center gap-4">
+				<!-- Rank -->
+				<div class="text-4xl font-bold ${rankColor} w-16 text-center">
+					${rankEmoji}
+				</div>
+				
+				<!-- Avatar -->
+				<div class="relative">
+					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+					     src="${player.avatarUrl}"
+					     alt="${player.username}"
+					     onerror="this.src='/default-avatar.png'" />
+				</div>
+				
+				<!-- Player Info -->
+				<div class="flex-1">
+					<h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
+					<p class="text-sm text-gray-400">@${player.username}</p>
+					<p class="text-xs ${statusColor} mt-1">● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span></p>
+				</div>
+				
+				<!-- Stats -->
+				<div class="grid grid-cols-5 gap-3">
+					<div class="text-center">
+						<p class="text-lg font-bold text-yellow-400">${player.stats.games_played}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-green-400">${player.stats.wins}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-red-400">${player.stats.losses}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-blue-400">${player.stats.win_rate}%</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-purple-400">${player.stats.tournament_wins || 0}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
+function closeLeaderboardModal(): void {
+	const modal = document.getElementById('leaderboardModal');
+	if (modal) {
+		modal.classList.add('hidden');
 	}
 }
 
@@ -539,15 +647,13 @@ declare global {
 		viewPlayer: (id: string) => void;
 		closePlayerModal: () => void;
 		searchPlayers: () => void;
+		showLeaderboard: () => void;
+		closeLeaderboardModal: () => void;
 	}
 }
 
-console.log('[DEBUG] Exposing functions to window...');
 window.viewPlayer = viewPlayer;
 window.closePlayerModal = closePlayerModal;
 window.searchPlayers = searchPlayers;
-console.log('[DEBUG] Functions exposed:', {
-	viewPlayer: typeof window.viewPlayer,
-	closePlayerModal: typeof window.closePlayerModal,
-	searchPlayers: typeof window.searchPlayers
-});
+window.showLeaderboard = showLeaderboard;
+window.closeLeaderboardModal = closeLeaderboardModal;

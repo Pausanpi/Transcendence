@@ -20,7 +20,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true, user };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -44,7 +44,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true, user };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -65,7 +65,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true, userId: id };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -79,7 +79,7 @@ export default async function usersRoutes(fastify, options) {
 
 		const fields = Object.keys(updates);
 		if (fields.length === 0) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'No fields to update',
 				success: false,
 				code: 'NO_UPDATES'
@@ -97,7 +97,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -111,7 +111,7 @@ export default async function usersRoutes(fastify, options) {
 			await db.run('DELETE FROM users WHERE id = ?', [id]);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -124,7 +124,7 @@ export default async function usersRoutes(fastify, options) {
 			const users = await db.all('SELECT * FROM users ORDER BY created_at DESC');
 			return { success: true, users };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -150,7 +150,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -162,7 +162,7 @@ export default async function usersRoutes(fastify, options) {
 		const { user_id, codes } = request.body;
 
 		if (!user_id || !codes || !Array.isArray(codes)) {
-			return reply.status(400).send({
+			return reply.status(422).send({
 				error: 'Invalid request data',
 				success: false,
 				code: 'INVALID_REQUEST'
@@ -180,7 +180,7 @@ export default async function usersRoutes(fastify, options) {
 			}
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -197,7 +197,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true, codes };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'
@@ -214,7 +214,7 @@ export default async function usersRoutes(fastify, options) {
 			);
 			return { success: true };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'Database error',
 				success: false,
 				code: 'DB_ERROR'

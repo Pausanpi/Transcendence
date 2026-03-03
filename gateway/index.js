@@ -11,7 +11,6 @@ const gatewayUpstream = 'http://gateway:3000';
 const authUpstream = 'http://auth:3001';
 const i18nUpstream = 'http://i18n:3002';
 const databaseUpstream = 'http://database:3003';
-const usersUpstream = 'http://users:3004';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -59,6 +58,7 @@ async function startGateway() {
 
 		const publicRoutes = [
 			'/api/2fa/verify-login',
+			'/api/2fa/verify-backup-code',
 			'/api/oauth/github',
 			'/api/oauth/github/callback',
 			'/api/auth/health',
@@ -66,8 +66,7 @@ async function startGateway() {
 			'/api/auth/register',
 			'/api/database/health',
 			'/api/gateway/health',
-			'/api/i18n/',
-			'/api/users/health'
+			'/api/i18n/'
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -85,7 +84,7 @@ async function startGateway() {
 		const token = authHeader.substring(7).trim();
 
 		if (!jwtSecret) {
-			return reply.status(500).send({ success: false, error: 'JWT secret not available' });
+			return reply.status(502).send({ success: false, error: 'JWT secret not available' });
 		}
 
 		try {
@@ -141,7 +140,7 @@ async function startGateway() {
 
 			if (!data) {
 				console.log('❌ Gateway: No file data received');
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'No file uploaded at gateway'
 				});
@@ -150,7 +149,7 @@ async function startGateway() {
 			// Validate file type
 			if (data.mimetype !== 'image/jpeg' && data.mimetype !== 'image/jpg') {
 				console.log('❌ Gateway: Invalid mimetype:', data.mimetype);
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'Only JPG/JPEG files are allowed'
 				});
@@ -193,7 +192,7 @@ async function startGateway() {
 		} catch (error) {
 			console.error('❌ Gateway: Avatar upload error:', error);
 			fastify.log.error('Avatar upload error:', error);
-			return reply.status(500).send({
+			return reply.status(502).send({
 				success: false,
 				error: 'Failed to upload avatar: ' + error.message
 			});
@@ -232,7 +231,7 @@ async function startGateway() {
 
 		} catch (error) {
 			fastify.log.error('Avatar retrieval error:', error);
-			return reply.status(500).send({
+			return reply.status(502).send({
 				success: false,
 				error: 'Failed to retrieve avatar'
 			});
@@ -323,9 +322,6 @@ async function startGateway() {
 			}
 			if (service === 'database') {
 				return proxyAPI(request, reply, databaseUpstream);
-			}
-			if (service === 'users') {
-				return proxyAPI(request, reply, usersUpstream);
 			}
 			if (service === 'gateway') {
 				return proxyAPI(request, reply, gatewayUpstream);

@@ -9,10 +9,39 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token: totpToken, tempToken } = request.body;
 
+			// Validate required fields
 			if (!totpToken || !tempToken) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
-					error: '2fa.tokenRequired'
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof totpToken !== 'string' || typeof tempToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(totpToken)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
+			// Validate tempToken length
+			if (tempToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
 				});
 			}
 
@@ -26,7 +55,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const user = await findUserById(decoded.id);
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
@@ -34,7 +63,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(user.two_factor_secret, totpToken);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -52,7 +81,90 @@ export default async function twoFactorRoutes(fastify) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
+				success: false,
+				error: 'common.internalError'
+			});
+		}
+	});
+
+	fastify.post('/verify-backup-code', async (request, reply) => {
+		try {
+			const { backupCode, tempToken } = request.body;
+
+			// Validate required fields
+			if (!backupCode || !tempToken) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof backupCode !== 'string' || typeof tempToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate backup code format (e.g., "12345-678" or similar)
+			if (backupCode.length < 5 || backupCode.length > 20) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalidBackupCode',
+					code: 'INVALID_CODE_FORMAT'
+				});
+			}
+
+			// Validate tempToken length
+			if (tempToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
+				});
+			}
+
+			const decoded = await jwtService.verifyToken(tempToken);
+			if (!decoded?.temp2FA) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.invalidToken'
+				});
+			}
+
+			const user = await findUserById(decoded.id);
+			if (!user?.two_factor_enabled) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.notEnabled'
+				});
+			}
+
+			const isValid = await twoFactorService.verifyBackupCode(user.id, backupCode);
+			if (!isValid) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalidBackupCode'
+				});
+			}
+
+			const finalToken = await jwtService.generateToken({
+				id: user.id,
+				username: user.username,
+				email: user.email
+			});
+
+			return {
+				success: true,
+				token: finalToken,
+				user: user.toSafeJSON()
+			};
+		} catch (error) {
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -70,7 +182,7 @@ export default async function twoFactorRoutes(fastify) {
 			}
 
 			if (user.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.alreadyEnabled'
 				});
@@ -90,7 +202,7 @@ export default async function twoFactorRoutes(fastify) {
 				}, { expiresIn: '10m' })
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -101,9 +213,45 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token, setupToken } = request.body;
 
+			// Validate required fields
+			if (!token || !setupToken) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof token !== 'string' || typeof setupToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(token)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
+			// Validate setupToken length
+			if (setupToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
+				});
+			}
+
 			const decoded = await jwtService.verifyToken(setupToken);
 			if (!decoded?.setup2FA) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.setupExpired'
 				});
@@ -111,7 +259,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(decoded.secret, token);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -132,7 +280,7 @@ export default async function twoFactorRoutes(fastify) {
 				backupCodes
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -142,10 +290,38 @@ export default async function twoFactorRoutes(fastify) {
 	fastify.post('/disable', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
 			const { token } = request.body;
+
+			// Validate required field
+			if (!token) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_TOKEN'
+				});
+			}
+
+			// Validate type
+			if (typeof token !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate TOTP token format (6 digits)
+			if (!/^\d{6}$/.test(token)) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalid2FAToken',
+					code: 'INVALID_TOKEN_FORMAT'
+				});
+			}
+
 			const user = await findUserById(request.user.id);
 
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
@@ -153,7 +329,7 @@ export default async function twoFactorRoutes(fastify) {
 
 			const isValid = twoFactorService.verifyToken(user.two_factor_secret, token);
 			if (!isValid) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: 'messages.invalid2FAToken'
 				});
@@ -171,7 +347,7 @@ export default async function twoFactorRoutes(fastify) {
 				message: 'messages.2faDisabled'
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -182,7 +358,7 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const user = await findUserById(request.user.id);
 			if (!user?.two_factor_enabled) {
-				return reply.status(400).send({
+				return reply.status(422).send({
 					success: false,
 					error: '2fa.notEnabled'
 				});
@@ -196,7 +372,7 @@ export default async function twoFactorRoutes(fastify) {
 				codes: backupCodes
 			};
 		} catch (err) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});

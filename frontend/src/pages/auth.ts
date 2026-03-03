@@ -3,18 +3,33 @@ export function renderAuth(): string {
     <div class="max-w-md mx-auto space-y-6">
       <div class="card">
         <h3 class="text-2xl font-bold mb-4 text-center" data-i18n="auth.login">Login</h3>
-        <input id="loginEmail" type="email" placeholder="Email" class="input mb-3" />
-        <input id="loginPassword" type="password" placeholder="Password" class="input mb-4" />
-        <button onclick="login()" class="btn btn-blue w-full">Login</button>
+        <input id="loginEmail" type="email" placeholder="Email" data-i18n-placeholder="auth.email" class="input mb-3" />
+        <input id="loginPassword" type="password" placeholder="Password" data-i18n-placeholder="auth.password" class="input mb-4" />
+        <button onclick="login()" class="btn btn-blue w-full" data-i18n="auth.login">Login</button>
         <div id="loginResult" class="hidden"></div>
       </div>
 
       <div class="card">
         <h3 class="text-2xl font-bold mb-4 text-center" data-i18n="auth.register">Register</h3>
-        <input id="regUsername" type="text" placeholder="Username" class="input mb-3" />
-        <input id="regEmail" type="email" placeholder="Email" class="input mb-3" data-i18n="auth.email" />
-        <input id="regPassword" type="password" placeholder="Password" class="input mb-4" />
-        <button onclick="register()" class="btn btn-green w-full">Register</button>
+        <input id="regUsername" type="text" placeholder="Username" data-i18n-placeholder="auth.username" class="input mb-3" />
+        <input id="regEmail" type="email" placeholder="Email" data-i18n-placeholder="auth.email" class="input mb-3" />
+        <input id="regPassword" type="password" placeholder="Password" data-i18n-placeholder="auth.password" class="input mb-3" />
+        
+        <label class="flex items-start gap-3 mb-4 cursor-pointer text-sm">
+          <input type="checkbox" id="termsAccepted" class="w-5 h-5 rounded mt-0.5 flex-shrink-0" />
+          <span class="text-gray-300">
+            <span data-i18n="auth.iAgreeTo">I agree to the</span>
+            <button onclick="event.preventDefault(); navigate('terms-of-service');" class="text-yellow-400 hover:text-yellow-300 underline">
+              <span data-i18n="auth.termsOfService">Terms of Service</span>
+            </button>
+            <span data-i18n="auth.and">and</span>
+            <button onclick="event.preventDefault(); navigate('privacy-policy');" class="text-yellow-400 hover:text-yellow-300 underline">
+              <span data-i18n="auth.privacyPolicy">Privacy Policy</span>
+            </button>
+          </span>
+        </label>
+        
+        <button onclick="register()" class="btn btn-green w-full" data-i18n="auth.register">Register</button>
         <div id="registerResult" class="hidden"></div>
       </div>
 

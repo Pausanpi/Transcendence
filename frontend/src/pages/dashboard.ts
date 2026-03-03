@@ -1,4 +1,4 @@
-import { api } from '../api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from '../api.js';
 
 export function renderDashboard(): string {
   setTimeout(checkServices, 100);
@@ -20,12 +20,6 @@ export function renderDashboard(): string {
 
 	  <div class="card">
 
-	  <button onclick="window.open('http://localhost:3003/users/all', '_blank')" disabled class="btn btn-blue mt-4" title="Open Grafana Dashboard">
-                        USERS
-                    </button>
-
-
-
 	  <button onclick="window.open('https://localhost:8445', '_blank')" disabled class="btn btn-blue mt-4" title="Open Grafana Dashboard">
                         📊 Grafana
                     </button>
@@ -45,7 +39,6 @@ export function renderDashboard(): string {
 const services = [
   { name: 'Gateway', url: '/api/gateway/health' },
   { name: 'Auth', url: '/api/auth/health' },
-  { name: 'Users', url: '/api/users/health' },
   { name: 'Database', url: '/api/database/health' },
   { name: 'I18n', url: '/api/i18n/health' },
 ];
@@ -71,6 +64,10 @@ export async function checkServices(): Promise<void> {
 
       setStatus(s.name, isOk, status);
     } catch (error: any) {
+      // Only log server errors - expected errors shown as status
+      if (error instanceof ServerError) {
+        console.error(`Server error checking ${s.name}:`, error);
+      }
       const errorMsg = error.message || 'DOWN';
       setStatus(s.name, false, errorMsg);
     }

@@ -13,6 +13,7 @@ import { validateLogin, validateRegistration } from '../middleware/validation.js
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from '../config/oauth.js';
 import { authenticateJWT } from '../middleware/auth.js';
+import validationService from '../services/validation.js';
 
 export default async function userRoutes(fastify, options) {
 
@@ -35,7 +36,7 @@ export default async function userRoutes(fastify, options) {
 			}));
 			return { success: true, users: safeUsers };
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				error: 'admin.errorLoading',
 				code: 'USERS_LOAD_ERROR'
 			});
@@ -66,7 +67,7 @@ export default async function userRoutes(fastify, options) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -86,7 +87,29 @@ export default async function userRoutes(fastify, options) {
 
 		try {
 			// Only accept snake_case for display name // there are ways to accept both
-			const { display_name, avatar } = request.body;
+			const { display_name, avatar, email } = request.body;
+
+			// Validate no unexpected fields
+			const allowedFields = ['display_name', 'avatar', 'email'];
+			const receivedFields = Object.keys(request.body);
+			const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+			if (unexpectedFields.length > 0) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.unexpectedFields',
+					code: 'UNEXPECTED_FIELDS'
+				});
+			}
+
+			// Validate at least one field is provided
+			if (display_name === undefined && avatar === undefined && email === undefined) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.noFieldsToUpdate',
+					code: 'NO_FIELDS'
+				});
+			}
+
 			const user = await findUserById(userId);
 			if (!user) {
 				return reply.status(404).send({
@@ -94,21 +117,93 @@ export default async function userRoutes(fastify, options) {
 					error: 'messages.userNotFound'
 				});
 			}
+
+			// If display_name is being updated, validate it
+			if (display_name !== undefined) {
+				const displayNameValidation = validationService.validateDisplayName(display_name);
+				if (!displayNameValidation.isValid) {
+					return reply.status(422).send({
+						success: false,
+						error: displayNameValidation.error,
+						code: 'INVALID_DISPLAY_NAME'
+					});
+				}
+			}
+
+			// If avatar is being updated, validate it
+			if (avatar !== undefined) {
+				if (typeof avatar !== 'string') {
+					return reply.status(422).send({
+						success: false,
+						error: 'validation.invalidInput',
+						code: 'INVALID_AVATAR_TYPE'
+					});
+				}
+				// Validate avatar URL/path length
+				if (avatar.length > 500) {
+					return reply.status(422).send({
+						success: false,
+						error: 'validation.avatarTooLong',
+						code: 'AVATAR_TOO_LONG'
+					});
+				}
+			}
+
+			// If email is being updated, validate it
+			if (email !== undefined) {
+				// Validate email format
+				const emailValidation = validationService.validateEmail(email);
+				if (!emailValidation.isValid) {
+					return reply.status(422).send({
+						success: false,
+						error: emailValidation.error,
+						code: 'INVALID_EMAIL'
+					});
+				}
+
+				// Check if email is already in use by another user
+				const existingUser = await findUserByEmail(email);
+				if (existingUser && existingUser.id !== userId) {
+					return reply.status(409).send({
+						success: false,
+						error: 'profile.emailInUse',
+						code: 'EMAIL_IN_USE'
+					});
+				}
+			}
+
 			const updateData = {};
 			if (display_name !== undefined) updateData.display_name = display_name;
 			if (avatar !== undefined) updateData.avatar = avatar;
+			if (email !== undefined) updateData.email = email;
+
 			if (Object.keys(updateData).length > 0) {
-				await updateUser(user.id, updateData);
+				try {
+					await updateUser(user.id, updateData);
+				} catch (updateError) {
+					// Handle SQLite UNIQUE constraint error
+					if (updateError.message && updateError.message.includes('UNIQUE constraint')) {
+						return reply.status(409).send({
+							success: false,
+							error: 'profile.emailInUse',
+							code: 'EMAIL_IN_USE'
+						});
+					}
+					throw updateError;
+				}
 			}
+
 			const updatedUser = await findUserById(userId);
 			return {
 				success: true,
 				user: updatedUser.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			console.error('Profile update error:', error);
+			return reply.status(503).send({
 				success: false,
-				error: 'common.internalError'
+				error: 'common.internalError',
+				code: 'INTERNAL_ERROR'
 			});
 		}
 	});
@@ -149,7 +244,7 @@ export default async function userRoutes(fastify, options) {
 				user: user.toSafeJSON()
 			};
 		} catch (error) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});

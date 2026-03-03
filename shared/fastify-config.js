@@ -124,7 +124,7 @@ if (enableSessions) {
 			code: 'INTERNAL_ERROR'
 		};
 		if (error.validation) {
-			reply.status(400);
+			reply.status(422);
 			response.error = 'validation.invalidInput';
 			response.code = 'VALIDATION_ERROR';
 			response.details = error.validation;

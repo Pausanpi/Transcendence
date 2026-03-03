@@ -27,7 +27,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, requests };
         } catch (error) {
             console.error('Error loading friend requests:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -70,7 +70,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friends };
         } catch (error) {
             console.error('Error loading friends:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -102,7 +102,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, requests };
         } catch (error) {
             console.error('Error loading sent requests:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -110,11 +110,11 @@ export default async function friendsRoutes(fastify, options) {
         }
     });
 
-    fastify.get('/friends/me/check/:friendId', async (request, reply) => {
+    fastify.get('/friends/me/check/:username', async (request, reply) => {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { friendId } = request.params;
+            const { username } = request.params;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -123,6 +123,22 @@ export default async function friendsRoutes(fastify, options) {
                     code: 'AUTH_REQUIRED'
                 });
             }
+
+            // Look up friend's ID from username
+            const friend = await db.get(
+                'SELECT id FROM users WHERE username = ? AND is_active = 1',
+                [username]
+            );
+
+            if (!friend) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'User not found',
+                    code: 'USER_NOT_FOUND'
+                });
+            }
+
+            const friendId = friend.id;
 
             const friendship = await db.get(
                 `SELECT * FROM friendships
@@ -136,7 +152,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, status: friendship.status, friendship };
         } catch (error) {
             console.error('Error checking friendship:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -148,7 +164,7 @@ export default async function friendsRoutes(fastify, options) {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { friend_id } = request.body;
+            const { friend_username } = request.body;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -158,18 +174,64 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
-            if (!friend_id) {
-                return reply.status(400).send({
-                    error: 'friend_id is required',
+            // Validate body fields
+            const allowedFields = ['friend_username'];
+            const receivedFields = Object.keys(request.body || {});
+            const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+            if (unexpectedFields.length > 0) {
+                return reply.status(422).send({
                     success: false,
+                    error: 'validation.unexpectedFields',
+                    code: 'UNEXPECTED_FIELDS'
+                });
+            }
+
+            if (!friend_username) {
+				return reply.status(422).send({
+                    success: false,
+                    error: 'validation.missingFields',
                     code: 'MISSING_FIELDS'
                 });
             }
 
-            if (userId === friend_id) {
-                return reply.status(400).send({
-                    error: 'Cannot add yourself as friend',
+            // Validate friend_username format
+            if (typeof friend_username !== 'string' || friend_username.length === 0 || friend_username.length > 255) {
+                return reply.status(422).send({
                     success: false,
+                    error: 'validation.invalidUsername',
+                    code: 'INVALID_USERNAME'
+                });
+            }
+
+            // Basic sanitization check (alphanumeric, underscore, hyphen only)
+            if (!/^[a-zA-Z0-9_-]+$/.test(friend_username)) {
+                return reply.status(422).send({
+                    success: false,
+                    error: 'validation.invalidUsername',
+                    code: 'INVALID_USERNAME'
+                });
+            }
+
+            // Look up friend's ID from username
+            const friend = await db.get(
+                'SELECT id FROM users WHERE username = ? AND is_active = 1',
+                [friend_username]
+            );
+
+            if (!friend) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'User not found',
+                    code: 'USER_NOT_FOUND'
+                });
+            }
+
+            const friend_id = friend.id;
+
+            if (userId === friend_id) {
+				return reply.status(403).send({
+                    success: false,
+                    error: 'validation.cannotAddSelf',
                     code: 'SELF_FRIEND'
                 });
             }
@@ -181,7 +243,7 @@ export default async function friendsRoutes(fastify, options) {
             );
 
             if (existing) {
-                return reply.status(400).send({
+                return reply.status(409).send({
                     error: 'Friendship already exists',
                     success: false,
                     code: 'ALREADY_EXISTS',
@@ -198,7 +260,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friendshipId: result.id };
         } catch (error) {
             console.error('Error adding friend:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -212,7 +274,7 @@ export default async function friendsRoutes(fastify, options) {
         const { user_id, friend_id } = request.body;
 
         if (!user_id || !friend_id) {
-            return reply.status(400).send({
+            return reply.status(422).send({
                 error: 'Both user_id and friend_id are required',
                 success: false,
                 code: 'MISSING_FIELDS'
@@ -220,7 +282,7 @@ export default async function friendsRoutes(fastify, options) {
         }
 
         if (user_id === friend_id) {
-            return reply.status(400).send({
+			return reply.status(403).send({
                 error: 'Cannot add yourself as friend',
                 success: false,
                 code: 'SELF_FRIEND'
@@ -236,7 +298,7 @@ export default async function friendsRoutes(fastify, options) {
             );
 
             if (existing) {
-                return reply.status(400).send({
+                return reply.status(409).send({
                     error: 'Friendship already exists',
                     success: false,
                     code: 'ALREADY_EXISTS',
@@ -253,7 +315,7 @@ export default async function friendsRoutes(fastify, options) {
             return { success: true, friendshipId: result.id };
         } catch (error) {
             console.error('Error creating friendship:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -288,7 +350,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, friends };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -312,7 +374,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, requests };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -336,7 +398,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, requests };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -346,12 +408,26 @@ export default async function friendsRoutes(fastify, options) {
 
     // Update friendship status (accept, reject, block)
     fastify.put('/friends/:id', async (request, reply) => {
+        const authenticatedUserId = request.headers['x-user-id'] ||
+            (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
         const { id } = request.params;
         const { status } = request.body;
 
+        // Validate body fields
+        const allowedFields = ['status'];
+        const receivedFields = Object.keys(request.body || {});
+        const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
+        if (unexpectedFields.length > 0) {
+            return reply.status(422).send({
+                success: false,
+                error: 'validation.unexpectedFields',
+                code: 'UNEXPECTED_FIELDS'
+            });
+        }
+
         const allowedStatuses = ['accepted', 'rejected', 'blocked'];
         if (!status || !allowedStatuses.includes(status)) {
-            return reply.status(400).send({
+			return reply.status(422).send({
                 error: 'Invalid status. Must be: accepted, rejected, or blocked',
                 success: false,
                 code: 'INVALID_STATUS'
@@ -368,6 +444,15 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
+            // Authorization: Verify the authenticated user is the RECIPIENT of this friend request
+            if (friendship.friend_id !== authenticatedUserId) {
+                return reply.status(403).send({
+                    success: false,
+                    error: 'Forbidden: You can only respond to your own friend requests',
+                    code: 'FORBIDDEN'
+                });
+            }
+
             await db.run(
                 'UPDATE friendships SET status = ? WHERE id = ?',
                 [status, id]
@@ -375,7 +460,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -385,13 +470,35 @@ export default async function friendsRoutes(fastify, options) {
 
     // Delete friendship
     fastify.delete('/friends/:id', async (request, reply) => {
+        const authenticatedUserId = request.headers['x-user-id'] ||
+            (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
         const { id } = request.params;
 
         try {
+            const friendship = await db.get('SELECT * FROM friendships WHERE id = ?', [id]);
+            
+            if (!friendship) {
+                return reply.status(404).send({
+                    success: false,
+                    error: 'Friendship not found',
+                    code: 'NOT_FOUND'
+                });
+            }
+
+            // Authorization: Verify the authenticated user is part of this friendship
+            if (friendship.user_id !== authenticatedUserId && 
+                friendship.friend_id !== authenticatedUserId) {
+                return reply.status(403).send({
+                    success: false,
+                    error: 'Forbidden: You can only delete your own friendships',
+                    code: 'FORBIDDEN'
+                });
+            }
+
             await db.run('DELETE FROM friendships WHERE id = ?', [id]);
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -416,7 +523,7 @@ export default async function friendsRoutes(fastify, options) {
 
             return { success: true, status: friendship.status, friendship };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'
@@ -431,7 +538,7 @@ export default async function friendsRoutes(fastify, options) {
 
         const allowedStatuses = ['online', 'offline', 'in_game'];
         if (!online_status || !allowedStatuses.includes(online_status)) {
-            return reply.status(400).send({
+			return reply.status(422).send({
                 error: 'Invalid status. Must be: online, offline, or in_game',
                 success: false,
                 code: 'INVALID_STATUS'
@@ -445,7 +552,7 @@ export default async function friendsRoutes(fastify, options) {
             );
             return { success: true };
         } catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 error: 'Database error',
                 success: false,
                 code: 'DB_ERROR'

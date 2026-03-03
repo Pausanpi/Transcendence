@@ -44,30 +44,51 @@ export default async function heartbeatRoutes(fastify, options) {
 			};
 		} catch (error) {
 			console.error('Heartbeat error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
-				error: 'common.internalError'
+				error: 'database.writeError',
+				code: 'DB_WRITE_ERROR'
 			});
 		}
 	});
 
 	// Optional: Logout endpoint to explicitly set offline
-	fastify.post('/logout', {
-		preHandler: fastify.authenticate
-	}, async (request, reply) => {
+	fastify.post('/logout', async (request, reply) => {
+		const userId = request.headers['x-user-id'];
+		
+		if (!userId) {
+			return reply.status(401).send({
+				success: false,
+				error: 'auth.userIdMissing',
+				code: 'AUTH_REQUIRED'
+			});
+		}
+
 		try {
-			const userId = request.user.id;
-			
 			await updateUserOnlineStatus(userId, 'offline');
 			
-			return {
+			return reply.status(200).send({
 				success: true
-			};
+			});
 		} catch (error) {
 			console.error('Logout error:', error);
-			return reply.status(500).send({
+			
+			// Check if it's a database error
+			if (error.code === 'SQLITE_ERROR' || error.code === 'SQLITE_CONSTRAINT') {
+				return reply.status(422).send({
+					success: false,
+					error: 'database.updateFailed',
+					code: 'DB_UPDATE_ERROR',
+					details: error.message
+				});
+			}
+			
+			// Database connection or other critical errors
+			return reply.status(503).send({
 				success: false,
-				error: 'common.internalError'
+				error: 'database.writeError',
+				code: 'DB_WRITE_ERROR',
+				details: error.message
 			});
 		}
 	});

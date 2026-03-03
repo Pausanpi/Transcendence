@@ -1,4 +1,4 @@
-import { api, getToken } from './api.js';
+import { api, getToken, ValidationError, ConflictError, ServerError } from './api.js';
 import { navigate } from './router.js';
 
 export class TwoFAManager {
@@ -39,7 +39,11 @@ export class TwoFAManager {
       this.status = Boolean(data.user.twoFactorEnabled);
       this.updateUI();
     } catch (error) {
-      console.error('Error loading 2FA status:', error);
+      // Only log server errors, auth errors are handled by auth system
+      if (error instanceof ServerError) {
+        console.error('Server error loading 2FA status:', error);
+      }
+      // Silently fail for other errors (user not logged in, etc.)
     }
   }
 
@@ -78,8 +82,14 @@ export class TwoFAManager {
         this.showError(result.error || 'Failed to setup 2FA');
       }
     } catch (error: any) {
-      console.error('Error setting up 2FA:', error);
-      this.showError(error.message || 'Connection error');
+      // Only log server errors
+      if (error instanceof ServerError) {
+        console.error('Server error setting up 2FA:', error);
+        this.showError('common.internalError');
+      } else {
+        // Validation or other errors - show user message without console.error
+        this.showError(error.message || 'Connection error');
+      }
     }
   }
 
@@ -144,8 +154,16 @@ export class TwoFAManager {
         this.showError(result.error || 'Invalid verification code');
       }
     } catch (error: any) {
-      console.error('Error verifying 2FA:', error);
-      this.showError(error.message || 'Connection error');
+      // Only log server errors
+      if (error instanceof ServerError) {
+        console.error('Server error verifying 2FA:', error);
+        this.showError('common.internalError');
+      } else if (error instanceof ValidationError) {
+        // Invalid code - show user message without console.error
+        this.showError(error.message);
+      } else {
+        this.showError(error.message || 'Connection error');
+      }
     }
   }
 
@@ -188,15 +206,24 @@ export class TwoFAManager {
         this.showError(result.error || 'Invalid verification code');
       }
     } catch (error: any) {
-      console.error('Error disabling 2FA:', error);
-      this.showError(error.message || 'Connection error');
+      // Only log server errors
+      if (error instanceof ServerError) {
+        console.error('Server error disabling 2FA:', error);
+        this.showError('common.internalError');
+      } else if (error instanceof ValidationError) {
+        // Invalid code - show user message without console.error
+        this.showError(error.message);
+      } else {
+        this.showError(error.message || 'Connection error');
+      }
     }
   }
 
   async generateBackupCodes(): Promise<void> {
     try {
       const result = await api<any>('/api/2fa/backup-codes/generate', {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({})
       });
 
       if (result.success) {
@@ -207,8 +234,13 @@ export class TwoFAManager {
         this.showError(result.error || 'Failed to generate backup codes');
       }
     } catch (error: any) {
-      console.error('Error generating backup codes:', error);
-      this.showError(error.message || 'Connection error');
+      // Only log server errors
+      if (error instanceof ServerError) {
+        console.error('Server error generating backup codes:', error);
+        this.showError('common.internalError');
+      } else {
+        this.showError(error.message || 'Connection error');
+      }
     }
   }
 
@@ -299,7 +331,11 @@ export async function verify2FALogin(token: string, tempToken: string): Promise<
 
     return result;
   } catch (error) {
-    console.error('Error verifying 2FA login:', error);
+    // Only log server errors
+    if (error instanceof ServerError) {
+      console.error('Server error verifying 2FA login:', error);
+    }
+    // Return failure for all errors without console.error for validation
     return { success: false };
   }
 }

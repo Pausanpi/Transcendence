@@ -1,4 +1,4 @@
-import { api, getToken } from './api.js';
+import { api, getToken, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from './api.js';
 
 // ===== TYPES =====
 
@@ -60,7 +60,10 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
 		}
 		return null;
 	} catch (error) {
-		console.error('Failed to get user profile:', error);
+		// Only log server errors - auth errors handled elsewhere
+		if (error instanceof ServerError) {
+			console.error('Server error getting user profile:', error);
+		}
 		return null;
 	}
 }
@@ -120,26 +123,24 @@ export async function verifyPlayerByName(playerName: string): Promise<UserProfil
 		}
 		return null;
 	} catch (error) {
-		console.error('Failed to verify player:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error verifying player:', error);
+		}
 		return null;
 	}
 }
 
 export async function loginPlayer(email: string, password: string): Promise<UserProfile | null> {
-	try {
-		const response = await api<{ success: boolean; user: UserProfile }>('/api/auth/login', {
-			method: 'POST',
-			body: JSON.stringify({ email, password })
-		});
+	const response = await api<{ success: boolean; user: UserProfile }>('/api/auth/login', {
+		method: 'POST',
+		body: JSON.stringify({ email, password })
+	});
 
-		if (response.success && response.user) {
-			return response.user;
-		}
-		return null;
-	} catch (error) {
-		console.error('Failed to login player:', error);
-		return null;
+	if (response.success && response.user) {
+		return response.user;
 	}
+	return null;
 }
 
 // ===== MATCH SAVING =====
@@ -153,7 +154,7 @@ export async function saveMatch(result: MatchResult): Promise<{
 	// Only save matches where at least one player is logged in
 	const hasLoggedInPlayer = result.player1.id !== null || result.player2.id !== null;
 	if (!hasLoggedInPlayer) {
-		console.log('Match not saved: no logged-in players (guest vs guest)');
+		//console.log('Match not saved: no logged-in players (guest vs guest)');
 		return { success: true, skipped: true };
 	}
 
@@ -191,7 +192,10 @@ export async function saveMatch(result: MatchResult): Promise<{
 
 		return { success: true, matchId: response.matchId };
 	} catch (error: any) {
-		console.error('Failed to save match:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error saving match:', error);
+		}
 		return { success: false, error: error.message };
 	}
 }
@@ -220,7 +224,10 @@ export async function getUserStats(userId: string): Promise<{
 		}
 		return null;
 	} catch (error) {
-		console.error('Failed to get user stats:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error getting user stats:', error);
+		}
 		return null;
 	}
 }
@@ -232,7 +239,10 @@ export async function getMatchHistory(userId: string, limit = 20): Promise<any[]
 		);
 		return response.success ? response.matches : [];
 	} catch (error) {
-		console.error('Failed to get match history:', error);
+		// Only log server errors
+		if (error instanceof ServerError) {
+			console.error('Server error getting match history:', error);
+		}
 		return [];
 	}
 }

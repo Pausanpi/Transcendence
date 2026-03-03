@@ -64,7 +64,7 @@ class TwoFactorService {
 				`http://database:3003/database/backup-codes`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ user_id: userId, hashedCodes })
+				body: JSON.stringify({ user_id: userId, codes: hashedCodes })
 			});
 
 			const data = await response.json();
@@ -104,7 +104,7 @@ class TwoFactorService {
 					if (isValid) {
 
 						const response = await fetch(
-							`http://database:3003/database/backup-codes/${codeId}/use`, {
+							`http://database:3003/database/backup-codes/${codeRecord.id}/use`, {
 							method: 'PUT'
 						});
 

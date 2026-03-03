@@ -3,13 +3,13 @@ import matchesRoutes from './routes/matches.js';
 import tournamentsRoutes from './routes/tournaments.js';
 import friendsRoutes from './routes/friends.js';
 import usersRoutes from './routes/users.js';
-import sessionsRoutes from './routes/sessions.js';
 import playersRoutes from './routes/players.js';
 import databaseRoutes from './routes/database.js';
 import heartbeatRoutes from './routes/heartbeat.js';
 import { markInactiveUsersOffline } from './routes/heartbeat.js';
 import avatarRoutes from './routes/avatars.js';
 import fastifyMultipart from '@fastify/multipart';
+import db from './config/sqlite.js';
 
 async function startDatabaseService() {
 	const fastify = await createFastifyApp({
@@ -27,7 +27,6 @@ async function startDatabaseService() {
 
 	await fastify.register(databaseRoutes, { prefix: '/database' });
 	await fastify.register(usersRoutes, { prefix: '/database' });
-	await fastify.register(sessionsRoutes, { prefix: '/database' });
 	await fastify.register(matchesRoutes, { prefix: '/database' });
 	await fastify.register(tournamentsRoutes, { prefix: '/database' });
 	await fastify.register(friendsRoutes, { prefix: '/database' });
@@ -37,6 +36,25 @@ async function startDatabaseService() {
 	await fastify.register(avatarRoutes, { prefix: '/database' });
 
 	await fastify.listen({ host: '0.0.0.0', port: 3003 });
+
+	// Database health monitoring and auto-recovery
+	console.log('✅ Starting database health monitor...');
+	const checkDatabaseHealth = async () => {
+		const health = await db.healthCheck();
+		if (!health.healthy || !health.canWrite) {
+			console.error('❌ Database is unhealthy:', health);
+			console.log('🔄 Attempting automatic recovery...');
+			const recovered = await db.reinitialize();
+			if (recovered) {
+				console.log('✅ Database recovered successfully');
+			} else {
+				console.error('❌ Failed to recover database - manual intervention required');
+			}
+		}
+	};
+
+	// Check database health every 30 seconds
+	setInterval(checkDatabaseHealth, 30000);
 
 	// Start offline cleanup - mark inactive users offline every 60 seconds
 	console.log('✅ Starting offline cleanup task...');

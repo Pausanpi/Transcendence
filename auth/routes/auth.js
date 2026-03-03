@@ -69,7 +69,7 @@ export default async function authRoutes(fastify, options) {
 			};
 		} catch (error) {
 			console.error('Login error:', error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'common.internalError'
 			});
@@ -81,7 +81,7 @@ export default async function authRoutes(fastify, options) {
 
 		const existingUser = await findUserByEmail(email);
 		if (existingUser) {
-			return reply.status(400).send({
+			return reply.status(409).send({
 				success: false,
 				error: 'auth.userExists'
 			});
@@ -98,7 +98,7 @@ export default async function authRoutes(fastify, options) {
 
 		const savedUser = await saveUser(newUser);
 		if (!savedUser) {
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: 'auth.creationError'
 			});

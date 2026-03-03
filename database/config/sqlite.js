@@ -53,17 +53,6 @@ class Database {
             )
         `;
 
-		const sessionsTable = `
-            CREATE TABLE IF NOT EXISTS user_sessions (
-                id TEXT PRIMARY KEY,
-                user_id TEXT,
-                jwt_token TEXT,
-                expires_at DATETIME,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-            )
-        `;
-
 		const backupCodesTable = `
             CREATE TABLE IF NOT EXISTS backup_codes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,10 +136,6 @@ class Database {
 			console.error('Error creating users table:', err);
 		});
 
-		this.run(sessionsTable).catch(err => {
-			console.error('Error creating sessions table:', err);
-		});
-
 		this.run(backupCodesTable).catch(err => {
 			console.error('Error creating backup_codes table:', err);
 		});
@@ -188,13 +173,34 @@ class Database {
 		// });
 	}
 
-	run(sql, params = []) {
-		return new Promise((resolve, reject) => {
-			this.db.run(sql, params, function (err) {
+	async run(sql, params = []) {
+		const self = this; // Save reference to Database instance
+		return new Promise(async (resolve, reject) => {
+			this.db.run(sql, params, async function (err) {
 				if (err) {
 					console.error('SQL Error:', err);
 					console.error('SQL Statement:', sql);
 					console.error('Parameters:', params);
+					
+					// Auto-recovery for readonly database
+					if (err.code === 'SQLITE_READONLY' || err.code === 'SQLITE_CANTOPEN') {
+						console.log('🔄 Database write failed, attempting immediate recovery...');
+						const recovered = await self.reinitialize();
+						if (recovered) {
+							// Retry the operation once after recovery
+							self.db.run(sql, params, function (retryErr) {
+								if (retryErr) {
+									console.error('❌ Retry after recovery failed:', retryErr);
+									reject(retryErr);
+								} else {
+									console.log('✅ Operation succeeded after recovery');
+									resolve({ id: this.lastID, changes: this.changes });
+								}
+							});
+							return;
+						}
+					}
+					
 					reject(err);
 				} else {
 					resolve({ id: this.lastID, changes: this.changes });
@@ -239,6 +245,58 @@ class Database {
 				if (err) reject(err);
 				else resolve();
 			});
+		});
+	}
+
+	// Health check: verify database can write
+	async healthCheck() {
+		try {
+			await this.run(
+				`CREATE TABLE IF NOT EXISTS _health_check (id INTEGER PRIMARY KEY, checked_at DATETIME)`
+			);
+			await this.run(
+				`INSERT OR REPLACE INTO _health_check (id, checked_at) VALUES (1, CURRENT_TIMESTAMP)`
+			);
+			const result = await this.get(`SELECT * FROM _health_check WHERE id = 1`);
+			return { healthy: true, canWrite: true, lastCheck: result?.checked_at };
+		} catch (error) {
+			console.error('Database health check failed:', error);
+			return { 
+				healthy: false, 
+				canWrite: false, 
+				error: error.message,
+				errorCode: error.code 
+			};
+		}
+	}
+
+	// Reinitialize database connection
+	async reinitialize() {
+		console.log('⚠️  Reinitializing database connection...');
+		return new Promise((resolve) => {
+			// Close existing connection
+			if (this.db) {
+				this.db.close((err) => {
+					if (err) console.error('Error closing database:', err);
+					
+					// Wait a moment before reopening
+					setTimeout(() => {
+						this.init();
+						// Give init time to complete
+						setTimeout(() => {
+							console.log('✅ Database reinitialized successfully');
+							resolve(true);
+						}, 1000);
+					}, 500);
+				});
+			} else {
+				// No existing connection, just initialize
+				this.init();
+				setTimeout(() => {
+					console.log('✅ Database initialized successfully');
+					resolve(true);
+				}, 1000);
+			}
 		});
 	}
 }

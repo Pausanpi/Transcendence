@@ -36,7 +36,6 @@ export default async function playersRoutes(fastify, options) {
             return {
                 success: true,
                 users: users.map(user => ({
-                    id: user.id,
                     username: user.username,
                     display_name: user.display_name,
                     avatar: user.avatar || '/avatars/default-avatar.png',
@@ -45,7 +44,7 @@ export default async function playersRoutes(fastify, options) {
             };
         } catch (error) {
             console.error('Error loading players:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 success: false,
                 error: 'common.internalError',
                 code: 'DB_ERROR'
@@ -54,12 +53,75 @@ export default async function playersRoutes(fastify, options) {
     });
 
     /**
-     * GET /players/:id
+     * GET /players/leaderboard
+     * Returns top players by wins, including tournament wins
+     */
+    fastify.get('/players/leaderboard', async (request, reply) => {
+        const limit = request.query.limit || 5;
+
+        try {
+            // Get top players by wins with stats and tournament wins
+            const leaderboardQuery = `
+                SELECT 
+                    u.id,
+                    u.username,
+                    u.display_name,
+                    u.avatar,
+                    u.online_status,
+                    COUNT(DISTINCT m.id) as games_played,
+                    SUM(CASE WHEN m.winner_id = u.id THEN 1 ELSE 0 END) as wins,
+                    SUM(CASE WHEN m.winner_id != u.id AND m.winner_id IS NOT NULL THEN 1 ELSE 0 END) as losses,
+                    COUNT(DISTINCT t.id) as tournament_wins
+                FROM users u
+                LEFT JOIN matches m ON (m.player1_id = u.id OR m.player2_id = u.id)
+                LEFT JOIN tournaments t ON (t.winner_id = u.id AND t.status = 'completed')
+                WHERE u.is_active = 1 AND u.is_anonymized = 0
+                GROUP BY u.id, u.username, u.display_name, u.avatar, u.online_status
+                HAVING games_played > 0
+                ORDER BY wins DESC, games_played DESC
+                LIMIT ?
+            `;
+
+            const players = await db.all(leaderboardQuery, [parseInt(limit)]);
+
+            // Format the response (no IDs exposed to frontend)
+            const leaderboard = players.map(player => ({
+                username: player.username,
+                display_name: player.display_name,
+                avatar: player.avatar || '/avatars/default-avatar.png',
+                online_status: player.online_status || 'offline',
+                stats: {
+                    games_played: player.games_played || 0,
+                    wins: player.wins || 0,
+                    losses: player.losses || 0,
+                    win_rate: player.games_played > 0 
+                        ? Math.round((player.wins / player.games_played) * 100) 
+                        : 0,
+                    tournament_wins: player.tournament_wins || 0
+                }
+            }));
+
+            return {
+                success: true,
+                leaderboard
+            };
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            return reply.status(503).send({
+                success: false,
+                error: 'common.internalError',
+                code: 'DB_ERROR'
+            });
+        }
+    });
+
+    /**
+     * GET /players/:username
      * Returns detailed player profile including stats and match history
      * Requires authentication
      */
-    fastify.get('/players/:id', async (request, reply) => {
-        const { id } = request.params;
+    fastify.get('/players/:username', async (request, reply) => {
+        const { username } = request.params;
 
         // TODO: Add authentication check here
         // if (!request.user) {
@@ -76,8 +138,8 @@ export default async function playersRoutes(fastify, options) {
                 `SELECT id, username, display_name, avatar, online_status, 
                         last_seen, created_at
                  FROM users
-                 WHERE id = ? AND is_active = 1 AND is_anonymized = 0`,
-                [id]
+                 WHERE username = ? AND is_active = 1 AND is_anonymized = 0`,
+                [username]
             );
 
             if (!user) {
@@ -87,6 +149,8 @@ export default async function playersRoutes(fastify, options) {
                     code: 'PLAYER_NOT_FOUND'
                 });
             }
+
+            const userId = user.id; // Keep ID for internal queries only
 
             // Calculate stats from matches table
             const statsQuery = `
@@ -98,7 +162,16 @@ export default async function playersRoutes(fastify, options) {
                 WHERE (player1_id = ? OR player2_id = ?)
             `;
             
-            const stats = await db.get(statsQuery, [id, id, id, id]);
+            const stats = await db.get(statsQuery, [userId, userId, userId, userId]);
+
+            // Get tournament wins count
+            const tournamentWinsQuery = `
+                SELECT COUNT(*) as tournament_wins
+                FROM tournaments
+                WHERE winner_id = ? AND status = 'completed'
+            `;
+            
+            const tournamentWins = await db.get(tournamentWinsQuery, [userId]);
 
             // Get recent match history (last 10 matches)
             const matchHistoryQuery = `
@@ -122,18 +195,17 @@ export default async function playersRoutes(fastify, options) {
                 LIMIT 10
             `;
 
-            const matchHistory = await db.all(matchHistoryQuery, [id, id]);
+            const matchHistory = await db.all(matchHistoryQuery, [userId, userId]);
 
             // Format match history for frontend
             const formattedMatches = matchHistory.map(match => {
-                const isPlayer1 = match.player1_id === id;
+                const isPlayer1 = match.player1_id === userId;
                 const opponent = {
-                    id: isPlayer1 ? match.player2_id : match.player1_id,
                     name: isPlayer1 ? match.player2_name : match.player1_name
                 };
                 const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
                 const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-                const won = match.winner_id === id;
+                const won = match.winner_id === userId;
 
                 return {
                     id: match.id,
@@ -148,9 +220,8 @@ export default async function playersRoutes(fastify, options) {
                 };
             });
 
-            // Build complete profile response
+            // Build complete profile response (no ID exposed)
             const profile = {
-                id: user.id,
                 username: user.username,
                 display_name: user.display_name,
                 avatar: user.avatar || '/avatars/default-avatar.png',
@@ -163,7 +234,8 @@ export default async function playersRoutes(fastify, options) {
                     losses: stats.losses || 0,
                     win_rate: stats.games_played > 0 
                         ? Math.round((stats.wins / stats.games_played) * 100) 
-                        : 0
+                        : 0,
+                    tournament_wins: tournamentWins.tournament_wins || 0
                 },
                 match_history: formattedMatches
             };
@@ -171,7 +243,7 @@ export default async function playersRoutes(fastify, options) {
             return { success: true, user: profile };
         } catch (error) {
             console.error('Error loading player profile:', error);
-            return reply.status(500).send({
+            return reply.status(503).send({
                 success: false,
                 error: 'common.internalError',
                 code: 'DB_ERROR'

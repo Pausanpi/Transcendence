@@ -4,12 +4,16 @@ import { renderDashboard } from './pages/dashboard.js';
 import { renderAuth } from './pages/auth.js';
 import { renderProfile } from './pages/profile.js';
 import { renderGame } from './pages/game.js';
+import { renderTournament } from './pages/tournament.js';
+import { renderTournamentPage } from './tournamentPage.js';
 import { renderGdpr } from './pages/gdpr.js';
 import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
 import { renderPlayers } from './pages/players.js';
 import { renderFriends } from './pages/friends.js';
 import { renderTestPage } from './pages/testpage.js';
+import { renderPrivacyPolicy } from './pages/privacy-policy.js';
+import { renderTermsOfService } from './pages/terms-of-service.js';
 
 
 declare global {
@@ -26,11 +30,15 @@ const routes: Record<string, () => string> = {
   auth: renderAuth,
   profile: renderProfile,
   game: renderGame,
+  tournament: renderTournament,
+  tournament_game: renderTournamentPage,
   gdpr: renderGdpr,
   twofaverify: renderTwoFAVerify,
   players: renderPlayers,
   friends: renderFriends,
   testpage: renderTestPage,
+  'privacy-policy': renderPrivacyPolicy,
+  'terms-of-service': renderTermsOfService,
 };
 let currentPage = 'home';
 
@@ -39,6 +47,9 @@ export function navigate(page: string): void {
   const app = document.getElementById('app')!;
   const render = routes[page];
   if (render) {
+    // Signal active games/components to stop before replacing DOM
+    window.dispatchEvent(new CustomEvent('beforepagechange', { detail: page }));
+
     app.innerHTML = render();
 
     if (window.languageManager?.isReady()) {
@@ -58,6 +69,11 @@ export function navigate(page: string): void {
     if (typeof window.updateAuthBtn === 'function') {
       window.updateAuthBtn();
     }
+
+	// Para el torneo:
+	if (page === 'tournament_game') {
+		renderTournamentPage();
+	}
 
     window.dispatchEvent(new CustomEvent('pagechange', { detail: page }));
   }
@@ -82,8 +98,6 @@ export function initRouter(): void {
       navigate(el.getAttribute('data-nav')!);
     });
   });
-
-
 
   navigate('home');
 }
