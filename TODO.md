@@ -78,6 +78,7 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
 - [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)
 - [x] **037**: 2fa recovery codes can't be used. (lcuevas- / lcuevas-)
+- [x] **038**: Check mail validation for trash and wier characters. (lcuevas- / TODO)
 
 
 # Solved Bug reports
