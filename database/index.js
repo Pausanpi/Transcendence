@@ -38,15 +38,12 @@ async function startDatabaseService() {
 	await fastify.listen({ host: '0.0.0.0', port: 3003 });
 
 	// Database health monitoring and auto-recovery
-	console.log('✅ Starting database health monitor...');
 	const checkDatabaseHealth = async () => {
 		const health = await db.healthCheck();
 		if (!health.healthy || !health.canWrite) {
 			console.error('❌ Database is unhealthy:', health);
-			console.log('🔄 Attempting automatic recovery...');
 			const recovered = await db.reinitialize();
 			if (recovered) {
-				console.log('✅ Database recovered successfully');
 			} else {
 				console.error('❌ Failed to recover database - manual intervention required');
 			}
@@ -57,7 +54,6 @@ async function startDatabaseService() {
 	setInterval(checkDatabaseHealth, 30000);
 
 	// Start offline cleanup - mark inactive users offline every 60 seconds
-	console.log('✅ Starting offline cleanup task...');
 	markInactiveUsersOffline(); // Run immediately
 	setInterval(() => {
 		markInactiveUsersOffline();

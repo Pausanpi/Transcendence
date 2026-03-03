@@ -13,21 +13,15 @@ const AVATARS_DIR = path.join(__dirname, '../../media/avatars');
 export default async function avatarRoutes(fastify, options) {
 	// Ensure avatars directory exists
 	await fs.mkdir(AVATARS_DIR, { recursive: true });
-	console.log('📁 Database: Avatars directory:', AVATARS_DIR);
 
 	// POST /database/avatar/upload - Upload avatar
 	fastify.post('/avatar/upload', async (request, reply) => {
-		console.log('🟢 Database: Avatar upload endpoint hit');
-		console.log('🟢 Database: Content-Type:', request.headers['content-type']);
-		console.log('🟢 Database: Headers:', JSON.stringify(request.headers, null, 2));
 		
 		try {
 			// Get user ID from JWT (set by gateway)
 			const userId = request.headers['x-user-id'];
-			console.log('🟢 Database: User ID from header:', userId);
 			
 			if (!userId) {
-				console.log('❌ Database: No user ID in header');
 				return reply.status(401).send({
 					success: false,
 					error: 'auth.authenticationRequired',
@@ -35,21 +29,11 @@ export default async function avatarRoutes(fastify, options) {
 				});
 			}
 
-			console.log('🟢 Database: Attempting to read file...');
 			
 			// Get the uploaded file
 			const data = await request.file();
 			
-			console.log('🟢 Database: File data:', data ? {
-				filename: data.filename,
-				mimetype: data.mimetype,
-				encoding: data.encoding,
-				fieldname: data.fieldname
-			} : 'NULL');
-			
 			if (!data) {
-				console.log('❌ Database: No file data received');
-				console.log('❌ Database: Request is multipart?', request.isMultipart());
 				return reply.status(422).send({
 					success: false,
 					error: 'No file uploaded',
@@ -59,10 +43,8 @@ export default async function avatarRoutes(fastify, options) {
 
 			// Validate file type
 			const mimeType = data.mimetype;
-			console.log('🟢 Database: Validating mimetype:', mimeType);
 			
 			if (mimeType !== 'image/jpeg' && mimeType !== 'image/jpg') {
-				console.log('❌ Database: Invalid mimetype');
 				return reply.status(422).send({
 					success: false,
 					error: 'Only JPG/JPEG files are allowed',
@@ -72,14 +54,10 @@ export default async function avatarRoutes(fastify, options) {
 
 			// Path where we'll save the avatar
 			const avatarPath = path.join(AVATARS_DIR, `${userId}.jpg`);
-			console.log('🟢 Database: Target path:', avatarPath);
 
-			console.log('🟢 Database: Converting to buffer...');
 			const buffer = await data.toBuffer();
-			console.log('🟢 Database: Buffer size:', buffer.length, 'bytes');
 
 			// Process image with sharp: resize to 200x200 and save as JPG
-			console.log('🟢 Database: Processing with Sharp...');
 			await sharp(buffer)
 				.resize(200, 200, {
 					fit: 'cover',
@@ -88,19 +66,15 @@ export default async function avatarRoutes(fastify, options) {
 				.jpeg({ quality: 90 })
 				.toFile(avatarPath);
 
-			console.log('🟢 Database: File saved successfully');
 
 			// Update database with avatar path
 			const avatarUrl = `/api/database/avatar/${userId}`;
-			console.log('🟢 Database: Updating database with URL:', avatarUrl);
 			
 			await db.run(
 				'UPDATE users SET avatar = ? WHERE id = ?',
 				[avatarUrl, userId]
 			);
 
-			console.log('✅ Database: Avatar uploaded successfully');
-			
 			return reply.send({
 				success: true,
 				message: 'Avatar uploaded successfully',
