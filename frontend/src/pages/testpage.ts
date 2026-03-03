@@ -130,7 +130,6 @@ async function verifyPlayer2Test(currentUser: any): Promise<void> {
     }
 
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error checking player:', error);
     }
@@ -223,7 +222,6 @@ async function loginPlayer2Test(player: any, currentUser: any): Promise<void> {
       }
     }
   } catch (error: any) {
-    // Only log server errors - auth errors shown to user
     if (error instanceof ServerError) {
       console.error('Server error during login:', error);
     }

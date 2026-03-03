@@ -195,7 +195,6 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Only log server errors - auth errors shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error loading players:', error);
 		}
@@ -471,7 +470,6 @@ async function addFriend(username: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error sending friend request:', error);
 		}

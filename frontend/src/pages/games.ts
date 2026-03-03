@@ -275,7 +275,6 @@ async function loginPlayer2Direct() {
 		if (error instanceof AuthError) {
 			errorMessage = '<span class="text-red-400" data-i18n="game.invalidCredentials">✗ Invalid credentials</span>';
 		} else if (error instanceof ServerError) {
-			// Only log server errors
 			console.error('Server error during player 2 login:', error);
 		}
 		

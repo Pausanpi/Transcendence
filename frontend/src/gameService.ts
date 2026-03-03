@@ -60,7 +60,6 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
 		}
 		return null;
 	} catch (error) {
-		// Only log server errors - auth errors handled elsewhere
 		if (error instanceof ServerError) {
 			console.error('Server error getting user profile:', error);
 		}
@@ -123,7 +122,6 @@ export async function verifyPlayerByName(playerName: string): Promise<UserProfil
 		}
 		return null;
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error verifying player:', error);
 		}
@@ -192,7 +190,6 @@ export async function saveMatch(result: MatchResult): Promise<{
 
 		return { success: true, matchId: response.matchId };
 	} catch (error: any) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error saving match:', error);
 		}
@@ -224,7 +221,6 @@ export async function getUserStats(userId: string): Promise<{
 		}
 		return null;
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error getting user stats:', error);
 		}
@@ -239,7 +235,6 @@ export async function getMatchHistory(userId: string, limit = 20): Promise<any[]
 		);
 		return response.success ? response.matches : [];
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error getting match history:', error);
 		}

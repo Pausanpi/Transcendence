@@ -164,7 +164,6 @@ async function loadTab(tab: string): Promise<void> {
       await loadSentRequests(container);
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error loading tab:', error);
     }
@@ -413,7 +412,6 @@ async function updateRequestsBadge(): Promise<void> {
       }
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error updating badge:', error);
     }
@@ -487,7 +485,6 @@ async function viewPlayer(playerId: string): Promise<void> {
       window.languageManager?.applyTranslations();
     }
   } catch (error: any) {
-    // Only log server errors - auth errors handled by displaying message
     if (error instanceof ServerError) {
       console.error('Server error loading player profile:', error);
     }
@@ -586,7 +583,6 @@ async function acceptRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error accepting request:', error);
     }
@@ -613,7 +609,6 @@ async function rejectRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error rejecting request:', error);
     }
@@ -640,7 +635,6 @@ async function cancelRequest(requestId: number): Promise<void> {
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error cancelling request:', error);
     }
@@ -673,7 +667,6 @@ async function removeFriend(friendshipId: number, username: string): Promise<voi
       showToast('friends.error', 'error');
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error removing friend:', error);
     }

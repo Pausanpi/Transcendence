@@ -143,7 +143,6 @@ async function verifyToken(): Promise<void> {
       tokenInput.focus();
     }
   } catch (error) {
-    // Only log server errors - auth/validation errors shown to user
     if (error instanceof ServerError) {
       console.error('Server error during 2FA verification:', error);
     }
@@ -188,7 +187,6 @@ async function verifyBackupCode(): Promise<void> {
       backupCodeInput.focus();
     }
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error during backup code verification:', error);
     }

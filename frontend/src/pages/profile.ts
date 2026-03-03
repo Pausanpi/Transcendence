@@ -219,7 +219,6 @@ async function loadProfile(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error) {
-		// Only log server errors - auth errors handled by auth system
 		if (error instanceof ServerError) {
 			console.error('Server error loading profile:', error);
 		}
@@ -306,7 +305,6 @@ async function uploadAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		// Only log server errors - validation errors (422) shown to user without logging
 		if (error instanceof ServerError) {
 			console.error('Server error uploading avatar:', error);
 		}
@@ -411,7 +409,6 @@ async function updateProfile(): Promise<void> {
 
 		loadProfile();
 	} catch (error: any) {
-		// Only log server errors - validation/conflict errors shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error updating email:', error);
 		}
@@ -445,7 +442,6 @@ async function anonymize(): Promise<void> {
 			resultDiv.textContent = 'Account anonymized successfully';
 		}
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error anonymizing account:', error);
 		}
@@ -481,7 +477,6 @@ async function deleteAcc(): Promise<void> {
 			window.location.href = '/';
 		}, 2000);
 	} catch (error) {
-		// Only log server errors - validation errors (422) shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error deleting account:', error);
 		}
@@ -539,7 +534,6 @@ async function deleteAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error deleting avatar:', error);
 		}
@@ -696,7 +690,6 @@ async function loadMatchHistory(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Only log server errors - auth errors handled by auth system
 		if (error instanceof ServerError) {
 			console.error('Server error loading match history:', error);
 		}
