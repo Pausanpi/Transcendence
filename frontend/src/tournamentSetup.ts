@@ -404,13 +404,19 @@ function applyTranslations(): void {
 
 export async function setupPongTournament(ai: boolean, diff = 3): Promise<void> {
 	const currentUser = await getCurrentUser();
-	showTournamentSetupModal(currentUser, ai, diff);
+	showTournamentSetupModal(currentUser, ai, diff, "P");
+}
+
+export async function setupTicTacToeTournament(ai: boolean, diff = 3): Promise<void> {
+	const currentUser = await getCurrentUser();
+	showTournamentSetupModal(currentUser, ai, diff, "T");
 }
 
 async function showTournamentSetupModal(
 	currentUser: any,
 	ai: boolean,
-	diff: number
+	diff: number,
+	type: string
 ): Promise<void> {
 
 	// Clear all previous state
@@ -465,7 +471,7 @@ async function showTournamentSetupModal(
       
       <div class="flex gap-4 mt-6">
         <button onclick="window.tournamentUI.hideTournamentModal()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
-        <button onclick="window.tournamentUI.confirmTournamentSetup(${ai}, ${diff})" class="btn btn-green flex-1" data-i18n="tournament.start">Start Tournament</button>
+        <button onclick="window.tournamentUI.confirmTournamentSetup(${ai}, ${diff}, '${type}')" class="btn btn-green flex-1" data-i18n="tournament.start">Start Tournament</button>
       </div>
     </div>
   `;
@@ -489,7 +495,7 @@ async function showTournamentSetupModal(
 	}, 100);
 }
 
-async function confirmTournamentSetup(ai: boolean, diff: number): Promise<void> {
+async function confirmTournamentSetup(ai: boolean, diff: number, type: string): Promise<void> {
 	const players: Player[] = [];
 	const statusDiv = document.getElementById('tournamentSetupStatus');
 
@@ -578,8 +584,9 @@ async function confirmTournamentSetup(ai: boolean, diff: number): Promise<void> 
 	if (statusDiv) statusDiv.innerHTML = '<span class="text-yellow-400">⏳ Creating tournament...</span>';
 
 	const tournament = createTournament(players);
+	tournament.gameType = type === 'P' ? 'pong' : 'tictactoe';
 	const currentUser = await getCurrentUser();
-	const tournamentId = await createTournamentInDB(players, currentUser?.id || null);
+	const tournamentId = await createTournamentInDB(players, type, currentUser?.id || null);
 
 	if (tournamentId) {
 		tournament.tournamentId = tournamentId;
@@ -600,6 +607,7 @@ function hideTournamentModal(): void {
 
 (window as any).tournamentUI = {
 	setupPongTournament,
+	setupTicTacToeTournament,
 	confirmTournamentSetup,
 	hideTournamentModal,
 	togglePlayerType,

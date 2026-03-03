@@ -3,8 +3,6 @@ import { startCurrentMatch } from "./tournamentController.js";
 
 (window as any).startCurrentMatch = startCurrentMatch;
 
-// ===== UTILITY FUNCTIONS =====
-
 function applyTranslations(): void {
 	if ((window as any).languageManager?.isReady()) {
 		(window as any).languageManager.applyTranslations();
@@ -15,9 +13,12 @@ export function renderTournamentPage(): string {
 	const tournament = loadTournament();
 	if (!tournament) return `<p data-i18n="tournament.notFound">No tournament found</p>`;
 
+	// Derive the type code from the stored gameType field
+	const typeCode = tournament.gameType === 'tictactoe' ? 'T' : 'P';
+
 	let html = `
     <div class="max-w-4xl mx-auto">
-      <h1 class="text-4xl font-bold text-center text-yellow-400 mb-8" data-i18n="tournament.title">🏆 Pong Tournament</h1>
+      <h1 class="text-4xl font-bold text-center text-yellow-400 mb-8" data-i18n="tournament.title">🏆 Tournament</h1>
   `;
 
 	tournament.rounds.forEach((round, r) => {
@@ -62,12 +63,21 @@ export function renderTournamentPage(): string {
 
 	html += `
       <div class="text-center mt-8">
-        <button onclick="startCurrentMatch()" class="btn btn-green text-xl px-8 py-4" data-i18n="tournament.playNext">
+        <button id="playNextMatchBtn" data-type="${typeCode}" class="btn btn-green text-xl px-8 py-4" data-i18n="tournament.playNext">
           ▶️ Play Next Match
         </button>
       </div>
     </div>
   `;
+
+	// Attach listener after HTML is set (called from router after innerHTML is set)
+	setTimeout(() => {
+		const btn = document.getElementById('playNextMatchBtn');
+		btn?.addEventListener('click', () => {
+			const t = btn.getAttribute('data-type') ?? 'P';
+			startCurrentMatch(t);
+		});
+	}, 0);
 
 	return html;
 }
