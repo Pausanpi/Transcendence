@@ -13,6 +13,7 @@ interface PlayerStats {
 	wins: number;
 	losses: number;
 	win_rate: number;
+	tournament_wins: number;
 }
 
 interface MatchHistoryItem {
@@ -40,6 +41,14 @@ interface PlayerProfile {
 	match_history: MatchHistoryItem[];
 }
 
+interface LeaderboardEntry {
+	username: string;
+	display_name: string | null;
+	avatar: string | null;
+	online_status: string;
+	stats: PlayerStats;
+}
+
 export function renderPlayers(): string {
 	setTimeout(() => {
 		loadPlayers();
@@ -55,6 +64,7 @@ export function renderPlayers(): string {
           <input id="playerSearch" type="text" placeholder="Search players..."
                  class="input flex-1" data-i18n-placeholder="players.searchPlaceholder" />
           <button id="searchPlayersBtn" class="btn btn-blue" data-i18n="players.search">🔍 Search</button>
+          <button id="leaderboardBtn" class="btn btn-yellow" data-i18n="players.leaderboard">🏆 Leaderboard</button>
         </div>
       </div>
 
@@ -73,6 +83,19 @@ export function renderPlayers(): string {
               ➕ Add Friend
             </button>
             <button id="closeModalBtn" class="btn btn-gray flex-1" data-i18n="common.close">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard Modal -->
+      <div id="leaderboardModal" class="modal hidden">
+        <div class="modal-content card max-w-4xl max-h-[90vh] overflow-y-auto">
+          <h3 class="text-2xl font-bold text-yellow-400 mb-6 text-center" data-i18n="players.leaderboardTitle">🏆 Top Players Leaderboard</h3>
+          <div id="leaderboardContent"></div>
+          <div class="flex gap-4 mt-6">
+            <button id="closeLeaderboardBtn" class="btn btn-gray flex-1" data-i18n="common.close">
               Close
             </button>
           </div>
@@ -113,10 +136,22 @@ function setupPlayerCardClickHandlers(): void {
 		});
 	}
 	
+	// Leaderboard button
+	const leaderboardBtn = document.getElementById('leaderboardBtn');
+	if (leaderboardBtn) {
+		leaderboardBtn.addEventListener('click', showLeaderboard);
+	}
+	
 	// Close modal button
 	const closeBtn = document.getElementById('closeModalBtn');
 	if (closeBtn) {
 		closeBtn.addEventListener('click', closePlayerModal);
+	}
+	
+	// Close leaderboard button
+	const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+	if (closeLeaderboardBtn) {
+		closeLeaderboardBtn.addEventListener('click', closeLeaderboardModal);
 	}
 }
 
@@ -240,7 +275,7 @@ async function viewPlayer(username: string): Promise<void> {
 				</div>
 
 				<!-- Stats Grid -->
-				<div class="grid grid-cols-4 gap-3 mb-6">
+				<div class="grid grid-cols-5 gap-3 mb-6">
 					<div class="bg-gray-800 rounded-lg p-3 text-center">
 						<p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
@@ -256,6 +291,10 @@ async function viewPlayer(username: string): Promise<void> {
 					<div class="bg-gray-800 rounded-lg p-3 text-center">
 						<p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-purple-400">${player.stats.tournament_wins || 0}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
 					</div>
 				</div>
 
@@ -478,15 +517,143 @@ function searchPlayers(): void {
 	}
 }
 
+async function showLeaderboard(): Promise<void> {
+	const modal = document.getElementById('leaderboardModal');
+	const content = document.getElementById('leaderboardContent');
+	
+	if (!modal || !content) {
+		return;
+	}
+
+	// Show loading state
+	content.innerHTML = `
+		<div class="animate-pulse space-y-4">
+			<div class="h-20 bg-gray-700 rounded"></div>
+			<div class="h-20 bg-gray-700 rounded"></div>
+			<div class="h-20 bg-gray-700 rounded"></div>
+		</div>
+	`;
+	modal.classList.remove('hidden');
+
+	try {
+		const response = await api<{ success: boolean; leaderboard: LeaderboardEntry[] }>('/api/database/players/leaderboard?limit=5');
+
+		if (response.success && response.leaderboard.length > 0) {
+			// Load avatars for all players
+			const leaderboardWithAvatars = await Promise.all(
+				response.leaderboard.map(async (player, index) => {
+					const avatarUrl = await loadAvatar(player.avatar);
+					return { ...player, avatarUrl, rank: index + 1 };
+				})
+			);
+
+			content.innerHTML = `
+				<div class="space-y-4">
+					${leaderboardWithAvatars.map(player => renderLeaderboardCard(player)).join('')}
+				</div>
+			`;
+			window.languageManager?.applyTranslations();
+		} else {
+			content.innerHTML = `
+				<div class="card text-center text-gray-400">
+					<p data-i18n="players.noLeaderboardData">No leaderboard data available yet</p>
+				</div>
+			`;
+			window.languageManager?.applyTranslations();
+		}
+	} catch (error: any) {
+		let message = error instanceof AuthError
+			? '<p class="text-red-400" data-i18n="players.authRequired">Authentication required</p>'
+			: '<p data-i18n="players.leaderboardError">Failed to load leaderboard</p>';
+		content.innerHTML = `
+			<div class="card text-center text-red-400">
+				${message}
+			</div>
+		`;
+		window.languageManager?.applyTranslations();
+	}
+}
+
+function renderLeaderboardCard(player: LeaderboardEntry & { avatarUrl: string; rank: number }): string {
+	const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
+	const rankColor = player.rank <= 3 ? rankColors[player.rank - 1] : 'text-cyan-400';
+	const rankEmojis = ['🥇', '🥈', '🥉'];
+	const rankEmoji = player.rank <= 3 ? rankEmojis[player.rank - 1] : `#${player.rank}`;
+	const statusColor = player.online_status === 'online' ? 'text-green-400' : 'text-gray-400';
+
+	return `
+		<div class="card border-2 ${player.rank === 1 ? 'border-yellow-400 bg-yellow-900/10' : player.rank === 2 ? 'border-gray-300 bg-gray-700/10' : player.rank === 3 ? 'border-orange-400 bg-orange-900/10' : 'border-gray-700'} cursor-pointer hover:border-cyan-400 transition-all" 
+		     data-player-username="${player.username}"
+		     onclick="window.viewPlayer('${player.username}')">
+			<div class="flex items-center gap-4">
+				<!-- Rank -->
+				<div class="text-4xl font-bold ${rankColor} w-16 text-center">
+					${rankEmoji}
+				</div>
+				
+				<!-- Avatar -->
+				<div class="relative">
+					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
+					     src="${player.avatarUrl}"
+					     alt="${player.username}"
+					     onerror="this.src='/default-avatar.png'" />
+				</div>
+				
+				<!-- Player Info -->
+				<div class="flex-1">
+					<h3 class="text-lg font-bold text-yellow-400">${player.display_name || player.username}</h3>
+					<p class="text-sm text-gray-400">@${player.username}</p>
+					<p class="text-xs ${statusColor} mt-1">● <span data-i18n="players.status.${player.online_status}">${player.online_status || 'offline'}</span></p>
+				</div>
+				
+				<!-- Stats -->
+				<div class="grid grid-cols-5 gap-3">
+					<div class="text-center">
+						<p class="text-lg font-bold text-yellow-400">${player.stats.games_played}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-green-400">${player.stats.wins}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.wins">Wins</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-red-400">${player.stats.losses}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.losses">Losses</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-blue-400">${player.stats.win_rate}%</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+					<div class="text-center">
+						<p class="text-lg font-bold text-purple-400">${player.stats.tournament_wins || 0}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	`;
+}
+
+function closeLeaderboardModal(): void {
+	const modal = document.getElementById('leaderboardModal');
+	if (modal) {
+		modal.classList.add('hidden');
+	}
+}
+
 // Expose functions globally (for backward compatibility)
 declare global {
 	interface Window {
 		viewPlayer: (id: string) => void;
 		closePlayerModal: () => void;
 		searchPlayers: () => void;
+		showLeaderboard: () => void;
+		closeLeaderboardModal: () => void;
 	}
 }
 
 window.viewPlayer = viewPlayer;
 window.closePlayerModal = closePlayerModal;
 window.searchPlayers = searchPlayers;
+window.showLeaderboard = showLeaderboard;
+window.closeLeaderboardModal = closeLeaderboardModal;
