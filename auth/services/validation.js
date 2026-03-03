@@ -48,8 +48,13 @@ class ValidationService {
 		if (trimmed.length === 0) {
 			return { isValid: false, error: 'validation.displayNameRequired' };
 		}
-		if (trimmed.length > 30) {
+		if (trimmed.length < 3 || trimmed.length > 30) {
 			return { isValid: false, error: 'validation.displayNameLength' };
+		}
+		// Only allow letters, numbers, and underscores
+		const displayNameRegex = /^[a-zA-Z0-9_]+$/;
+		if (!displayNameRegex.test(trimmed)) {
+			return { isValid: false, error: 'validation.displayNameInvalidChars' };
 		}
 		return { isValid: true };
 	}

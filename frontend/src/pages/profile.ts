@@ -344,10 +344,21 @@ async function updateProfile(): Promise<void> {
 	}
 
 	const trimmed = display_name.trim();
-	if (trimmed.length > 30) {
+	if (trimmed.length < 3 || trimmed.length > 30) {
 		const msg = window.languageManager?.t('validation.displayNameLength');
 		showProfileMessage(
-			msg !== null ? msg : 'Display name must be 30 characters or less',
+			msg !== null ? msg : 'Display name must be 3-30 characters',
+			'error'
+		);
+		return;
+	}
+
+	// Only allow letters, numbers, and underscores
+	const displayNameRegex = /^[a-zA-Z0-9_]+$/;
+	if (!displayNameRegex.test(trimmed)) {
+		const msg = window.languageManager?.t('validation.displayNameInvalidChars');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name can only contain letters, numbers, and underscores',
 			'error'
 		);
 		return;
