@@ -177,7 +177,7 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			response.users.forEach(async (player, index) => {
 				try {
 					const avatarUrl = await loadAvatar(player.avatar);
-					const imgElement = container.querySelector(`[data-player-username="${player.username}"] img`);
+					const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
 					if (imgElement && avatarUrl) {
 						(imgElement as HTMLImageElement).src = avatarUrl;
 					}
