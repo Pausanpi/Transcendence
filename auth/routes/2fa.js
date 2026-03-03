@@ -9,7 +9,7 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token: totpToken, tempToken } = request.body;
 
-			// Validate required fields
+			// Validating fields
 			if (!totpToken || !tempToken) {
 				return reply.status(422).send({
 					success: false,
@@ -18,7 +18,7 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate types
+			// Validating types
 			if (typeof totpToken !== 'string' || typeof tempToken !== 'string') {
 				return reply.status(422).send({
 					success: false,
@@ -27,7 +27,7 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate TOTP token format (6 digits)
+			// Validate TOTP token format
 			if (!/^\d{6}$/.test(totpToken)) {
 				return reply.status(422).send({
 					success: false,
@@ -92,7 +92,6 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { backupCode, tempToken } = request.body;
 
-			// Validate required fields
 			if (!backupCode || !tempToken) {
 				return reply.status(422).send({
 					success: false,
@@ -101,7 +100,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate types
 			if (typeof backupCode !== 'string' || typeof tempToken !== 'string') {
 				return reply.status(422).send({
 					success: false,
@@ -110,7 +108,7 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate backup code format (e.g., "12345-678" or similar)
+			// Validate backup code format
 			if (backupCode.length < 5 || backupCode.length > 20) {
 				return reply.status(422).send({
 					success: false,
@@ -119,7 +117,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate tempToken length
 			if (tempToken.length > 500) {
 				return reply.status(422).send({
 					success: false,
@@ -213,7 +210,6 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token, setupToken } = request.body;
 
-			// Validate required fields
 			if (!token || !setupToken) {
 				return reply.status(422).send({
 					success: false,
@@ -222,7 +218,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate types
 			if (typeof token !== 'string' || typeof setupToken !== 'string') {
 				return reply.status(422).send({
 					success: false,
@@ -231,7 +226,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate TOTP token format (6 digits)
 			if (!/^\d{6}$/.test(token)) {
 				return reply.status(422).send({
 					success: false,
@@ -240,7 +234,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate setupToken length
 			if (setupToken.length > 500) {
 				return reply.status(422).send({
 					success: false,
@@ -291,7 +284,6 @@ export default async function twoFactorRoutes(fastify) {
 		try {
 			const { token } = request.body;
 
-			// Validate required field
 			if (!token) {
 				return reply.status(422).send({
 					success: false,
@@ -300,7 +292,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate type
 			if (typeof token !== 'string') {
 				return reply.status(422).send({
 					success: false,
@@ -309,7 +300,6 @@ export default async function twoFactorRoutes(fastify) {
 				});
 			}
 
-			// Validate TOTP token format (6 digits)
 			if (!/^\d{6}$/.test(token)) {
 				return reply.status(422).send({
 					success: false,
