@@ -32,7 +32,7 @@ let isAI = false;
 interface CustomSettings {
 	boardSize: number;
 	theme: 'classic' | 'neon' | 'minimal';
-	specialMode: 'none' | 'timed' | 'gravity';
+	specialMode: 'none' | 'timed';
 }
 
 let settings: CustomSettings = {
@@ -227,19 +227,10 @@ function handleClick(e: MouseEvent): void {
 
 	if (c < 0 || c >= settings.boardSize) return;
 
-	if (settings.specialMode === 'gravity') {
-		let targetRow = -1;
-		for (let row = settings.boardSize - 1; row >= 0; row--) {
-			if (!board[row][c]) { targetRow = row; break; }
-		}
-		if (targetRow === -1) return;
-		makeMove(targetRow, c);
-	} else {
-		const r = Math.floor((e.clientY - rect.top) * scaleY / cellSize);
-		if (r < 0 || r >= settings.boardSize) return;
-		if (board[r][c]) return;
-		makeMove(r, c);
-	}
+	const r = Math.floor((e.clientY - rect.top) * scaleY / cellSize);
+	if (r < 0 || r >= settings.boardSize) return;
+	if (board[r][c]) return;
+	makeMove(r, c);
 }
 
 function makeMove(r: number, c: number): void {
@@ -555,7 +546,7 @@ export function changeTheme(theme: 'classic' | 'neon' | 'minimal'): void {
 	draw();
 }
 
-export function changeSpecialMode(mode: 'none' | 'timed' | 'gravity'): void {
+export function changeSpecialMode(mode: 'none' | 'timed'): void {
 	settings.specialMode = mode;
 	saveCustomization({ specialMode: mode });
 
