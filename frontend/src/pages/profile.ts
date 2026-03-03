@@ -658,16 +658,8 @@ async function loadMatchHistory(): Promise<void> {
 			return;
 		}
 
-		// Get user profile data first to get the user ID
-		const profileResponse = await api<any>('/api/auth/profile-data');
-		if (!profileResponse.success || !profileResponse.user) {
-			throw new Error('Failed to get user ID');
-		}
-
-		const userId = profileResponse.user.id;
-
-		// Fetch player profile with stats and match history
-		const response = await api<{ success: boolean; user: UserProfileData }>(`/api/database/players/${userId}`);
+		// Fetch player profile with stats and match history using authenticated endpoint
+		const response = await api<{ success: boolean; user: UserProfileData }>(`/api/database/players/me`);
 
 		if (response.success && response.user) {
 			const stats = response.user.stats;

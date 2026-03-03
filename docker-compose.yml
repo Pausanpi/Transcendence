@@ -25,21 +25,15 @@ services:
     image: gateway
     build:
       network: host
-      context: gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: gateway/Dockerfile
     container_name: gateway
     networks: [transcendence-net]
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
     volumes:
-      - ./data:/app/data
-      - ./frontend:/app/frontend
-      - ./gateway:/app/gateway
-      - ./database:/app/database
-      - ./auth:/app/auth
-      - ./shared:/app/shared
-      - logs-data:/app/logs
+      - data-volume:/app/data
     depends_on:
       vault:
         condition: service_healthy
@@ -56,15 +50,13 @@ services:
     image: database
     build:
       network: host
-      context: database
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: database/Dockerfile
     container_name: database
     networks: [transcendence-net]
     volumes:
-      - ./data:/app/data
+      - data-volume:/app/data
       - media-data:/app/media
-      - ./database:/app/database
-      - ./shared:/app/shared
     healthcheck: *database-healthcheck
     restart: always
 
@@ -72,8 +64,8 @@ services:
     image: auth
     build:
       network: host
-      context: auth
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: auth/Dockerfile
     container_name: auth
     networks: [transcendence-net]
     env_file: .env
@@ -81,12 +73,7 @@ services:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
     volumes:
-      - ./data:/app/data
-      - ./auth:/app/auth
-      - ./frontend:/app/frontend
-      - ./database:/app/database
-      - ./gateway:/app/gateway
-      - ./shared:/app/shared
+      - data-volume:/app/data
     depends_on:
       vault:
         condition: service_healthy
@@ -99,13 +86,10 @@ services:
     image: i18n
     build:
       network: host
-      context: i18n
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: i18n/Dockerfile
     container_name: i18n
     networks: [transcendence-net]
-    volumes:
-      - ./i18n:/app/i18n
-      - ./shared:/app/shared
     healthcheck: *i18n-healthcheck
     restart: always
 
@@ -117,8 +101,6 @@ services:
       dockerfile: nginx/Dockerfile
     container_name: nginx
     ports: ["8443:443"]
-    volumes:
-      - logs-data:/var/log/nginx
     depends_on:
       - gateway
     healthcheck: *nginx-healthcheck
@@ -135,16 +117,13 @@ services:
     environment:
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: root
-    volumes:
-      - ./nginx/ssl:/vault/ssl:ro
-      - ./vault/policy.hcl:/vault/policies/policy.hcl:ro
     networks: [transcendence-net]
     healthcheck: *vault-healthcheck
     restart: always
 
 volumes:
-  logs-data:
-    name: logs-data
+  data-volume:
+    name: data-volume
   media-data:
     name: media-data
 

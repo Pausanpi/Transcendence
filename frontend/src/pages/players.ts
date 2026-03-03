@@ -2,6 +2,7 @@ import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoun
 import { loadAvatar } from '../imageUtils.js';
 
 interface PlayerListItem {
+	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -42,6 +43,7 @@ interface PlayerProfile {
 }
 
 interface LeaderboardEntry {
+	id: string;
 	username: string;
 	display_name: string | null;
 	avatar: string | null;
@@ -110,11 +112,11 @@ function setupPlayerCardClickHandlers(): void {
 	const playersList = document.getElementById('playersList');
 	if (playersList) {
 		playersList.addEventListener('click', (e) => {
-			const card = (e.target as HTMLElement).closest('[data-player-username]');
+			const card = (e.target as HTMLElement).closest('[data-player-id]');
 			if (card) {
-				const username = card.getAttribute('data-player-username');
-				if (username) {
-					viewPlayer(username);
+				const playerId = card.getAttribute('data-player-id');
+				if (playerId) {
+					viewPlayer(playerId);
 				}
 			}
 		});
@@ -215,7 +217,7 @@ function renderPlayerCard(player: PlayerListItem): string {
 
 	// REMOVED inline onclick - using event delegation instead
 	return `
-		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-username="${player.username}">
+		<div class="card hover:border-yellow-400 cursor-pointer transition-all" data-player-id="${player.id}">
 			<div class="flex items-center gap-4">
 				<div class="relative">
 					<img class="w-16 h-16 rounded-full border-2 border-gray-600 object-cover"
@@ -234,7 +236,7 @@ function renderPlayerCard(player: PlayerListItem): string {
 	`;
 }
 
-async function viewPlayer(username: string): Promise<void> {
+async function viewPlayer(playerId: string): Promise<void> {
 	const modal = document.getElementById('playerModal');
 	const content = document.getElementById('playerModalContent');
 	const addFriendBtn = document.getElementById('addFriendBtn');
@@ -254,7 +256,7 @@ async function viewPlayer(username: string): Promise<void> {
 	modal.classList.remove('hidden');
 
 	try {
-		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${encodeURIComponent(username)}`);
+		const response = await api<{ success: boolean; user: PlayerProfile }>(`/api/database/players/${encodeURIComponent(playerId)}`);
 
 		if (response.success && response.user) {
 			const player = response.user;
@@ -321,9 +323,9 @@ async function viewPlayer(username: string): Promise<void> {
 					btn.parentNode?.replaceChild(newBtn, btn);
 					
 					// Set up the click handler on the fresh button
-					newBtn.setAttribute('data-player-username', username);
+					newBtn.setAttribute('data-player-id', playerId);
 					newBtn.addEventListener('click', () => {
-						addFriend(username);
+						addFriend(player.username);
 					});
 				}
 			}, 50);
@@ -583,8 +585,8 @@ function renderLeaderboardCard(player: LeaderboardEntry & { avatarUrl: string; r
 
 	return `
 		<div class="card border-2 ${player.rank === 1 ? 'border-yellow-400 bg-yellow-900/10' : player.rank === 2 ? 'border-gray-300 bg-gray-700/10' : player.rank === 3 ? 'border-orange-400 bg-orange-900/10' : 'border-gray-700'} cursor-pointer hover:border-cyan-400 transition-all" 
-		     data-player-username="${player.username}"
-		     onclick="window.viewPlayer('${player.username}')">
+		     data-player-id="${player.id}"
+		     onclick="window.viewPlayer('${player.id}')">
 			<div class="flex items-center gap-4">
 				<!-- Rank -->
 				<div class="text-4xl font-bold ${rankColor} w-16 text-center">
