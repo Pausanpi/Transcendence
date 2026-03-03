@@ -203,7 +203,7 @@ Communication channels:
 
 ## Tables and Relationships
 
-The database consists of 7 interconnected tables:
+The database consists of 6 interconnected tables:
 
 **Visual diagram available**: See `_assets/database_schema.png` for a graphical representation.
 
@@ -213,9 +213,6 @@ The database consists of 7 interconnected tables:
 
 ```
 users (PK: id)
-  │
-  ├──→ user_sessions (FK: user_id → users.id)
-  │    └── Tracks active JWT sessions
   │
   ├──→ backup_codes (FK: user_id → users.id)
   │    └── Stores 2FA backup codes
@@ -265,22 +262,12 @@ Columns:
   updated_at              DATETIME  - Last update timestamp
   online_status           TEXT      - Current status (online/offline)
   last_seen               DATETIME  - Last activity timestamp
+
+Note: Game statistics (wins, losses, games_played, win_rate) are calculated 
+dynamically from the matches table, not stored in users table.
 ```
 
-### 2. user_sessions
-```
-PRIMARY KEY: id (TEXT)
-FOREIGN KEY: user_id → users(id) [CASCADE DELETE]
-
-Columns:
-  id          TEXT      - Session identifier
-  user_id     TEXT      - Reference to users table
-  jwt_token   TEXT      - JWT authentication token
-  expires_at  DATETIME  - Token expiration time
-  created_at  DATETIME  - Session creation timestamp
-```
-
-### 3. backup_codes
+### 2. backup_codes
 ```
 PRIMARY KEY: id (INTEGER, auto-increment)
 FOREIGN KEY: user_id → users(id) [CASCADE DELETE]
@@ -293,7 +280,7 @@ Columns:
   created_at DATETIME  - Code generation timestamp
 ```
 
-### 4. friendships
+### 3. friendships
 ```
 PRIMARY KEY: id (INTEGER, auto-increment)
 FOREIGN KEYS: user_id → users(id) [CASCADE DELETE]
@@ -308,7 +295,7 @@ Columns:
   created_at DATETIME  - Request timestamp
 ```
 
-### 5. tournaments
+### 4. tournaments
 ```
 PRIMARY KEY: id (INTEGER, auto-increment)
 FOREIGN KEYS: creator_id → users(id) [SET NULL on delete]
@@ -328,7 +315,7 @@ Columns:
   completed_at  DATETIME  - Completion timestamp
 ```
 
-### 6. tournament_participants
+### 5. tournament_participants
 ```
 PRIMARY KEY: id (INTEGER, auto-increment)
 FOREIGN KEYS: tournament_id → tournaments(id) [CASCADE DELETE]
@@ -345,7 +332,7 @@ Columns:
   joined_at        DATETIME  - Registration timestamp
 ```
 
-### 7. matches
+### 6. matches
 ```
 PRIMARY KEY: id (INTEGER, auto-increment)
 FOREIGN KEYS: player1_id → users(id) [SET NULL on delete]
@@ -372,20 +359,30 @@ Columns:
 ## Design Notes
 
 **Relationship Patterns:**
-- Users can have multiple sessions (1:N)
 - Friendships are bidirectional (users can be both initiator and receiver)
 - Matches support both casual play and tournament games
-- Player/winner names are denormalized to preserve match history
+- Player/winner names are denormalized to preserve match history after account deletion
+
+**Statistics & Leaderboards:**
+- Player statistics calculated dynamically from matches table (not stored in users table)
+- Stats include: wins, losses, games played, win rate (all computed on-demand)
+- Tournament wins tracked via tournaments.winner_id for leaderboard rankings
+- Leaderboard rankings determined by total wins, ordered by win count and games played
+- Match history preserved with game type, scores, duration, and tournament context
+- Public identifiers use username instead of internal database IDs for privacy
 
 **Data Integrity:**
-- CASCADE DELETE: Sessions, backup codes, friendships, tournament participants
+- CASCADE DELETE: Backup codes, friendships, tournament participants
 - SET NULL on DELETE: Match participants, tournament creators/winners
-- This ensures history is preserved even when user accounts are deleted
+- This ensures match history is preserved even when user accounts are deleted
+- Statistics recalculated dynamically ensures data consistency
 
 **Privacy & Compliance:**
 - GDPR consent fields track user preferences
 - is_anonymized flag for user data anonymization
 - Account locking mechanism (login_attempts, locked_until)
+- User IDs never exposed in public APIs; username used as public identifier
+- JWT-based authentication (session managed externally, not in database)
 
 # Features List
 

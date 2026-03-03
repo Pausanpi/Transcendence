@@ -88,6 +88,89 @@ export default async function twoFactorRoutes(fastify) {
 		}
 	});
 
+	fastify.post('/verify-backup-code', async (request, reply) => {
+		try {
+			const { backupCode, tempToken } = request.body;
+
+			// Validate required fields
+			if (!backupCode || !tempToken) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.tokenRequired',
+					code: 'MISSING_FIELDS'
+				});
+			}
+
+			// Validate types
+			if (typeof backupCode !== 'string' || typeof tempToken !== 'string') {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'INVALID_TYPE'
+				});
+			}
+
+			// Validate backup code format (e.g., "12345-678" or similar)
+			if (backupCode.length < 5 || backupCode.length > 20) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalidBackupCode',
+					code: 'INVALID_CODE_FORMAT'
+				});
+			}
+
+			// Validate tempToken length
+			if (tempToken.length > 500) {
+				return reply.status(422).send({
+					success: false,
+					error: 'validation.invalidInput',
+					code: 'TOKEN_TOO_LONG'
+				});
+			}
+
+			const decoded = await jwtService.verifyToken(tempToken);
+			if (!decoded?.temp2FA) {
+				return reply.status(401).send({
+					success: false,
+					error: 'auth.invalidToken'
+				});
+			}
+
+			const user = await findUserById(decoded.id);
+			if (!user?.two_factor_enabled) {
+				return reply.status(422).send({
+					success: false,
+					error: '2fa.notEnabled'
+				});
+			}
+
+			const isValid = await twoFactorService.verifyBackupCode(user.id, backupCode);
+			if (!isValid) {
+				return reply.status(422).send({
+					success: false,
+					error: 'messages.invalidBackupCode'
+				});
+			}
+
+			const finalToken = await jwtService.generateToken({
+				id: user.id,
+				username: user.username,
+				email: user.email
+			});
+
+			return {
+				success: true,
+				token: finalToken,
+				user: user.toSafeJSON()
+			};
+		} catch (error) {
+			return reply.status(503).send({
+				success: false,
+				error: 'common.internalError'
+			});
+		}
+	});
+
 	fastify.post('/setup', { preHandler: authenticateJWT }, async (request, reply) => {
 		try {
 			const user = await findUserById(request.user.id);

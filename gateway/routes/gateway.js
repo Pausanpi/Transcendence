@@ -11,7 +11,6 @@ export default async function gatewayRoutes(fastify, options) {
 			'/api/auth',
 			'/api/2fa',
 			'/api/i18n',
-			'/api/users',
 			'/api/database',
 			'/api/gdpr'
 		]

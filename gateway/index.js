@@ -11,7 +11,6 @@ const gatewayUpstream = 'http://gateway:3000';
 const authUpstream = 'http://auth:3001';
 const i18nUpstream = 'http://i18n:3002';
 const databaseUpstream = 'http://database:3003';
-const usersUpstream = 'http://users:3004';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -59,6 +58,7 @@ async function startGateway() {
 
 		const publicRoutes = [
 			'/api/2fa/verify-login',
+			'/api/2fa/verify-backup-code',
 			'/api/oauth/github',
 			'/api/oauth/github/callback',
 			'/api/auth/health',
@@ -66,8 +66,7 @@ async function startGateway() {
 			'/api/auth/register',
 			'/api/database/health',
 			'/api/gateway/health',
-			'/api/i18n/',
-			'/api/users/health'
+			'/api/i18n/'
 		];
 
 		if (publicRoutes.some(route => request.url.startsWith(route))) {
@@ -323,9 +322,6 @@ async function startGateway() {
 			}
 			if (service === 'database') {
 				return proxyAPI(request, reply, databaseUpstream);
-			}
-			if (service === 'users') {
-				return proxyAPI(request, reply, usersUpstream);
 			}
 			if (service === 'gateway') {
 				return proxyAPI(request, reply, gatewayUpstream);

@@ -1,9 +1,7 @@
 import {
 	findUserById,
 	updateUser,
-	deleteUser,
-	getUserSessions,
-	deleteUserSessions
+	deleteUser
  } from './user.js';
 
 import TwoFactorService from './twoFactor.js';
@@ -13,8 +11,6 @@ class GdprService {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-			const sessionsResponse = await getUserSessions(userId);
-			const sessions = sessionsResponse.success ? sessionsResponse.sessions : [];
 			return {
 				profileInfo: {
 					hasUsername: !!user.username,
@@ -23,7 +19,6 @@ class GdprService {
 					twoFactorEnabled: Boolean(user.two_factor_enabled)
 				},
 				activity: {
-					sessionCount: sessions.length,
 					accountCreated: user.created_at || new Date().toISOString(),
 					lastUpdated: user.updated_at || new Date().toISOString()
 				},
@@ -42,7 +37,6 @@ class GdprService {
 
 	async anonymizeUserData(userId) {
 		try {
-			//await deleteUserSessions(userId);
 			const anonymizedData = {
 				username: `anonymous_${this.generateRandomId()}`,
 				avatar: null,
@@ -62,19 +56,12 @@ class GdprService {
 		try {
 			const user = await findUserById(userId);
 			if (!user) return null;
-			const sessionsResponse = await getUserSessions(userId);
-			const sessions = sessionsResponse.success ? sessionsResponse.sessions : [];
 			return {
 				exportInfo: {
 					generatedAt: new Date().toISOString(),
 					format: 'GDPR-COMPLIANT'
 				},
-				profile: user.toSafeJSON(),
-				sessions: sessions.map(session => ({
-					id: session.id,
-					createdAt: session.created_at,
-					expiresAt: session.expires_at
-				}))
+				profile: user.toSafeJSON()
 			};
 		} catch (error) {
 			console.error('Error in exportUserData:', error);
@@ -99,7 +86,6 @@ class GdprService {
 
 	async deleteUserAccount(userId) {
 		try {
-			await deleteUserSessions(userId);
 			await TwoFactorService.saveBackupCodes(userId, []);
 			const response = await deleteUser(userId);
 			return response !== undefined;
