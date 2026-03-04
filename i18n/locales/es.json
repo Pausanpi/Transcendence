@@ -9,6 +9,7 @@
 		"cancel": "Cancelar",
 		"confirm": "Confirmar",
 		"back": "Volver",
+		"back2": "← Volver",
 		"logout": "Cerrar Sesión",
 		"internalError": "Error interno del servidor",
 		"enabled": "Habilitado",
@@ -884,5 +885,10 @@
 		"verifyPlayerHint": "El jugador debe iniciar sesión para confirmar su identidad",
 		"playerAlreadyInTournament": "✗ Este jugador ya está en el torneo",
 		"playerVerifiedSuffix": "verificado!"
+	},
+	"dashboard": {
+		"dashboard": "📊 Panel de control",
+		"services": "Servicios",
+		"refresh": "🔄 Recargar"
 	}
 }

@@ -547,7 +547,7 @@ function loadCustomization(): void {
 				specialMode: parsed.specialMode || 'none'
 			};
 		} catch (e) {
-			// Failed to parse localStorage customization - use defaults
+			
 		}
 	}
 }
