@@ -46,6 +46,7 @@ At the moment the repository is on GitHub with some special rules, so that it wi
 
 Always branch from `dev`:
 At the moment main is the default branch so change to dev before starting the new branch.
+Is working in the final `prod` branch, same rules, jsut use `prod` instead of `dev`
 
 ```bash
 git checkout dev

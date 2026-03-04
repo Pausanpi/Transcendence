@@ -116,7 +116,7 @@ async function startGateway() {
 		console.log('🔵 Gateway: Avatar upload route hit');
 		console.log('🔵 Gateway: Content-Type:', request.headers['content-type']);
 		console.log('🔵 Gateway: User:', request.user?.id);
-		
+
 		try {
 			// User is already authenticated by onRequest hook
 			if (!request.user) {
@@ -128,10 +128,10 @@ async function startGateway() {
 			}
 
 			console.log('🔵 Gateway: Attempting to read file...');
-			
+
 			// Get the file from the multipart request
 			const data = await request.file();
-			
+
 			console.log('🔵 Gateway: File data:', data ? {
 				filename: data.filename,
 				mimetype: data.mimetype,
@@ -186,7 +186,7 @@ async function startGateway() {
 			console.log('🔵 Gateway: Database response status:', response.status);
 			const result = response.data;
 			console.log('🔵 Gateway: Database response:', result);
-			
+
 			return reply.status(response.status).send(result);
 
 		} catch (error) {
@@ -211,7 +211,7 @@ async function startGateway() {
 			}
 
 			const { userId } = request.params;
-			
+
 			// Forward request to database service with axios
 			const response = await axios.get(`http://database:3003/database/avatar/${userId}`, {
 				headers: {

@@ -79,6 +79,9 @@ export function initPongGame(config: {
 	isAI = config.isAI;
 	difficulty = config.difficulty || 3;
 
+	navigate('game');
+
+	// Set options AFTER navigate, because navigate triggers stopPongGame which resets them
 	if (config.gameOptions) {
 		switch (config.gameOptions.difficulty) {
 			case 'easy':
@@ -95,8 +98,6 @@ export function initPongGame(config: {
 		}
 		backgroundType = config.gameOptions.background || 'default';
 	}
-
-	navigate('game');
 
 	initTimeoutId = setTimeout(() => {
 		initTimeoutId = null;
@@ -205,28 +206,38 @@ function update(): void {
 
 	if (isAI) {
 		const now = Date.now();
-		if (now - aiLastUpdate >= 1000) {
+		const ballComingToAI = ball.dx > 0;
+		const updateInterval = ballComingToAI ? 800 : 2000;
+
+		if (now - aiLastUpdate >= updateInterval) {
 			aiLastUpdate = now;
-			updateAITarget();
+
+			if (ballComingToAI) {
+				updateAITarget();
+			} else {
+				aiTargetY = canvas.height / 2 - paddle2.h / 2;
+			}
 
 			const paddleCenter = paddle2.y + paddle2.h / 2;
-			const threshold = 10;
-			if (paddleCenter < aiTargetY - threshold) {
+			const targetCenter = aiTargetY + paddle2.h / 2;
+			const threshold = ballComingToAI ? 20 : 40;
+
+			if (paddleCenter < targetCenter - threshold) {
 				aiDecision = 'down';
-			} else if (paddleCenter > aiTargetY + threshold) {
+			} else if (paddleCenter > targetCenter + threshold) {
 				aiDecision = 'up';
 			} else {
 				aiDecision = '';
 			}
 		}
 
-		keys['ArrowUp'] = aiDecision === 'up';
-		keys['ArrowDown'] = aiDecision === 'down';
+		keys['o'] = aiDecision === 'up';
+		keys['l'] = aiDecision === 'down';
 	}
 
 	paddle2.dy = 0;
-	if (keys['ArrowUp'] && paddle2.y > 0) paddle2.dy = -PADDLE_SPEED;
-	if (keys['ArrowDown'] && paddle2.y < canvas.height - paddle2.h) paddle2.dy = PADDLE_SPEED;
+	if (keys['o'] && paddle2.y > 0) paddle2.dy = -PADDLE_SPEED;
+	if (keys['l'] && paddle2.y < canvas.height - paddle2.h) paddle2.dy = PADDLE_SPEED;
 	paddle2.y += paddle2.dy;
 
 	// Clamp 
