@@ -131,7 +131,6 @@ export async function createTournamentInDB(
 		}
 		return null;
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error creating tournament:', error);
 		}
@@ -159,7 +158,6 @@ async function saveTournamentParticipants(
 			body: JSON.stringify({ participants })
 		});
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error saving tournament participants:', error);
 		}
@@ -179,7 +177,6 @@ export async function startTournamentInDB(tournamentId: number): Promise<void> {
 			})
 		});
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error starting tournament:', error);
 		}
@@ -254,7 +251,6 @@ export async function completeTournamentInDB(
 			})
 		});
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error completing tournament:', error);
 		}
@@ -276,7 +272,6 @@ export async function updateTournamentRound(
 			})
 		});
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error updating tournament round:', error);
 		}

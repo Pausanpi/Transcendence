@@ -74,7 +74,6 @@ export async function login(): Promise<void> {
 		if (error instanceof ValidationError || error instanceof AuthError) {
 			showResult('loginResult', error.message, true);
 		} else if (error instanceof ServerError) {
-			// Only log actual server errors to console
 			console.error('Login server error:', error);
 			showResult('loginResult', 'common.internalError', true);
 		} else {
@@ -116,7 +115,6 @@ export async function register(): Promise<void> {
 			// Email/username already exists
 			showResult('registerResult', error.message, true);
 		} else if (error instanceof ServerError) {
-			// Only log actual server errors
 			console.error('Registration server error:', error);
 			showResult('registerResult', 'common.internalError', true);
 		} else {
@@ -162,7 +160,6 @@ async function sendHeartbeat(): Promise<void> {
 			clearToken();
 			updateAuthBtn();
 		} else if (error instanceof ServerError) {
-			// Only log actual server errors
 			console.error('Heartbeat server error:', error);
 		}
 		// Silently ignore other errors (network issues, etc.)

@@ -13,14 +13,14 @@ export async function fetchAuthenticatedImage(url: string): Promise<string | nul
 		});
 
 		if (!response.ok) {
-			console.error('Failed to fetch image:', response.status);
+			// Image not found or not accessible - return null for fallback
 			return null;
 		}
 
 		const blob = await response.blob();
 		return URL.createObjectURL(blob);
 	} catch (error) {
-		console.error('Error fetching authenticated image:', error);
+		// Network error or other issue - return null for fallback
 		return null;
 	}
 }

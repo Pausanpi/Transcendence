@@ -3,40 +3,66 @@ class ValidationService {
 		if (!email || typeof email !== 'string') {
 			return { isValid: false, error: 'validation.emailRequired' };
 		}
+
+		// Trim whitespace
+		const trimmed = email.trim();
+		if (trimmed.length === 0) {
+			return { isValid: false, error: 'validation.emailRequired' };
+		}
+
+		// Check for HTML/dangerous characters
+		const dangerousChars = /[<>"'&]/;
+		if (dangerousChars.test(trimmed)) {
+			return { isValid: false, error: 'validation.invalidCharsDetected' };
+		}
+
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
+		if (!emailRegex.test(trimmed)) {
 			return { isValid: false, error: 'validation.invalidEmailFormat' };
 		}
 		const tempEmailDomains = [
 			'tempmail.com', 'guerrillamail.com', 'mailinator.com',
 			'10minutemail.com', 'yopmail.com', 'throwaway.com'
 		];
-		const domain = email.split('@')[1].toLowerCase();
+		const domain = trimmed.split('@')[1].toLowerCase();
 		if (tempEmailDomains.some(temp => domain.includes(temp))) {
 			return { isValid: false, error: 'validation.temporaryEmailNotAllowed' };
 		}
-		return { isValid: true };
+		return { isValid: true, value: trimmed };
 	}
 
 	validateUsername(username) {
 		if (!username || typeof username !== 'string') {
 			return { isValid: false, error: 'validation.usernameRequired' };
 		}
-		if (username.length < 3 || username.length > 30) {
+
+		// Trim whitespace
+		const trimmed = username.trim();
+		if (trimmed.length === 0) {
+			return { isValid: false, error: 'validation.usernameRequired' };
+		}
+
+		// Check for HTML/dangerous characters
+		const dangerousChars = /[<>"'&]/;
+		if (dangerousChars.test(trimmed)) {
+			return { isValid: false, error: 'validation.invalidCharsDetected' };
+		}
+
+		if (trimmed.length < 3 || trimmed.length > 30) {
 			return { isValid: false, error: 'validation.usernameLength' };
 		}
 		const usernameRegex = /^[a-zA-Z0-9_-]+$/;
-		if (!usernameRegex.test(username)) {
+		if (!usernameRegex.test(trimmed)) {
 			return { isValid: false, error: 'validation.usernameInvalidChars' };
 		}
 		const reservedUsernames = [
 			'admin', 'administrator', 'root', 'system', 'support',
 			'help', 'contact', 'api', 'oauth', 'auth'
 		];
-		if (reservedUsernames.includes(username.toLowerCase())) {
+		if (reservedUsernames.includes(trimmed.toLowerCase())) {
 			return { isValid: false, error: 'validation.usernameReserved' };
 		}
-		return { isValid: true };
+		return { isValid: true, value: trimmed };
 	}
 
 	validateDisplayName(displayName) {
@@ -48,10 +74,22 @@ class ValidationService {
 		if (trimmed.length === 0) {
 			return { isValid: false, error: 'validation.displayNameRequired' };
 		}
-		if (trimmed.length > 30) {
+
+		// Check for HTML/dangerous characters
+		const dangerousChars = /[<>"'&]/;
+		if (dangerousChars.test(trimmed)) {
+			return { isValid: false, error: 'validation.invalidCharsDetected' };
+		}
+
+		if (trimmed.length < 3 || trimmed.length > 30) {
 			return { isValid: false, error: 'validation.displayNameLength' };
 		}
-		return { isValid: true };
+		// Only allow letters, numbers, and underscores
+		const displayNameRegex = /^[a-zA-Z0-9_]+$/;
+		if (!displayNameRegex.test(trimmed)) {
+			return { isValid: false, error: 'validation.displayNameInvalidChars' };
+		}
+		return { isValid: true, value: trimmed };
 	}
 
 	validate2FAToken(token) {
@@ -65,15 +103,16 @@ class ValidationService {
 		return { isValid: true };
 	}
 
-	sanitizeHtml(input) {
-		if (typeof input !== 'string') return input;
-		return input
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#x27;')
-			.replace(/\//g, '&#x2F;');
-	}
+	// Commented out - we now reject instead of sanitize
+	// sanitizeHtml(input) {
+	// 	if (typeof input !== 'string') return input;
+	// 	return input
+	// 		.replace(/</g, '&lt;')
+	// 		.replace(/>/g, '&gt;')
+	// 		.replace(/"/g, '&quot;')
+	// 		.replace(/'/g, '&#x27;')
+	// 		.replace(/\//g, '&#x2F;');
+	// }
 }
 
 export default new ValidationService();

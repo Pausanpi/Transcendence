@@ -101,7 +101,7 @@ export async function setupTicTacToe(ai: boolean = false, difficulty: number = 3
 export function startTicTacToe(): void {
 	const session = getGameSession();
 	if (!session) {
-		console.error('No game session');
+		// No game session - redirect to games page
 		navigate('games');
 		return;
 	}
@@ -526,7 +526,7 @@ function loadCustomization(): void {
 				specialMode: parsed.specialMode || 'none'
 			};
 		} catch (e) {
-			console.error('Failed to load customization:', e);
+			// Failed to parse localStorage customization - use defaults
 		}
 	}
 }
