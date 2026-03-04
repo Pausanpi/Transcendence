@@ -144,25 +144,22 @@ export default async function avatarRoutes(fastify, options) {
 			const avatarPath = path.join(AVATARS_DIR, `${userId}.jpg`);
 
 			try {
+				// Try to delete the physical file (may not exist for OAuth users)
 				await fs.unlink(avatarPath);
-				
-				// Update database to remove avatar reference
-				await db.run(
-					'UPDATE users SET avatar = NULL WHERE id = ?',
-					[userId]
-				);
-
-				return reply.send({
-					success: true,
-					message: 'Avatar deleted successfully'
-				});
 			} catch (err) {
-				// File doesn't exist, that's okay
-				return reply.send({
-					success: true,
-					message: 'No avatar to delete'
-				});
+				// File doesn't exist - that's okay (GitHub OAuth avatar URLs)
 			}
+
+			// Always update database to remove avatar reference
+			await db.run(
+				'UPDATE users SET avatar = NULL WHERE id = ?',
+				[userId]
+			);
+
+			return reply.send({
+				success: true,
+				message: 'Avatar deleted successfully'
+			});
 
 		} catch (error) {
 			fastify.log.error('Avatar deletion error:', error);
