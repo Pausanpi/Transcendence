@@ -359,6 +359,7 @@
 		"friendRequestSent": "Friend request sent!",
 		"failedToSendRequest": "Failed to send request",
 		"failedToSendFriendRequest": "Failed to send friend request",
+		"cannotAddSelf": "You cannot add yourself as a friend",
 		"status": {
 			"online": "Online",
 			"offline": "Offline"

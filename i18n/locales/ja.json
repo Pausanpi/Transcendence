@@ -358,6 +358,7 @@
 		"friendRequestSent": "フレンド申請を送りました！",
 		"failedToSendRequest": "リクエストの送信に失敗しました",
 		"failedToSendFriendRequest": "フレンド申請の送信に失敗しました",
+		"cannotAddSelf": "自分自身をフレンドとして追加することはできません",
 		"status": {
 			"online": "オンライン",
 			"offline": "オフライン"
