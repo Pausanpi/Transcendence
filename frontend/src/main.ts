@@ -13,7 +13,6 @@ import './tournamentController.js';
 import './tournamentEngine.js';
 import './tournamentPage.js';
 
-// Exponer funciones globalmente para onclick handlers
 (window as any).setupPongTournament = setupPongTournament;
 (window as any).setupTicTacToeTournament = setupTicTacToeTournament;
 (window as any).startCurrentMatch = startCurrentMatch;
