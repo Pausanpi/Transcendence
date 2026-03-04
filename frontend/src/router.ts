@@ -68,7 +68,6 @@ export function navigate(page: string): void {
       window.updateAuthBtn();
     }
 
-	// Para el torneo:
 	if (page === 'tournament_game') {
 		renderTournamentPage();
 	}

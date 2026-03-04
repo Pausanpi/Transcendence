@@ -26,7 +26,6 @@ export async function fetchAuthenticatedImage(url: string): Promise<string | nul
 }
 
 // Helper to load avatar with fallback
-// Helper to load avatar with fallback
 export async function loadAvatar(avatarUrl: string | null): Promise<string> {
   if (!avatarUrl) return '/default-avatar.png';
 

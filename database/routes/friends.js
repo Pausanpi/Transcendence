@@ -35,7 +35,6 @@ export default async function friendsRoutes(fastify, options) {
         }
     });
 
-    // Añadir después de la ruta anterior
     fastify.get('/friends/me', async (request, reply) => {
         try {
             const userId = request.headers['x-user-id'] ||

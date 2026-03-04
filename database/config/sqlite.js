@@ -44,9 +44,6 @@ class Database {
                 consent_updated_at DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				-- wins INTEGER DEFAULT 0,
-				-- losses INTEGER DEFAULT 0,
-				-- games_played INTEGER DEFAULT 0,
                 online_status TEXT DEFAULT 'offline',
                 last_seen DATETIME,
                 UNIQUE(oauth_provider, oauth_id)
