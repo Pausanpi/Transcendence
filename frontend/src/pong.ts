@@ -176,7 +176,7 @@ function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
 function updateAITarget(): void {
 	const predictedY = predictBallYAtPaddle(ball, paddle2.x);
 
-	const errorMargin = difficulty === 2 ? 60 : difficulty === 3 ? 40 : 20;
+	const errorMargin = difficulty === 2 ? 50 : difficulty === 3 ? 30 : 4;
 	const randomOffset = (Math.random() - 0.5) * errorMargin;
 
 	aiTargetY = predictedY - paddle2.h / 2 + randomOffset;
@@ -207,7 +207,10 @@ function update(): void {
 	if (isAI) {
 		const now = Date.now();
 		const ballComingToAI = ball.dx > 0;
-		const updateInterval = ballComingToAI ? 800 : 2000;
+		const isHard = difficulty !== 2 && difficulty !== 3;
+		const updateInterval = isHard
+			? (ballComingToAI ? 50 : 200)
+			: (ballComingToAI ? 800 : 1000);
 
 		if (now - aiLastUpdate >= updateInterval) {
 			aiLastUpdate = now;
@@ -220,7 +223,7 @@ function update(): void {
 
 			const paddleCenter = paddle2.y + paddle2.h / 2;
 			const targetCenter = aiTargetY + paddle2.h / 2;
-			const threshold = ballComingToAI ? 20 : 40;
+			const threshold = isHard ? 0 : (ballComingToAI ? 4 : 30);
 
 			if (paddleCenter < targetCenter - threshold) {
 				aiDecision = 'down';
@@ -229,6 +232,14 @@ function update(): void {
 			} else {
 				aiDecision = '';
 			}
+		}
+
+
+		const currentCenter = paddle2.y + paddle2.h / 2;
+		const targetCenterNow = aiTargetY + paddle2.h / 2;
+		const stopThreshold = 3;
+		if (Math.abs(currentCenter - targetCenterNow) <= stopThreshold) {
+			aiDecision = '';
 		}
 
 		keys['o'] = aiDecision === 'up';
