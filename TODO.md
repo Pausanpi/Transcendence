@@ -81,6 +81,10 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **038**: Check mail validation for trash and wier characters. (lcuevas- / csubires)
 - [x] **039**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. (lcuevas- / csubires)
 - [ ] **040**: A couple of alerts, like when erasing avatar. Check validity of that (lcuevas- / TODO)
+- [ ] **041**: Clean Grapahana and Prometheus and test api from dashboard (lcuevas- / TODO)
+- [x] **042**: Tournament with tictactoe do not report and load properly, it checks as pong (joestrad- / joestrad)
+- [x] **043**: When adding multiple registered players old fields get erased (lcuevas- / joestrad)
+- [x] **044**: Test page to be eliminated (csubires / joestrad)
 
 
 # Solved Bug reports
@@ -121,3 +125,6 @@ Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
 - [x] **026**: Dashboard without loging shows a 502. May be for deprecated fetch, also protect better the endpoint. Just erased all calls and references to users (lcuevas- / lceuvas-)
 - [x] **039**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. Just needed to reorder the endpoint to NULL the users table avatar even if there is no file to erase in the image database (lcuevas- / csubires)
 - [x] **038**: Check mail validation for trash and wier characters. Hardened validation rules (lcuevas- / csubires)
+- [x] **042**: Tournament with tictactoe do not report and load properly, it checks as pong. Added new variable in the tournament table, now is carreid from the frontend and upstream (joestrad- / joestrad)
+- [x] **043**: When adding multiple registered players old fields get erased. Better modals and variables now (lcuevas- / joestrad)
+- [x] **044**: Test page to be eliminated. Done, with all references (csubires / joestrad)

@@ -11,26 +11,6 @@ export function renderDashboard(): string {
         <div id="services" class="space-y-3"></div>
         <button onclick="checkServices()" class="btn btn-blue mt-4">🔄 Refresh</button>
       </div>
-      <div class="card">
-        <h3 class="text-xl font-bold mb-4">API Test</h3>
-        <input id="apiUrl" placeholder="/api/auth/status" class="input mb-3" />
-        <button onclick="testApi()" class="btn btn-green w-full">Send GET</button>
-        <pre id="apiResult" class="result mt-3 overflow-auto max-h-60"></pre>
-      </div>
-
-	  <div class="card">
-
-	  <button onclick="window.open('https://localhost:8445', '_blank')" disabled class="btn btn-blue mt-4" title="Open Grafana Dashboard">
-                        📊 Grafana
-                    </button>
-
-
-<button onclick="window.open('http://localhost:8444', '_blank')"
-                            class="btn btn-blue mt-4" disabled title="Open HashiCorp Vault">
-                        🔐 Vault
-                    </button>
-<a target="_blank" href="decode.html" class="btn btn-yellow mt-4">TOOL GEN TOPT</a>
-		</div>
     </div>
   `;
 }
@@ -80,18 +60,4 @@ function setStatus(name: string, ok: boolean, text: string): void {
   if (status) status.textContent = text;
 }
 
-export async function testApi(): Promise<void> {
-  const url = (document.getElementById('apiUrl') as HTMLInputElement).value;
-  const result = document.getElementById('apiResult');
-  if (!result) return;
-
-  try {
-    const data = await api<any>(url);
-    result.textContent = JSON.stringify(data, null, 2);
-  } catch (e: any) {
-    result.textContent = 'Error: ' + e.message;
-  }
-}
-
 (window as any).checkServices = checkServices;
-(window as any).testApi = testApi;
