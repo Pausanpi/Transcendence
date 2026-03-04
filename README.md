@@ -72,6 +72,29 @@ From there, you will be able to access the main page, where you can register a n
 - **shared**: Shared configuration and code.
 - **vault**: Secrets management and secure storage.
 
+### System Architecture
+
+The architecture followed by the system is shown in the next diagram:
+
+
+					┌──────────────┐
+					│     User     │
+					└──────┬───────┘
+   						   │
+		 			 ┌─────▼─────┐
+ 					 │ Frontend  │
+ 					 └─────┬─────┘
+       			  		   │ 
+ 					 ┌─────▼─────┐
+ 					 │  Gateway  │
+	 		 		 └─────┬─────┘
+		  ┌─────────┬──────┼──────┬──────────┐
+		  ▼ 		▼ 	   ▼ 	  ▼ 	     ▼
+		 Auth 	Database  I18n   Game 	  Friends
+		  │ 			
+		  ▼ 
+		Vault 
+
 ## AI Usage
 
 AI tools (such as GitHub Copilot and ChatGPT) were primarily used to help understand and document code written by other team members, as well as to assist in modifying and extending existing modules.
