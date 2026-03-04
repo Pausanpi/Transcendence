@@ -295,6 +295,7 @@
 		"displayNameInvalid": "El apodo debe ser un texto válido",
 		"displayNameLength": "El apodo debe tener entre 3 y 30 caracteres",
 		"displayNameInvalidChars": "El apodo solo puede contener letras, números y guiones bajos",
+		"invalidCharsDetected": "Se detectaron caracteres inválidos (no se permiten etiquetas HTML o caracteres especiales)",
 		"passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
 		"passwordUppercase": "La contraseña debe contener al menos una letra mayúscula",
 		"passwordLowercase": "La contraseña debe contener al menos una letra minúscula",

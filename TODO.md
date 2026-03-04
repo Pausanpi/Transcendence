@@ -78,7 +78,8 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
 - [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)
 - [x] **037**: 2fa recovery codes can't be used. (lcuevas- / lcuevas-)
-- [x] **038**: Check mail validation for trash and wier characters. (lcuevas- / TODO)
+- [ ] **038**: Check mail validation for trash and wier characters. (lcuevas- / TODO)
+- [ ] **038**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. (lcuevas- / TODO)
 
 
 # Solved Bug reports
