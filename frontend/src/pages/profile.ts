@@ -111,7 +111,6 @@ export function renderProfile(): string {
           <div class="mb-6 text-center">
             <p class="mb-4" data-i18n="2fa.scanQR">Scan this QR code with your authenticator app:</p>
             <img id="qrCodeImage" src="" alt="QR Code" class="mx-auto mb-4 bg-white p-4 rounded">
-            <p class="text-sm text-gray-400"><strong data-i18n="2fa.secret">Secret:</strong> <span id="secretText" class="font-mono"></span></p>
             <button id="refreshQRBtn" class="btn btn-gray mt-2" data-i18n="2fa.refreshQR">🔄 Refresh QR</button>
           </div>
           <div class="mb-4">
