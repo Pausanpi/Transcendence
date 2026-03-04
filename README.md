@@ -606,6 +606,9 @@ I started the project in high spirits, thinking of making a game and some fronte
 - Achieving full GDPR compliance and user data management.
 - Coordinating translations and cross-browser compatibility.
 - Maintaining clear documentation and code reviews across a distributed team.
+---
+
+**Note:** There is a bug and small changes error in the TODO.md file that should be located in the deprecated_docs folder.
 
 # Other information
 
