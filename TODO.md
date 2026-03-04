@@ -80,6 +80,7 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **037**: 2fa recovery codes can't be used. (lcuevas- / lcuevas-)
 - [ ] **038**: Check mail validation for trash and wier characters. (lcuevas- / TODO)
 - [ ] **038**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. (lcuevas- / TODO)
+- [ ] **039**: A couple of alerts, like when erasing avatar. Check validity of that (lcuevas- / TODO)
 
 
 # Solved Bug reports

@@ -182,8 +182,7 @@ async function loadPlayers(search: string = ''): Promise<void> {
 						(imgElement as HTMLImageElement).src = avatarUrl;
 					}
 				} catch (error) {
-					console.error(`Failed to load avatar for player ${player.username}:`, error);
-					// Avatar will remain as default
+					// Avatar loading failed - will remain as default
 				}
 			});
 		} else {

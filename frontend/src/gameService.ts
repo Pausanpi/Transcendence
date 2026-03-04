@@ -262,7 +262,7 @@ export async function endGameSession(
 	player2Score: number
 ): Promise<{ success: boolean; matchId?: number; skipped?: boolean }> {
 	if (!currentSession) {
-		console.error('No active game session');
+		// No active game session - cannot end
 		return { success: false };
 	}
 
