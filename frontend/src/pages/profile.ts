@@ -219,7 +219,6 @@ async function loadProfile(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error) {
-		// Only log server errors - auth errors handled by auth system
 		if (error instanceof ServerError) {
 			console.error('Server error loading profile:', error);
 		}
@@ -306,7 +305,6 @@ async function uploadAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		// Only log server errors - validation errors (422) shown to user without logging
 		if (error instanceof ServerError) {
 			console.error('Server error uploading avatar:', error);
 		}
@@ -346,10 +344,21 @@ async function updateProfile(): Promise<void> {
 	}
 
 	const trimmed = display_name.trim();
-	if (trimmed.length > 30) {
+	if (trimmed.length < 3 || trimmed.length > 30) {
 		const msg = window.languageManager?.t('validation.displayNameLength');
 		showProfileMessage(
-			msg !== null ? msg : 'Display name must be 30 characters or less',
+			msg !== null ? msg : 'Display name must be 3-30 characters',
+			'error'
+		);
+		return;
+	}
+
+	// Only allow letters, numbers, and underscores
+	const displayNameRegex = /^[a-zA-Z0-9_]+$/;
+	if (!displayNameRegex.test(trimmed)) {
+		const msg = window.languageManager?.t('validation.displayNameInvalidChars');
+		showProfileMessage(
+			msg !== null ? msg : 'Display name can only contain letters, numbers, and underscores',
 			'error'
 		);
 		return;
@@ -411,7 +420,6 @@ async function updateProfile(): Promise<void> {
 
 		loadProfile();
 	} catch (error: any) {
-		// Only log server errors - validation/conflict errors shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error updating email:', error);
 		}
@@ -445,7 +453,6 @@ async function anonymize(): Promise<void> {
 			resultDiv.textContent = 'Account anonymized successfully';
 		}
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error anonymizing account:', error);
 		}
@@ -481,7 +488,6 @@ async function deleteAcc(): Promise<void> {
 			window.location.href = '/';
 		}, 2000);
 	} catch (error) {
-		// Only log server errors - validation errors (422) shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error deleting account:', error);
 		}
@@ -539,7 +545,6 @@ async function deleteAvatar(): Promise<void> {
 			loadProfile();
 		}, 500);
 	} catch (error: any) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error deleting avatar:', error);
 		}
@@ -696,7 +701,6 @@ async function loadMatchHistory(): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Only log server errors - auth errors handled by auth system
 		if (error instanceof ServerError) {
 			console.error('Server error loading match history:', error);
 		}

@@ -7,7 +7,8 @@ export default async function tournamentsRoutes(fastify, options) {
 		const {
 			name,
 			creator_id = null,
-			max_players = 8
+			max_players = 8,
+			tournament_type
 		} = request.body;
 
 		if (!name) {
@@ -20,9 +21,9 @@ export default async function tournamentsRoutes(fastify, options) {
 
 		try {
 			const result = await db.run(
-				`INSERT INTO tournaments (name, creator_id, max_players, status, current_round, created_at)
-				VALUES (?, ?, ?, 'pending', 0, CURRENT_TIMESTAMP)`,
-				[name, creator_id, max_players]
+				`INSERT INTO tournaments (name, creator_id, max_players, tournament_type, status, current_round, created_at)
+				VALUES (?, ?, ?, ?,'pending', 0, CURRENT_TIMESTAMP)`,
+				[name, creator_id, max_players, tournament_type]
 			);
 			return { success: true, tournamentId: result.id };
 		} catch (error) {

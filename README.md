@@ -17,9 +17,9 @@ Our implementation is a games platform where users can play Pong and other games
 - **Make**: Ensure you have GNU Make installed to run the Makefile.
 - **Docker**: Required to build and run the containers.
 - **Docker Compose**: Used by the Makefile to orchestrate the multi-container setup.
+- **.env**: An .env file is required in the root directory to configure OAuth authentication.
 
-
-NOTA:  DE MOMENTO NO HE PUESTO NADA DEL ENV, SI HICIERA FALTA SE MENCIONA Y TAL
+For detailed instructions on how to configure the .env file for OAuth, see [docs/oauth-guide.md](docs/oauth-guide.md).
 
 To run this project, simply execute `make` in the root directory. This command will automatically build and start all required services using Docker Compose.
 
@@ -69,9 +69,7 @@ From there, you will be able to access the main page, where you can register a n
 - **grafana**: Monitoring and dashboards.
 - **i18n**: Internationalization and language support.
 - **nginx**: Reverse proxy, load balancing, and WAF (with ModSecurity). Serves static frontend files.
-- **prometheus**: Metrics and monitoring.
 - **shared**: Shared configuration and code.
-- **users**: User management services.
 - **vault**: Secrets management and secure storage.
 
 ## AI Usage
@@ -369,7 +367,7 @@ Columns:
 - Tournament wins tracked via tournaments.winner_id for leaderboard rankings
 - Leaderboard rankings determined by total wins, ordered by win count and games played
 - Match history preserved with game type, scores, duration, and tournament context
-- Public identifiers use username instead of internal database IDs for privacy
+- Public identifiers use username instead of internal database IDs
 
 **Data Integrity:**
 - CASCADE DELETE: Backup codes, friendships, tournament participants
@@ -381,7 +379,6 @@ Columns:
 - GDPR consent fields track user preferences
 - is_anonymized flag for user data anonymization
 - Account locking mechanism (login_attempts, locked_until)
-- User IDs never exposed in public APIs; username used as public identifier
 - JWT-based authentication (session managed externally, not in database)
 
 # Features List
@@ -474,28 +471,15 @@ Columns:
 ## Modules Overview
 
 **Total Points:**
-Major: 8 × 2 = 16 pts
-Minor: 11 × 1 = 12 pts
-**Grand Total: 27 points**
+Major: 6× 2 = 12 pts
+Minor: 10 × 1 = 10 pts
+**Grand Total: 22 points**
 
 ---
-
-### Backend Framework (Major, 1 pts)
+### Backend Framework (Minor, 1 pts)
 **Justification:** Required for scalable, maintainable backend logic and API development. Mandated by old project subject.
 **Implementation:** Fastify (Node.js) used for high performance, modularity, and plugin support. All backend APIs and microservices are built on Fastify.
 **Team Members:** csubires, lcuevas-
-
----
-### Frontend Framework (Minor, 1 pt)
-**Justification:** Improves maintainability and scalability of UI. (Partial, as not a full framework.)
-**Implementation:** TypeScript modules, Tailwind CSS, modular SPA-like structure.
-**Team Members:** pausanch, joestrad
-
----
-### Public API (Major, 2 pts)
-**Justification:** Enables external integrations and modularity. Required by subject (secured API key, rate limiting, docs, 5+ endpoints).
-**Implementation:** RESTful API with Fastify, API key validation, rate limiting middleware, OpenAPI documentation, endpoints for CRUD operations.
-**Team Members:** csubires, joestrad, lcuevas-, pausanch
 
 ---
 ### Standard User Management & Authentication (Major, 2 pts)
@@ -526,12 +510,6 @@ Minor: 11 × 1 = 12 pts
 **Justification:** Subject requires a second distinct game with stats and matchmaking.
 **Implementation:** Additional game (e.g., Tic-Tac-Toe), user stats tracked, matchmaking logic, performance optimized.
 **Team Members:** joestrad, pausanch
-
----
-### Monitoring: Prometheus & Grafana (Major, 2 pts)
-**Justification:** Required for observability, debugging, and system health.
-**Implementation:** Prometheus scrapes metrics from services, Grafana dashboards for visualization, alerting rules, secure access.
-**Team Members:** csubires
 
 ---
 ### Backend as Microservices (Major, 2 pts)
@@ -628,6 +606,9 @@ I started the project in high spirits, thinking of making a game and some fronte
 - Achieving full GDPR compliance and user data management.
 - Coordinating translations and cross-browser compatibility.
 - Maintaining clear documentation and code reviews across a distributed team.
+---
+
+**Note:** There is a bug and small changes error in the TODO.md file that should be located in the deprecated_docs folder.
 
 # Other information
 
@@ -637,6 +618,7 @@ Some modules require extra steps to make them work correctly on the browser.
 Most of those steps are intuitive but we have prepared some manuals inside:
 
 - [2FA Guide](docs/2fa-guide.md)  <!-- Detailed instructions for two-factor authentication -->
+- [OAuth Guide](docs/oauth-guide.md)  <!-- OAuth authentication setup and usage -->
 
 ## Team & Contact
 - GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)

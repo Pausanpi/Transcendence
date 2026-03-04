@@ -177,13 +177,12 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			response.users.forEach(async (player, index) => {
 				try {
 					const avatarUrl = await loadAvatar(player.avatar);
-					const imgElement = container.querySelector(`[data-player-username="${player.username}"] img`);
+					const imgElement = container.querySelector(`[data-player-id="${player.id}"] img`);
 					if (imgElement && avatarUrl) {
 						(imgElement as HTMLImageElement).src = avatarUrl;
 					}
 				} catch (error) {
-					console.error(`Failed to load avatar for player ${player.username}:`, error);
-					// Avatar will remain as default
+					// Avatar loading failed - will remain as default
 				}
 			});
 		} else {
@@ -195,7 +194,6 @@ async function loadPlayers(search: string = ''): Promise<void> {
 			window.languageManager?.applyTranslations();
 		}
 	} catch (error: any) {
-		// Only log server errors - auth errors shown to user
 		if (error instanceof ServerError) {
 			console.error('Server error loading players:', error);
 		}
@@ -471,7 +469,6 @@ async function addFriend(username: string): Promise<void> {
 			showToast(response.error || 'Failed to send request', 'error');
 		}
 	} catch (error) {
-		// Only log server errors
 		if (error instanceof ServerError) {
 			console.error('Server error sending friend request:', error);
 		}

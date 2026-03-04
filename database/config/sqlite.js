@@ -82,6 +82,7 @@ class Database {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 creator_id TEXT,
+				tournament_type TEXT DEFAULT 'Pong',
                 status TEXT DEFAULT 'pending',
                 max_players INTEGER DEFAULT 8,
                 current_round INTEGER DEFAULT 0,
@@ -184,7 +185,6 @@ class Database {
 					
 					// Auto-recovery for readonly database
 					if (err.code === 'SQLITE_READONLY' || err.code === 'SQLITE_CANTOPEN') {
-						console.log('🔄 Database write failed, attempting immediate recovery...');
 						const recovered = await self.reinitialize();
 						if (recovered) {
 							// Retry the operation once after recovery
@@ -193,7 +193,6 @@ class Database {
 									console.error('❌ Retry after recovery failed:', retryErr);
 									reject(retryErr);
 								} else {
-									console.log('✅ Operation succeeded after recovery');
 									resolve({ id: this.lastID, changes: this.changes });
 								}
 							});
@@ -272,7 +271,6 @@ class Database {
 
 	// Reinitialize database connection
 	async reinitialize() {
-		console.log('⚠️  Reinitializing database connection...');
 		return new Promise((resolve) => {
 			// Close existing connection
 			if (this.db) {
@@ -284,7 +282,6 @@ class Database {
 						this.init();
 						// Give init time to complete
 						setTimeout(() => {
-							console.log('✅ Database reinitialized successfully');
 							resolve(true);
 						}, 1000);
 					}, 500);
@@ -293,7 +290,6 @@ class Database {
 				// No existing connection, just initialize
 				this.init();
 				setTimeout(() => {
-					console.log('✅ Database initialized successfully');
 					resolve(true);
 				}, 1000);
 			}

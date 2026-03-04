@@ -9,7 +9,6 @@ export async function loadUserData(): Promise<any> {
       throw new Error(data.error);
     }
   } catch (error: any) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error loading user data:', error);
     }
@@ -40,7 +39,6 @@ export async function exportUserData(): Promise<void> {
       throw new Error(result.error);
     }
   } catch (error: any) {
-    // Only log server errors - validation errors shown via message
     if (error instanceof ServerError) {
       console.error('Server error exporting data:', error);
     }
@@ -65,7 +63,6 @@ export async function anonymizeUserData(): Promise<void> {
       showGDPRMessage(result.error, 'error');
     }
   } catch (error: any) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error anonymizing data:', error);
     }
@@ -90,7 +87,6 @@ export async function deleteAccount(confirmationText: string): Promise<void> {
       showGDPRMessage(result.error, 'error');
     }
   } catch (error: any) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error deleting account:', error);
     }
@@ -106,7 +102,6 @@ export async function loadUserConsent(): Promise<any> {
     }
     return null;
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error loading user consent:', error);
     }
@@ -129,7 +124,6 @@ export async function updateConsent(consentData: any): Promise<boolean> {
       return false;
     }
   } catch (error: any) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error updating consent:', error);
     }
