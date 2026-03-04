@@ -11,7 +11,6 @@ import { updateAuthBtn } from './auth.js';
 import { renderTwoFAVerify } from './pages/twofaverify.js';
 import { renderPlayers } from './pages/players.js';
 import { renderFriends } from './pages/friends.js';
-import { renderTestPage } from './pages/testpage.js';
 import { renderPrivacyPolicy } from './pages/privacy-policy.js';
 import { renderTermsOfService } from './pages/terms-of-service.js';
 
@@ -36,7 +35,6 @@ const routes: Record<string, () => string> = {
   twofaverify: renderTwoFAVerify,
   players: renderPlayers,
   friends: renderFriends,
-  testpage: renderTestPage,
   'privacy-policy': renderPrivacyPolicy,
   'terms-of-service': renderTermsOfService,
 };

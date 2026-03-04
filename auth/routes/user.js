@@ -9,7 +9,7 @@ import User, {
 	updateUser,
 	findOrCreateOAuthUser
 } from '../services/user.js';
-import { validateLogin, validateRegistration } from '../middleware/validation.js';
+import { validateLogin, validateRegistration, validateProfileUpdate } from '../middleware/validation.js';
 import fastifyPassport from '@fastify/passport';
 import { configurePassport } from '../config/oauth.js';
 import { authenticateJWT } from '../middleware/auth.js';
@@ -74,7 +74,9 @@ export default async function userRoutes(fastify, options) {
 		}
 	});
 
-	fastify.put('/profile-data', async (request, reply) => {
+	fastify.put('/profile-data', {
+		preHandler: [validateProfileUpdate]
+	}, async (request, reply) => {
 		const userId = request.headers['x-user-id'] ||
 			(request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
 
@@ -86,29 +88,7 @@ export default async function userRoutes(fastify, options) {
 		}
 
 		try {
-			// Only accept snake_case for display name // there are ways to accept both
 			const { display_name, avatar, email } = request.body;
-
-			// Validate no unexpected fields
-			const allowedFields = ['display_name', 'avatar', 'email'];
-			const receivedFields = Object.keys(request.body);
-			const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
-			if (unexpectedFields.length > 0) {
-				return reply.status(422).send({
-					success: false,
-					error: 'validation.unexpectedFields',
-					code: 'UNEXPECTED_FIELDS'
-				});
-			}
-
-			// Validate at least one field is provided
-			if (display_name === undefined && avatar === undefined && email === undefined) {
-				return reply.status(422).send({
-					success: false,
-					error: 'validation.noFieldsToUpdate',
-					code: 'NO_FIELDS'
-				});
-			}
 
 			const user = await findUserById(userId);
 			if (!user) {
@@ -118,50 +98,8 @@ export default async function userRoutes(fastify, options) {
 				});
 			}
 
-			// If display_name is being updated, validate it
-			if (display_name !== undefined) {
-				const displayNameValidation = validationService.validateDisplayName(display_name);
-				if (!displayNameValidation.isValid) {
-					return reply.status(422).send({
-						success: false,
-						error: displayNameValidation.error,
-						code: 'INVALID_DISPLAY_NAME'
-					});
-				}
-			}
-
-			// If avatar is being updated, validate it
-			if (avatar !== undefined) {
-				if (typeof avatar !== 'string') {
-					return reply.status(422).send({
-						success: false,
-						error: 'validation.invalidInput',
-						code: 'INVALID_AVATAR_TYPE'
-					});
-				}
-				// Validate avatar URL/path length
-				if (avatar.length > 500) {
-					return reply.status(422).send({
-						success: false,
-						error: 'validation.avatarTooLong',
-						code: 'AVATAR_TOO_LONG'
-					});
-				}
-			}
-
-			// If email is being updated, validate it
+			// Check if email is already in use by another user
 			if (email !== undefined) {
-				// Validate email format
-				const emailValidation = validationService.validateEmail(email);
-				if (!emailValidation.isValid) {
-					return reply.status(422).send({
-						success: false,
-						error: emailValidation.error,
-						code: 'INVALID_EMAIL'
-					});
-				}
-
-				// Check if email is already in use by another user
 				const existingUser = await findUserByEmail(email);
 				if (existingUser && existingUser.id !== userId) {
 					return reply.status(409).send({

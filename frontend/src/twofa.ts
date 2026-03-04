@@ -39,7 +39,6 @@ export class TwoFAManager {
       this.status = Boolean(data.user.twoFactorEnabled);
       this.updateUI();
     } catch (error) {
-      // Only log server errors, auth errors are handled by auth system
       if (error instanceof ServerError) {
         console.error('Server error loading 2FA status:', error);
       }
@@ -82,7 +81,6 @@ export class TwoFAManager {
         this.showError(result.error || 'Failed to setup 2FA');
       }
     } catch (error: any) {
-      // Only log server errors
       if (error instanceof ServerError) {
         console.error('Server error setting up 2FA:', error);
         this.showError('common.internalError');
@@ -154,7 +152,6 @@ export class TwoFAManager {
         this.showError(result.error || 'Invalid verification code');
       }
     } catch (error: any) {
-      // Only log server errors
       if (error instanceof ServerError) {
         console.error('Server error verifying 2FA:', error);
         this.showError('common.internalError');
@@ -206,7 +203,6 @@ export class TwoFAManager {
         this.showError(result.error || 'Invalid verification code');
       }
     } catch (error: any) {
-      // Only log server errors
       if (error instanceof ServerError) {
         console.error('Server error disabling 2FA:', error);
         this.showError('common.internalError');
@@ -234,7 +230,6 @@ export class TwoFAManager {
         this.showError(result.error || 'Failed to generate backup codes');
       }
     } catch (error: any) {
-      // Only log server errors
       if (error instanceof ServerError) {
         console.error('Server error generating backup codes:', error);
         this.showError('common.internalError');
@@ -331,7 +326,6 @@ export async function verify2FALogin(token: string, tempToken: string): Promise<
 
     return result;
   } catch (error) {
-    // Only log server errors
     if (error instanceof ServerError) {
       console.error('Server error verifying 2FA login:', error);
     }

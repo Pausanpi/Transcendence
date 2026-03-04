@@ -113,33 +113,19 @@ async function startGateway() {
 
 	// Special route for avatar upload - MUST come before generic proxy
 	fastify.post('/api/database/avatar/upload', async (request, reply) => {
-		console.log('🔵 Gateway: Avatar upload route hit');
-		console.log('🔵 Gateway: Content-Type:', request.headers['content-type']);
-		console.log('🔵 Gateway: User:', request.user?.id);
-
 		try {
 			// User is already authenticated by onRequest hook
 			if (!request.user) {
-				console.log('❌ Gateway: No user found');
 				return reply.status(401).send({
 					success: false,
 					error: 'auth.authenticationRequired'
 				});
 			}
 
-			console.log('🔵 Gateway: Attempting to read file...');
-
 			// Get the file from the multipart request
 			const data = await request.file();
 
-			console.log('🔵 Gateway: File data:', data ? {
-				filename: data.filename,
-				mimetype: data.mimetype,
-				encoding: data.encoding,
-			} : 'NULL');
-
 			if (!data) {
-				console.log('❌ Gateway: No file data received');
 				return reply.status(422).send({
 					success: false,
 					error: 'No file uploaded at gateway'
@@ -148,19 +134,15 @@ async function startGateway() {
 
 			// Validate file type
 			if (data.mimetype !== 'image/jpeg' && data.mimetype !== 'image/jpg') {
-				console.log('❌ Gateway: Invalid mimetype:', data.mimetype);
 				return reply.status(422).send({
 					success: false,
 					error: 'Only JPG/JPEG files are allowed'
 				});
 			}
 
-			console.log('🔵 Gateway: Converting to buffer...');
 			const buffer = await data.toBuffer();
-			console.log('🔵 Gateway: Buffer size:', buffer.length, 'bytes');
 
 			// Create FormData to forward to database service
-			console.log('🔵 Gateway: Creating FormData...');
 			const FormData = (await import('form-data')).default;
 			const form = new FormData();
 
@@ -170,10 +152,8 @@ async function startGateway() {
 			});
 
 			const formHeaders = form.getHeaders();
-			console.log('🔵 Gateway: FormData headers:', formHeaders);
 
 			// Forward to database service with proper headers using axios
-			console.log('🔵 Gateway: Forwarding to database service with axios...');
 			const response = await axios.post('http://database:3003/database/avatar/upload', form, {
 				headers: {
 					'x-service-token': serviceToken,
@@ -183,10 +163,7 @@ async function startGateway() {
 				validateStatus: () => true // Accept all status codes
 			});
 
-			console.log('🔵 Gateway: Database response status:', response.status);
 			const result = response.data;
-			console.log('🔵 Gateway: Database response:', result);
-
 			return reply.status(response.status).send(result);
 
 		} catch (error) {

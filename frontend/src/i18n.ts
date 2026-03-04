@@ -69,7 +69,6 @@ export class LanguageManager {
 
 			await this.syncWithServer();
 		} catch (error) {
-			// Only log server errors
 			if (error instanceof ServerError) {
 				console.error('Server error loading current language:', error);
 			}
@@ -97,7 +96,6 @@ if (!result?.success) {
 
 			await result;
 		} catch (error) {
-			// Sync failure is not critical, only log server errors
 			if (error instanceof ServerError) {
 				console.warn('Server error syncing language:', error);
 			}
@@ -117,7 +115,6 @@ if (!result?.success) {
 			this.translations = await result;
         
 		} catch (error) {
-			// Only log server errors - fallback handles loading failure
 			if (error instanceof ServerError) {
 				console.error('Server error loading translations:', error);
 			}
@@ -135,7 +132,6 @@ if (!result?.success) {
 				this.translations = await result;
 			}
 		} catch (error) {
-			// Only log server errors
 			if (error instanceof ServerError) {
 				console.error('Server error loading fallback translations:', error);
 			}
@@ -240,7 +236,6 @@ if (!result?.success) {
 			window.applyTranslationsToProfile?.();
 			return true;
 		} catch (error) {
-			// Only log server errors
 			if (error instanceof ServerError) {
 				console.error('Server error changing language:', error);
 			}
