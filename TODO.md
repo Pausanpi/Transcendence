@@ -78,9 +78,9 @@ Also Post, Put, Delete etc... should be protected from unexpeected imput (lcueva
 - [x] **035**: After restarting gateway the IP changes. Added a retry part on the nginx.conf (lcuevas- / lcuevas-)
 - [x] **036**: Database behaved weirdly with caches and disasters and make error 500 after erasing it. AUtomated recoveries. (lcuevas- / lcuevas-)
 - [x] **037**: 2fa recovery codes can't be used. (lcuevas- / lcuevas-)
-- [ ] **038**: Check mail validation for trash and wier characters. (lcuevas- / TODO)
-- [ ] **038**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. (lcuevas- / TODO)
-- [ ] **039**: A couple of alerts, like when erasing avatar. Check validity of that (lcuevas- / TODO)
+- [x] **038**: Check mail validation for trash and wier characters. (lcuevas- / csubires)
+- [x] **039**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. (lcuevas- / csubires)
+- [ ] **040**: A couple of alerts, like when erasing avatar. Check validity of that (lcuevas- / TODO)
 
 
 # Solved Bug reports
@@ -119,3 +119,5 @@ Also aded empty body to /api/2fa/backup-codes/generate (lcuevas- / lcuevas-)
 - [x] **010**: Check friends process and online status. Takes time but saeems to work (lcuevas- / todo)
 - [x] **019**: Clean references to old users module, grapahan and prometheus (lcuevas- / everyone)
 - [x] **026**: Dashboard without loging shows a 502. May be for deprecated fetch, also protect better the endpoint. Just erased all calls and references to users (lcuevas- / lceuvas-)
+- [x] **039**: Erase avatar with ouauth does not work. MOst probably it does not erase the users table text. Just needed to reorder the endpoint to NULL the users table avatar even if there is no file to erase in the image database (lcuevas- / csubires)
+- [x] **038**: Check mail validation for trash and wier characters. Hardened validation rules (lcuevas- / csubires)
