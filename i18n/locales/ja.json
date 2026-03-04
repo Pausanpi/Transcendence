@@ -9,6 +9,7 @@
 		"cancel": "キャンセル",
 		"confirm": "確認",
 		"back": "戻る",
+		"back2": "← 戻る",
 		"logout": "ログアウト",
 		"internalError": "サーバー内部エラー",
 		"enabled": "有効",
@@ -867,5 +868,10 @@
 		"verifyPlayerHint": "プレイヤーはログインして本人確認が必要です",
 		"playerAlreadyInTournament": "✗ このプレイヤーはすでにトーナメントに参加しています",
 		"playerVerifiedSuffix": "確認済み!"
+	},
+	"dashboard": {
+		"dashboard": "📊 ダッシュボード",
+		"services": "サービス",
+		"refresh": "🔄 更新"
 	}
 }
