@@ -310,21 +310,54 @@ async function viewPlayer(playerId: string): Promise<void> {
 				window.languageManager.applyTranslations();
 			}
 			
-			// Set up the Add Friend button handler
-			setTimeout(() => {
+			// Check friendship status and set up the Add Friend button
+			setTimeout(async () => {
 				const btn = document.getElementById('addFriendBtn');
 				
 				if (btn) {
+					// Reset button to default state first
+					btn.removeAttribute('disabled');
+					btn.className = 'btn btn-green flex-1';
+					btn.setAttribute('data-i18n', 'players.addFriend');
+					btn.innerHTML = '➕ Add Friend';
 					
 					// Remove any existing click handler
 					const newBtn = btn.cloneNode(true) as HTMLButtonElement;
 					btn.parentNode?.replaceChild(newBtn, btn);
 					
+					// Check friendship status for this player
+					try {
+						const checkResponse = await api<{ success: boolean; status: string }>
+							(`/api/database/friends/me/check/${encodeURIComponent(playerId)}`);
+
+						if (checkResponse.success && checkResponse.status !== 'none') {
+							if (checkResponse.status === 'pending') {
+								newBtn.setAttribute('disabled', 'true');
+								newBtn.setAttribute('data-i18n', 'players.requestPending');
+								newBtn.innerHTML = '⏳ Request Pending';
+								newBtn.classList.remove('btn-green');
+								newBtn.classList.add('btn-gray');
+								window.languageManager?.applyTranslations();
+							} else if (checkResponse.status === 'accepted') {
+								newBtn.setAttribute('disabled', 'true');
+								newBtn.setAttribute('data-i18n', 'players.alreadyFriends');
+								newBtn.innerHTML = '✓ Already Friends';
+								newBtn.classList.remove('btn-green');
+								newBtn.classList.add('btn-gray');
+								window.languageManager?.applyTranslations();
+							}
+						}
+					} catch (error) {
+						// If check fails, just leave the button as "Add Friend"
+						console.error('Failed to check friendship status:', error);
+					}
+					
 					// Set up the click handler on the fresh button
 					newBtn.setAttribute('data-player-id', playerId);
 					newBtn.addEventListener('click', () => {
-					addFriend(playerId);
+						addFriend(playerId);
 					});
+					window.languageManager?.applyTranslations();
 				}
 			}, 50);
 		}
@@ -422,7 +455,7 @@ async function addFriend(playerId: string): Promise<void> {
 	try {
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
-			(`/api/database/friends/me/check-by-id/${encodeURIComponent(playerId)}`);
+			(`/api/database/friends/me/check/${encodeURIComponent(playerId)}`);
 
 		if (checkResponse.success && checkResponse.status !== 'none') {
 			if (btn) {
@@ -466,19 +499,30 @@ async function addFriend(playerId: string): Promise<void> {
 				btn.innerHTML = '➕ Add Friend';
 				window.languageManager?.applyTranslations();
 			}
-			showToast(response.error || 'Failed to send request', 'error');
+			// Check for specific error codes
+			if (response.code === 'SELF_FRIEND') {
+				showToast('You cannot add yourself as a friend', 'error');
+			} else {
+				showToast(response.error || 'Failed to send request', 'error');
+			}
 		}
 	} catch (error) {
-		if (error instanceof ServerError) {
-			console.error('Server error sending friend request:', error);
-		}
 		if (btn) {
 			btn.removeAttribute('disabled');
 			btn.setAttribute('data-i18n', 'players.addFriend');
 			btn.innerHTML = '➕ Add Friend';
 			window.languageManager?.applyTranslations();
 		}
-		showToast('Failed to send friend request', 'error');
+		
+		// Check for specific error codes
+		if (error instanceof ForbiddenError && (error as any).code === 'SELF_FRIEND') {
+			showToast('You cannot add yourself as a friend', 'error');
+		} else if (error instanceof ServerError) {
+			console.error('Server error sending friend request:', error);
+			showToast('Failed to send friend request', 'error');
+		} else {
+			showToast('Failed to send friend request', 'error');
+		}
 	}
 }
 
@@ -496,6 +540,10 @@ function showToast(message: string, type: 'success' | 'error'): void {
 		}
 		if (message === 'Failed to send friend request') {
 			const t = window.languageManager.t('players.failedToSendFriendRequest');
+			translated = t !== null ? t : message;
+		}
+		if (message === 'You cannot add yourself as a friend') {
+			const t = window.languageManager.t('players.cannotAddSelf');
 			translated = t !== null ? t : message;
 		}
 	}

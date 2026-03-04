@@ -109,11 +109,11 @@ export default async function friendsRoutes(fastify, options) {
         }
     });
 
-    fastify.get('/friends/me/check/:username', async (request, reply) => {
+    fastify.get('/friends/me/check/:friendId', async (request, reply) => {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { username } = request.params;
+            const { friendId } = request.params;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -123,21 +123,13 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
-            // Look up friend's ID from username
-            const friend = await db.get(
-                'SELECT id FROM users WHERE username = ? AND is_active = 1',
-                [username]
-            );
-
-            if (!friend) {
-                return reply.status(404).send({
+            if (!friendId) {
+                return reply.status(422).send({
                     success: false,
-                    error: 'User not found',
-                    code: 'USER_NOT_FOUND'
+                    error: 'Friend ID is required',
+                    code: 'MISSING_FRIEND_ID'
                 });
             }
-
-            const friendId = friend.id;
 
             const friendship = await db.get(
                 `SELECT * FROM friendships
@@ -163,7 +155,7 @@ export default async function friendsRoutes(fastify, options) {
         try {
             const userId = request.headers['x-user-id'] ||
                 (request.headers['x-user'] ? JSON.parse(request.headers['x-user']).id : null);
-            const { friend_username } = request.body;
+            const { friend_id } = request.body;
 
             if (!userId) {
                 return reply.status(401).send({
@@ -174,7 +166,7 @@ export default async function friendsRoutes(fastify, options) {
             }
 
             // Validate body fields
-            const allowedFields = ['friend_username'];
+            const allowedFields = ['friend_id'];
             const receivedFields = Object.keys(request.body || {});
             const unexpectedFields = receivedFields.filter(f => !allowedFields.includes(f));
             if (unexpectedFields.length > 0) {
@@ -185,7 +177,7 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
-            if (!friend_username) {
+            if (!friend_id) {
 				return reply.status(422).send({
                     success: false,
                     error: 'validation.missingFields',
@@ -193,39 +185,14 @@ export default async function friendsRoutes(fastify, options) {
                 });
             }
 
-            // Validate friend_username format
-            if (typeof friend_username !== 'string' || friend_username.length === 0 || friend_username.length > 255) {
+            // Validate friend_id format
+            if (typeof friend_id !== 'string' || friend_id.length === 0) {
                 return reply.status(422).send({
                     success: false,
-                    error: 'validation.invalidUsername',
-                    code: 'INVALID_USERNAME'
+                    error: 'validation.invalidUserId',
+                    code: 'INVALID_USER_ID'
                 });
             }
-
-            // Basic sanitization check (alphanumeric, underscore, hyphen only)
-            if (!/^[a-zA-Z0-9_-]+$/.test(friend_username)) {
-                return reply.status(422).send({
-                    success: false,
-                    error: 'validation.invalidUsername',
-                    code: 'INVALID_USERNAME'
-                });
-            }
-
-            // Look up friend's ID from username
-            const friend = await db.get(
-                'SELECT id FROM users WHERE username = ? AND is_active = 1',
-                [friend_username]
-            );
-
-            if (!friend) {
-                return reply.status(404).send({
-                    success: false,
-                    error: 'User not found',
-                    code: 'USER_NOT_FOUND'
-                });
-            }
-
-            const friend_id = friend.id;
 
             if (userId === friend_id) {
 				return reply.status(403).send({

@@ -376,6 +376,7 @@
 		"friendRequestSent": "¡Solicitud de amistad enviada!",
 		"failedToSendRequest": "No se pudo enviar la solicitud",
 		"failedToSendFriendRequest": "No se pudo enviar la solicitud de amistad",
+		"cannotAddSelf": "No puedes agregarte a ti mismo como amigo",
 		"status": {
 			"online": "En línea",
 			"offline": "Desconectado"
