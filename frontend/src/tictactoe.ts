@@ -143,6 +143,7 @@ export function startTicTacToe(): void {
 		canvas.onclick = null;
 
 		canvas.addEventListener('click', handleClick);
+		showPlayerLabels();
 		draw();
 		startTurnTimer();
 	}, 50);
@@ -458,6 +459,25 @@ function checkWin(): string | null {
 	return hasEmpty ? null : 'Tie';
 }
 
+function showPlayerLabels(): void {
+	const container = document.getElementById('playerLabels');
+	const labelX = document.getElementById('labelPlayerX');
+	const labelO = document.getElementById('labelPlayerO');
+	if (container && labelX && labelO) {
+		const theme = themes[settings.theme];
+		labelX.textContent = `✕ ${player1.name}`;
+		labelO.textContent = `◯ ${player2.name}`;
+		labelX.style.color = theme.xColor;
+		labelO.style.color = theme.oColor;
+		container.classList.remove('hidden');
+	}
+}
+
+function hidePlayerLabels(): void {
+	const container = document.getElementById('playerLabels');
+	if (container) container.classList.add('hidden');
+}
+
 function showWinner(w: string): void {
 	const el = document.getElementById('countdown')!;
 	const txt = document.getElementById('countdownText')!;
@@ -508,6 +528,7 @@ export function stopTicTacToe(): void {
 
 	document.getElementById('exitGameBtn')?.classList.add('hidden');
 	document.getElementById('tictactoeSettings')?.classList.add('hidden');
+	hidePlayerLabels();
 }
 
 export function exitGame(): void {
