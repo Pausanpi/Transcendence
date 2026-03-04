@@ -82,6 +82,7 @@ class Database {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 creator_id TEXT,
+				tournament_type TEXT DEFAULT 'Pong',
                 status TEXT DEFAULT 'pending',
                 max_players INTEGER DEFAULT 8,
                 current_round INTEGER DEFAULT 0,

@@ -206,15 +206,25 @@ function update(): void {
 
 	if (isAI) {
 		const now = Date.now();
-		if (now - aiLastUpdate >= 1000) {
+		const ballComingToAI = ball.dx > 0;
+		const updateInterval = ballComingToAI ? 800 : 2000;
+
+		if (now - aiLastUpdate >= updateInterval) {
 			aiLastUpdate = now;
-			updateAITarget();
+
+			if (ballComingToAI) {
+				updateAITarget();
+			} else {
+				aiTargetY = canvas.height / 2 - paddle2.h / 2;
+			}
 
 			const paddleCenter = paddle2.y + paddle2.h / 2;
-			const threshold = 10;
-			if (paddleCenter < aiTargetY - threshold) {
+			const targetCenter = aiTargetY + paddle2.h / 2;
+			const threshold = ballComingToAI ? 20 : 40;
+
+			if (paddleCenter < targetCenter - threshold) {
 				aiDecision = 'down';
-			} else if (paddleCenter > aiTargetY + threshold) {
+			} else if (paddleCenter > targetCenter + threshold) {
 				aiDecision = 'up';
 			} else {
 				aiDecision = '';

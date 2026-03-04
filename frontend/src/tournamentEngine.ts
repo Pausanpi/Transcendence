@@ -18,6 +18,7 @@ export type Tournament = {
 	currentMatchIndex: number;
 	tournamentId?: number | null;
 	creatorId?: string | null;
+	gameType?: 'pong' | 'tictactoe';
 };
 
 // Utils
@@ -84,11 +85,11 @@ export function getChampion(t: Tournament): Player | null {
 
 // Storage
 export function saveTournament(t: Tournament): void {
-	sessionStorage.setItem("pongTournament", JSON.stringify(t));
+	sessionStorage.setItem("Tournament", JSON.stringify(t));
 }
 
 export function loadTournament(): Tournament | null {
-	const data = sessionStorage.getItem("pongTournament");
+	const data = sessionStorage.getItem("Tournament");
 	return data ? JSON.parse(data) : null;
 }
 
@@ -100,20 +101,25 @@ export function loadTournament(): Tournament | null {
  */
 export async function createTournamentInDB(
 	players: Player[],
+	type: string,
 	creatorId?: string | null
 ): Promise<number | null> {
 	try {
 		// Determine tournament creator (first registered player by default)
 		const actualCreatorId = creatorId || players.find(p => !p.isGuest)?.id || null;
 
+		// Determine type of tournament (P -> Pong; T -> TicTacToe)
+		const tournamentName = type == 'P' ? 'Pong' : 'TicTacToe';
+
 		const response = await api<{ success: boolean; tournamentId: number }>(
 			'/api/database/tournaments',
 			{
 				method: 'POST',
 				body: JSON.stringify({
-					name: `Pong Tournament ${new Date().toLocaleDateString()}`,
+					name: `${tournamentName} Tournament ${new Date().toLocaleDateString()}`,
 					creator_id: actualCreatorId,
-					max_players: players.length
+					max_players: players.length,
+					tournament_type: tournamentName
 				})
 			}
 		);
@@ -188,37 +194,32 @@ export async function saveTournamentMatch(
 	player1Score: number,
 	player2Score: number,
 	winner: Player,
-	matchDuration?: number
+	matchDuration?: number,
+	gameType: 'pong' | 'tictactoe' = 'pong'   // ← nuevo parámetro con default para no romper llamadas existentes
 ): Promise<{ success: boolean; matchId?: number }> {
-	// Store only if there is a registered player in the match
 	const hasRegisteredPlayer = !player1.isGuest || !player2.isGuest;
-
 	if (!hasRegisteredPlayer) {
-		//console.log('Match not saved: both players are guests');
 		return { success: true };
 	}
 
 	try {
 		const payload = {
-			player1_id: player1.isGuest ? null : player1.id,
-			player1_name: player1.name,
-			player2_id: player2.isGuest ? null : player2.id,
-			player2_name: player2.name,
+			player1_id:    player1.isGuest ? null : player1.id,
+			player1_name:  player1.name,
+			player2_id:    player2.isGuest ? null : player2.id,
+			player2_name:  player2.name,
 			player1_score: player1Score,
 			player2_score: player2Score,
-			winner_id: winner.isGuest ? null : winner.id,
-			winner_name: winner.name,
-			game_type: 'pong',
+			winner_id:     winner.isGuest ? null : winner.id,
+			winner_name:   winner.name,
+			game_type:     gameType,                               // ← ya no hardcodeado
 			tournament_id: tournamentId,
 			match_duration: matchDuration || null
 		};
 
 		const response = await api<{ success: boolean; matchId: number }>(
 			'/api/database/matches',
-			{
-				method: 'POST',
-				body: JSON.stringify(payload)
-			}
+			{ method: 'POST', body: JSON.stringify(payload) }
 		);
 
 		return { success: true, matchId: response.matchId };

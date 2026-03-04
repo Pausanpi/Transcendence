@@ -12,7 +12,7 @@ export function renderTournament(): string {
         <h3 class="text-xl font-bold" data-i18n="tournament.pongAI">Pong - AI</h3>
         <p class="text-gray-400" data-i18n="tournament.humanVSComputer">Human Players vs Computer</p>
       </div>
-      <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="startTicTacToeTournament()">
+      <div class="card text-center cursor-pointer hover:ring-2 hover:ring-yellow-400" onclick="setupTicTacToeTournament()">
         <div class="text-6xl mb-4">⭕</div>
         <h3 class="text-xl font-bold" data-i18n="tournament.ttt">Tic-Tac-Toe</h3>
         <p class="text-gray-400" data-i18n="tournament.humanOnly">Human Players</p>

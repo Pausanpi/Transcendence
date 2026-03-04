@@ -593,6 +593,9 @@ async function startTicTacToePvP() {
 }
 
 function showTicTacToeOptions(isAI: boolean) {
+	// Reset options so nothing is pre-selected
+	ticTacToeOptions = { theme: '', boardSize: 3, specialMode: '' as any };
+
 	const difficultySection = isAI ? `
 		<div class="text-left">
 			<label class="block text-xs text-gray-400 mb-1 font-bold" data-i18n="game.AIdifficulty">AI Difficulty</label>
@@ -604,7 +607,7 @@ function showTicTacToeOptions(isAI: boolean) {
 					<span class="text-xs text-green-100" data-i18n="game.casual">Casual</span>
 				</label>
 				<label class="flex flex-col items-center cursor-pointer group p-3 rounded-lg border-2 border-gray-600 transition-all duration-200 bg-gradient-to-b from-yellow-900 to-yellow-700 ttt-difficulty-label">
-					<input type="radio" name="ttt-difficulty" value="3" checked data-difficulty="3" class="hidden">
+					<input type="radio" name="ttt-difficulty" value="3" data-difficulty="3" class="hidden">
 					<div class="text-2xl mb-1">😐</div>
 					<span class="text-yellow-200 font-bold text-sm">Medium</span>
 					<span class="text-xs text-yellow-100" data-i18n="game.normal">Normal</span>
@@ -629,7 +632,7 @@ function showTicTacToeOptions(isAI: boolean) {
 				<label class="block text-xs text-gray-400 mb-1 font-bold" data-i18n="game.theme">Theme</label>
 				<div class="grid grid-cols-3 gap-2" id="tictactoe-themes">
 					<label class="flex flex-col items-center cursor-pointer group ttt-theme-label">
-						<input type="radio" name="ttt-theme" value="classic" checked data-theme="classic" class="hidden">
+						<input type="radio" name="ttt-theme" value="classic" data-theme="classic" class="hidden">
 						<div class="w-full h-20 rounded border-2 border-gray-600 transition-all duration-200 bg-black flex items-center justify-center relative overflow-hidden mb-1">
 							<svg viewBox="0 0 100 100" class="w-10 h-10">
 								<line x1="33" y1="0" x2="33" y2="100" stroke="#fff" stroke-width="3"/>
@@ -679,7 +682,7 @@ function showTicTacToeOptions(isAI: boolean) {
 				<label class="block text-xs text-gray-400 mb-1 font-bold" data-i18n="game.mode">Mode</label>
 				<div class="grid grid-cols-3 gap-2" id="tictactoe-modes">
 					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
-						<input type="radio" name="ttt-mode" value="none" checked data-mode="none" class="hidden">
+						<input type="radio" name="ttt-mode" value="none" data-mode="none" class="hidden">
 					<div class="w-full h-14 rounded border-2 border-gray-600 transition-all duration-200 bg-gray-700 flex items-center justify-center mb-1">
 						<span class="text-2xl">🎮</span>
 						</div>
@@ -692,19 +695,12 @@ function showTicTacToeOptions(isAI: boolean) {
 						</div>
 						<span class="text-white text-xs" data-i18n="game.timed">Timed</span>
 					</label>
-					<label class="flex flex-col items-center cursor-pointer group ttt-mode-label">
-						<input type="radio" name="ttt-mode" value="gravity" data-mode="gravity" class="hidden">
-					<div class="w-full h-14 rounded border-2 border-gray-600 transition-all duration-200 bg-purple-900 flex items-center justify-center mb-1">
-						<span class="text-2xl">🌍</span>
-						</div>
-						<span class="text-white text-xs" data-i18n="game.gravity">Gravity</span>
-					</label>
 				</div>
 			</div>
 			
 			<div class="flex gap-3 mt-4">
 				<button onclick="window.gameUI.cancelTicTacToeOptions()" class="btn btn-gray flex-1" data-i18n="game.cancel">Cancel</button>
-				<button onclick="window.gameUI.confirmTicTacToeOptions(${isAI})" class="btn btn-green flex-1" data-i18n="game.startGame">Start Game</button>
+				<button id="ttt-start-btn" onclick="window.gameUI.confirmTicTacToeOptions(${isAI})" class="btn btn-green flex-1 opacity-50 cursor-not-allowed" disabled data-i18n="game.startGame">Start Game</button>
 			</div>
 		</div>
 	`);
@@ -716,6 +712,21 @@ function showTicTacToeOptions(isAI: boolean) {
 function setupTicTacToeOptionsListeners(isAI: boolean) {
 	const themeLabels = document.querySelectorAll('.ttt-theme-label');
 	const themeInputs = document.querySelectorAll('input[name="ttt-theme"]');
+
+	function updateStartButton() {
+		const btn = document.getElementById('ttt-start-btn') as HTMLButtonElement;
+		if (!btn) return;
+		const hasTheme = !!ticTacToeOptions.theme;
+		const hasMode = !!ticTacToeOptions.specialMode;
+		const hasDifficulty = !isAI || !!document.querySelector('input[name="ttt-difficulty"]:checked');
+		const allSelected = hasTheme && hasMode && hasDifficulty;
+		btn.disabled = !allSelected;
+		if (allSelected) {
+			btn.classList.remove('opacity-50', 'cursor-not-allowed');
+		} else {
+			btn.classList.add('opacity-50', 'cursor-not-allowed');
+		}
+	}
 	
 	function updateThemeSelection() {
 		themeLabels.forEach((label) => {
@@ -736,6 +747,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 				input.checked = true;
 				ticTacToeOptions.theme = input.value as 'classic' | 'neon' | 'minimal';
 				updateThemeSelection();
+				updateStartButton();
 			}
 		});
 	});
@@ -744,6 +756,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 		input.addEventListener('change', (e: any) => {
 			ticTacToeOptions.theme = e.target.value;
 			updateThemeSelection();
+			updateStartButton();
 		});
 	});
 
@@ -769,6 +782,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 				input.checked = true;
 				ticTacToeOptions.specialMode = input.value as 'none' | 'timed' | 'gravity';
 				updateModeSelection();
+				updateStartButton();
 			}
 		});
 	});
@@ -777,6 +791,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 		input.addEventListener('change', (e: any) => {
 			ticTacToeOptions.specialMode = e.target.value;
 			updateModeSelection();
+			updateStartButton();
 		});
 	});
 
@@ -803,6 +818,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 				if (input) {
 					input.checked = true;
 					updateDifficultySelection();
+					updateStartButton();
 				}
 			});
 		});
@@ -810,6 +826,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 		difficultyInputs.forEach(input => {
 			input.addEventListener('change', () => {
 				updateDifficultySelection();
+				updateStartButton();
 			});
 		});
 		
@@ -817,6 +834,7 @@ function setupTicTacToeOptionsListeners(isAI: boolean) {
 	}
 	
 	updateThemeSelection();
+	updateStartButton();
 }
 
 function confirmTicTacToeOptions(isAI: boolean) {
