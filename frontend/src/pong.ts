@@ -176,7 +176,7 @@ function predictBallYAtPaddle(ballState: Ball, paddleX: number): number {
 function updateAITarget(): void {
 	const predictedY = predictBallYAtPaddle(ball, paddle2.x);
 
-	const errorMargin = difficulty === 2 ? 50 : difficulty === 3 ? 30 : 0;
+	const errorMargin = difficulty === 2 ? 50 : difficulty === 3 ? 30 : 4;
 	const randomOffset = (Math.random() - 0.5) * errorMargin;
 
 	aiTargetY = predictedY - paddle2.h / 2 + randomOffset;
@@ -223,7 +223,7 @@ function update(): void {
 
 			const paddleCenter = paddle2.y + paddle2.h / 2;
 			const targetCenter = aiTargetY + paddle2.h / 2;
-			const threshold = isHard ? 0 : (ballComingToAI ? 1 : 30);
+			const threshold = isHard ? 0 : (ballComingToAI ? 4 : 30);
 
 			if (paddleCenter < targetCenter - threshold) {
 				aiDecision = 'down';
