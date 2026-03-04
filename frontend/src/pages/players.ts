@@ -323,7 +323,7 @@ async function viewPlayer(playerId: string): Promise<void> {
 					// Set up the click handler on the fresh button
 					newBtn.setAttribute('data-player-id', playerId);
 					newBtn.addEventListener('click', () => {
-						addFriend(player.username);
+					addFriend(playerId);
 					});
 				}
 			}, 50);
@@ -409,7 +409,7 @@ function closePlayerModal(): void {
 	}
 }
 
-async function addFriend(username: string): Promise<void> {
+async function addFriend(playerId: string): Promise<void> {
 	const btn = document.getElementById('addFriendBtn');
 	
 	if (btn) {
@@ -422,7 +422,7 @@ async function addFriend(username: string): Promise<void> {
 	try {
 		// First check if already friends or request pending
 		const checkResponse = await api<{ success: boolean; status: string }>
-			(`/api/database/friends/me/check/${encodeURIComponent(username)}`);
+			(`/api/database/friends/me/check-by-id/${encodeURIComponent(playerId)}`);
 
 		if (checkResponse.success && checkResponse.status !== 'none') {
 			if (btn) {
@@ -447,7 +447,7 @@ async function addFriend(username: string): Promise<void> {
 		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
-			body: JSON.stringify({ friend_username: username })
+			body: JSON.stringify({ friend_id: playerId })
 		});
 
 		if (response.success) {
