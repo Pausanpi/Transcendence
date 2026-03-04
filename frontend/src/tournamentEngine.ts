@@ -30,10 +30,14 @@ function createMatches(players: Player[]): Match[] {
 	const matches: Match[] = [];
 
 	for (let i = 0; i < players.length; i += 2) {
-		matches.push({
-			player1: players[i],
-			player2: players[i + 1],
-		});
+		let p1 = players[i];
+		let p2 = players[i + 1];
+
+		if (p1.id === "AI") {
+			[p1, p2] = [p2, p1];
+		}
+
+		matches.push({ player1: p1, player2: p2 });
 	}
 	return matches;
 }

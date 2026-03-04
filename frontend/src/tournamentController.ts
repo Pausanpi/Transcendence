@@ -16,7 +16,7 @@ import { initPongGame, setOnGameEnd, showWinnerOverlay } from "./pong.js";
 import {
 	initTicTacToeForTournament,
 	setOnTicTacToeGameEnd,
-	stopTicTacToeForTournament,
+	//stopTicTacToeForTournament,
 	type MatchResult as TicTacToeMatchResult
 } from "./tictactoeForTournament.js";
 
@@ -70,8 +70,6 @@ export function startCurrentMatch(type: string): void {
 		initTicTacToeForTournament({
 			player1:   match.player1,
 			player2:   match.player2,
-			isAI:      match.player2.id === "AI",
-			difficulty: match.player2.id === "AI" ? 3 : undefined
 		});
 	}
 }
