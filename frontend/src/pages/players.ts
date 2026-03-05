@@ -305,61 +305,9 @@ async function viewPlayer(playerId: string): Promise<void> {
 				</div>
 			`;
 
-			// Apply translations first
-			if (window.languageManager) {
-				window.languageManager.applyTranslations();
-			}
-			
-			// Check friendship status and set up the Add Friend button
-			setTimeout(async () => {
-				const btn = document.getElementById('addFriendBtn');
-				
-				if (btn) {
-					// Reset button to default state first
-					btn.removeAttribute('disabled');
-					btn.className = 'btn btn-green flex-1';
-					btn.setAttribute('data-i18n', 'players.addFriend');
-					btn.innerHTML = '➕ Add Friend';
-					
-					// Remove any existing click handler
-					const newBtn = btn.cloneNode(true) as HTMLButtonElement;
-					btn.parentNode?.replaceChild(newBtn, btn);
-					
-					// Check friendship status for this player
-					try {
-						const checkResponse = await api<{ success: boolean; status: string }>
-							(`/api/database/friends/me/check/${encodeURIComponent(playerId)}`);
-
-						if (checkResponse.success && checkResponse.status !== 'none') {
-							if (checkResponse.status === 'pending') {
-								newBtn.setAttribute('disabled', 'true');
-								newBtn.setAttribute('data-i18n', 'players.requestPending');
-								newBtn.innerHTML = '⏳ Request Pending';
-								newBtn.classList.remove('btn-green');
-								newBtn.classList.add('btn-gray');
-								window.languageManager?.applyTranslations();
-							} else if (checkResponse.status === 'accepted') {
-								newBtn.setAttribute('disabled', 'true');
-								newBtn.setAttribute('data-i18n', 'players.alreadyFriends');
-								newBtn.innerHTML = '✓ Already Friends';
-								newBtn.classList.remove('btn-green');
-								newBtn.classList.add('btn-gray');
-								window.languageManager?.applyTranslations();
-							}
-						}
-					} catch (error) {
-						// If check fails, just leave the button as "Add Friend"
-						console.error('Failed to check friendship status:', error);
-					}
-					
-					// Set up the click handler on the fresh button
-					newBtn.setAttribute('data-player-id', playerId);
-					newBtn.addEventListener('click', () => {
-						addFriend(playerId);
-					});
-					window.languageManager?.applyTranslations();
-				}
-			}, 50);
+			// Apply translations and set up Add Friend button
+			window.languageManager?.applyTranslations();
+			setupAddFriendButton(playerId);
 		}
 	} catch (error: any) {
 		let isAuthError = false;
@@ -435,6 +383,49 @@ function formatDuration(seconds: number): string {
 	return `${minutes}m ${secs}s`;
 }
 
+async function setupAddFriendButton(playerId: string): Promise<void> {
+	const btn = document.getElementById('addFriendBtn') as HTMLButtonElement;
+	if (!btn) return;
+
+	// Check friendship status
+	try {
+		const checkResponse = await api<{ success: boolean; status: string }>(
+			`/api/database/friends/me/check/${encodeURIComponent(playerId)}`
+		);
+
+		const status = checkResponse.success ? checkResponse.status : 'none';
+		updateButtonState(btn, status);
+	} catch (error) {
+		console.error('Failed to check friendship status:', error);
+		updateButtonState(btn, 'none');
+	}
+
+	// Set up click handler
+	btn.onclick = () => addFriend(playerId);
+}
+
+function updateButtonState(btn: HTMLButtonElement, status: string): void {
+	btn.disabled = false;
+	btn.className = 'btn btn-green flex-1';
+	
+	if (status === 'pending') {
+		btn.disabled = true;
+		btn.className = 'btn btn-gray flex-1';
+		btn.setAttribute('data-i18n', 'players.requestPending');
+		btn.innerHTML = '⏳ Request Pending';
+	} else if (status === 'accepted') {
+		btn.disabled = true;
+		btn.className = 'btn btn-gray flex-1';
+		btn.setAttribute('data-i18n', 'players.alreadyFriends');
+		btn.innerHTML = '✓ Already Friends';
+	} else {
+		btn.setAttribute('data-i18n', 'players.addFriend');
+		btn.innerHTML = '➕ Add Friend';
+	}
+	
+	window.languageManager?.applyTranslations();
+}
+
 function closePlayerModal(): void {
 	const modal = document.getElementById('playerModal');
 	if (modal) {
@@ -443,63 +434,26 @@ function closePlayerModal(): void {
 }
 
 async function addFriend(playerId: string): Promise<void> {
-	const btn = document.getElementById('addFriendBtn');
-	
-	if (btn) {
-		btn.setAttribute('disabled', 'true');
-		btn.setAttribute('data-i18n', 'players.sendingRequest');
-		btn.innerHTML = '⏳ Sending...';
-		window.languageManager?.applyTranslations();
-	}
+	const btn = document.getElementById('addFriendBtn') as HTMLButtonElement;
+	if (!btn || btn.disabled) return;
+
+	// Show sending state
+	btn.disabled = true;
+	btn.setAttribute('data-i18n', 'players.sendingRequest');
+	btn.innerHTML = '⏳ Sending...';
+	window.languageManager?.applyTranslations();
 
 	try {
-		// First check if already friends or request pending
-		const checkResponse = await api<{ success: boolean; status: string }>
-			(`/api/database/friends/me/check/${encodeURIComponent(playerId)}`);
-
-		if (checkResponse.success && checkResponse.status !== 'none') {
-			if (btn) {
-				btn.removeAttribute('disabled');
-				if (checkResponse.status === 'pending') {
-					btn.setAttribute('data-i18n', 'players.requestPending');
-					btn.innerHTML = '⏳ Request Pending';
-					btn.classList.remove('btn-green');
-					btn.classList.add('btn-gray');
-					window.languageManager?.applyTranslations();
-				} else if (checkResponse.status === 'accepted') {
-					btn.setAttribute('data-i18n', 'players.alreadyFriends');
-					btn.innerHTML = '✓ Already Friends';
-					btn.classList.remove('btn-green');
-					btn.classList.add('btn-gray');
-					window.languageManager?.applyTranslations();
-				}
-			}
-			return;
-		}
-
-		// Send friend request
 		const response = await api<{ success: boolean; error?: string; code?: string }>('/api/database/friends/me/add', {
 			method: 'POST',
 			body: JSON.stringify({ friend_id: playerId })
 		});
 
 		if (response.success) {
-			if (btn) {
-				btn.setAttribute('data-i18n', 'players.requestSent');
-				btn.innerHTML = '✓ Request Sent!';
-				btn.classList.remove('btn-green');
-				btn.classList.add('btn-gray');
-				window.languageManager?.applyTranslations();
-			}
+			updateButtonState(btn, 'pending');
 			showToast('Friend request sent!', 'success');
 		} else {
-			if (btn) {
-				btn.removeAttribute('disabled');
-				btn.setAttribute('data-i18n', 'players.addFriend');
-				btn.innerHTML = '➕ Add Friend';
-				window.languageManager?.applyTranslations();
-			}
-			// Check for specific error codes
+			updateButtonState(btn, 'none');
 			if (response.code === 'SELF_FRIEND') {
 				showToast('You cannot add yourself as a friend', 'error');
 			} else {
@@ -507,14 +461,8 @@ async function addFriend(playerId: string): Promise<void> {
 			}
 		}
 	} catch (error) {
-		if (btn) {
-			btn.removeAttribute('disabled');
-			btn.setAttribute('data-i18n', 'players.addFriend');
-			btn.innerHTML = '➕ Add Friend';
-			window.languageManager?.applyTranslations();
-		}
+		updateButtonState(btn, 'none');
 		
-		// Check for specific error codes
 		if (error instanceof ForbiddenError && (error as any).code === 'SELF_FRIEND') {
 			showToast('You cannot add yourself as a friend', 'error');
 		} else if (error instanceof ServerError) {

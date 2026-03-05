@@ -49,6 +49,7 @@ export class TwoFAManager {
   updateUI(): void {
     const statusValue = document.getElementById('statusValue');
     const enableSection = document.getElementById('enableSection');
+    const enable2FABtn = document.getElementById('enable2FABtn');
     const disableSection = document.getElementById('disableSection');
 
     if (statusValue) {
@@ -62,12 +63,24 @@ export class TwoFAManager {
       enableSection.style.display = this.status ? 'none' : 'block';
     }
 
+    // Hide the enable 2FA button when 2FA is already enabled
+    if (enable2FABtn) {
+      enable2FABtn.style.display = this.status ? 'none' : 'inline-block';
+    }
+
     if (disableSection) {
       disableSection.style.display = this.status ? 'block' : 'none';
     }
   }
 
   async setup2FA(): Promise<void> {
+    // Check if 2FA is already enabled
+    if (this.status) {
+      const alreadyActiveMsg = window.languageManager?.t('2fa.alreadyActive') || 'Two-Factor Authentication is already active';
+      this.showError(alreadyActiveMsg);
+      return;
+    }
+
     try {
   const result = await api<any>('/api/2fa/setup', {
     method: 'POST',

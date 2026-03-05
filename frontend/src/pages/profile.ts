@@ -9,6 +9,7 @@ interface PlayerStats {
 	wins: number;
 	losses: number;
 	win_rate: number;
+	tournament_wins: number;
 }
 
 interface MatchHistoryItem {
@@ -423,9 +424,10 @@ async function updateProfile(): Promise<void> {
 			console.error('Server error updating email:', error);
 		}
 		let errorMsg: string;
-		if (error.error) {
-			const translated = window.languageManager?.t(error.error);
-			errorMsg = translated !== null ? translated : error.error;
+		// Error message comes from error.message (standard Error property)
+		if (error.message) {
+			const translated = window.languageManager?.t(error.message);
+			errorMsg = translated !== null ? translated : error.message;
 		} else {
 			const translated = window.languageManager?.t('profile.failedToUpdateEmail');
 			errorMsg = translated !== null ? translated : 'Failed to update email';
@@ -671,7 +673,7 @@ async function loadMatchHistory(): Promise<void> {
 
 			content.innerHTML = `
 				<!-- Stats Grid -->
-				<div class="grid grid-cols-4 gap-3 mb-6">
+				<div class="grid grid-cols-5 gap-3 mb-6">
 					<div class="bg-gray-800 rounded-lg p-3 text-center">
 						<p class="text-2xl font-bold text-yellow-400">${stats?.games_played || 0}</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
@@ -687,6 +689,10 @@ async function loadMatchHistory(): Promise<void> {
 					<div class="bg-gray-800 rounded-lg p-3 text-center">
 						<p class="text-2xl font-bold text-blue-400">${stats?.win_rate || 0}%</p>
 						<p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+					</div>
+					<div class="bg-gray-800 rounded-lg p-3 text-center">
+						<p class="text-2xl font-bold text-purple-400">${stats?.tournament_wins || 0}</p>
+						<p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
 					</div>
 				</div>
 

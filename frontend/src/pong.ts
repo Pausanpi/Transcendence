@@ -443,7 +443,7 @@ export function showWinnerOverlay(winnerName: string, onContinue: () => void): v
 	const txt = document.getElementById('countdownText')!;
 	el.classList.remove('hidden');
 	txt.textContent = `🎉 ${winnerName} Wins!`;
-	txt.className = 'text-5xl font-bold text-yellow-300';
+	txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 
 	// Hide exit button when game ends
 	const exitContainer = document.getElementById('exitGameContainer');
@@ -451,7 +451,7 @@ export function showWinnerOverlay(winnerName: string, onContinue: () => void): v
 
 	setTimeout(() => {
 		el.classList.add('hidden');
-		txt.className = 'text-9xl font-extrabold text-yellow-300';
+		txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 		onContinue();
 	}, 3000);
 }
@@ -507,14 +507,14 @@ function showWinner(winner: string): void {
 	const txt = document.getElementById('countdownText')!;
 	el.classList.remove('hidden');
 	txt.textContent = `🎉 ${winner} Wins!`;
-	txt.className = 'text-5xl font-bold text-yellow-300';
+	txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 
 	const exitContainer = document.getElementById('exitGameContainer');
 	if (exitContainer) exitContainer.classList.add('hidden');
 
 	setTimeout(() => {
 		el.classList.add('hidden');
-		txt.className = 'text-9xl font-extrabold text-yellow-300';
+		txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 		navigate('games');
 	}, 3000);
 }
