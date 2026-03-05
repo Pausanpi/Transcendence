@@ -1,4 +1,4 @@
-import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError } from './api.js';
+import { api, ValidationError, ConflictError, AuthError, ForbiddenError, NotFoundError, ServerError, clearToken } from './api.js';
 
 export async function loadUserData(): Promise<any> {
   try {
@@ -56,7 +56,10 @@ export async function anonymizeUserData(): Promise<void> {
     if (result.success) {
       showGDPRMessage('messages.dataAnonymized', 'success');
       setTimeout(() => {
-        localStorage.removeItem('auth_token');
+        clearToken();
+        if (typeof (window as any).updateAuthBtn === 'function') {
+          (window as any).updateAuthBtn();
+        }
         window.location.href = '/';
       }, 3000);
     } else {
@@ -80,7 +83,10 @@ export async function deleteAccount(confirmationText: string): Promise<void> {
     if (result.success) {
       showGDPRMessage('messages.accountDeleted', 'success');
       setTimeout(() => {
-        localStorage.removeItem('auth_token');
+        clearToken();
+        if (typeof (window as any).updateAuthBtn === 'function') {
+          (window as any).updateAuthBtn();
+        }
         window.location.href = '/';
       }, 2000);
     } else {

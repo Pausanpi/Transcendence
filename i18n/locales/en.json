@@ -250,6 +250,7 @@
 		"irreversible": "IT IS IRREVERSIBLE. YOU WON'T BE ABLE TO RECOVER YOUR ACCOUNT.",
 		"typeConfirmation": "To confirm, type:",
 		"deleteConfirmationText": "DELETE MY ACCOUNT",
+		"confirmationTextMismatch": "Please type the confirmation text exactly as shown",
 		"deleteButton": "DELETE MY ACCOUNT PERMANENTLY",
 		"sessions": "Active Sessions",
 		"accountCreated": "Account Created",

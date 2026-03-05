@@ -249,7 +249,7 @@
 		"irreversible": "元に戻せません。アカウントは回復できません。",
 		"typeConfirmation": "確認のため、以下を入力してください:",
 		"deleteConfirmationText": "アカウントを削除",
-		"deleteButton": "アカウントを永久に削除",
+		"confirmationTextMismatch": "表示されているとおりに確認テキストを正確に入力してください",		"deleteButton": "アカウントを永久に削除",
 		"sessions": "アクティブセッション",
 		"accountCreated": "アカウント作成済み",
 		"lastUpdated": "最終更新",
