@@ -240,11 +240,11 @@ function showWinnerAndExit(w: string): void {
 	txt.textContent = w === 'Tie'
 		? "It's a Tie!"
 		: `${(w === 'X' ? player1 : player2).name} Wins!`;
-	txt.className = 'text-5xl font-bold text-yellow-300';
+	txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 
 	setTimeout(() => {
 		el.classList.add('hidden');
-		txt.className = 'text-9xl font-extrabold text-yellow-300';
+		txt.className = 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-300';
 		navigate('games');
 	}, 2000);
 }

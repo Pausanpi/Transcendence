@@ -97,8 +97,11 @@ export function renderGdpr(): string {
       <div class="modal-content card max-w-lg">
         <h3 class="text-2xl font-bold mb-4 text-red-400" data-i18n="gdpr.deletionConfirmation">Confirm Account Deletion</h3>
         <p class="mb-4" data-i18n="gdpr.deletionWarning">This action cannot be undone!</p>
-        <p class="mb-4" data-i18n="gdpr.typeConfirmation">Type <strong>DELETE MY ACCOUNT</strong> to confirm:</p>
-        <input type="text" id="deleteConfirmInput" class="input mb-4" placeholder="DELETE MY ACCOUNT">
+        <p class="mb-4">
+          <span data-i18n="gdpr.typeConfirmation">To confirm, type:</span>
+          <strong id="deleteConfirmationTextDisplay" class="text-red-400"></strong>
+        </p>
+        <input type="text" id="deleteConfirmInput" class="input mb-4" data-i18n-placeholder="gdpr.deleteConfirmationText">
         <div class="flex gap-4">
           <button onclick="confirmDelete()" class="btn btn-red flex-1" data-i18n="gdpr.deleteButton">Delete Forever</button>
           <button onclick="hideDeleteModal()" class="btn btn-gray flex-1" data-i18n="common.cancel">Cancel</button>
@@ -176,8 +179,17 @@ function hideAnonymizeModal(): void {
 }
 
 function showDeleteModal(): void {
+  const expectedText = window.languageManager?.t('gdpr.deleteConfirmationText') || 'DELETE MY ACCOUNT';
+  const displayElement = document.getElementById('deleteConfirmationTextDisplay');
+  if (displayElement) {
+    displayElement.textContent = expectedText;
+  }
+  const input = document.getElementById('deleteConfirmInput') as HTMLInputElement;
+  if (input) {
+    input.value = '';
+    input.placeholder = expectedText;
+  }
   document.getElementById('deleteModal')?.classList.remove('hidden');
-  (document.getElementById('deleteConfirmInput') as HTMLInputElement).value = '';
 }
 
 function hideDeleteModal(): void {
@@ -191,15 +203,14 @@ async function confirmAnonymize(): Promise<void> {
 
 async function confirmDelete(): Promise<void> {
   const input = (document.getElementById('deleteConfirmInput') as HTMLInputElement).value;
-  const expectedText = window.languageManager?.getCurrentLanguage() === 'es'
-    ? 'ELIMINAR MI CUENTA'
-    : 'DELETE MY ACCOUNT';
+  const expectedText = window.languageManager?.t('gdpr.deleteConfirmationText') || 'DELETE MY ACCOUNT';
 
   if (input === expectedText) {
     hideDeleteModal();
     await deleteAccount(expectedText);
   } else {
-    alert('Please type the confirmation text exactly');
+    const errorMsg = window.languageManager?.t('gdpr.confirmationTextMismatch') || 'Please type the confirmation text exactly';
+    alert(errorMsg);
   }
 }
 

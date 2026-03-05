@@ -112,12 +112,13 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 50;
+  padding: 1rem;
 }
 .countdown span {
-  font-size: 8rem;
-  font-weight: 800;
   color: #fde047;
   animation: pulse 1s infinite;
+  text-align: center;
+  word-break: break-word;
 }
 
 .hidden { display: none !important; }

@@ -424,9 +424,6 @@ export function renderTermsOfService(): string {
           <button onclick="navigate('privacy-policy')" class="btn btn-yellow" data-i18n="terms.viewPrivacy">
             🔒 View Privacy Policy
           </button>
-          <button onclick="navigate('gdpr')" class="btn btn-blue" data-i18n="terms.manageData">
-            ⚙️ Manage Your Data
-          </button>
           <button onclick="navigate('home')" class="btn btn-gray" data-i18n="terms.backToHome">
             ← Back to Home
           </button>

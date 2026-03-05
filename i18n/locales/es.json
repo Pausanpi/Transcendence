@@ -161,6 +161,7 @@
 		"setup2FA": "Configurar 2FA",
 		"manage2FA": "Gestionar 2FA",
 		"accountProtected": "Tu cuenta está protegida con 2FA.",
+		"alreadyActive": "La autenticación de dos factores ya está activa",
 		"disable2FA": "Deshabilitar 2FA",
 		"generateBackupCodes": "Generar Nuevos Códigos de Backup",
 		"setupTitle": "Configuración de 2FA",
@@ -258,8 +259,8 @@
 		"deletionWarning": "Esta acción ELIMINARÁ PERMANENTEMENTE tu cuenta y todos tus datos.",
 		"irreversible": "ES IRREVERSIBLE. NO PODRÁS RECUPERAR TU CUENTA.",
 		"typeConfirmation": "Para confirmar, escribe:",
-		"deleteConfirmationText": "ELIMINAR MI CUENTA",
-		"deleteButton": "ELIMINAR MI CUENTA PERMANENTEMENTE"
+		"deleteConfirmationText": "ELIMINAR MI CUENTA",	
+		"confirmationTextMismatch": "Por favor, escribe el texto de confirmación exactamente como se muestra",		"deleteButton": "ELIMINAR MI CUENTA PERMANENTEMENTE"
 	},
 	"messages": {
 		"connectionError": "Error de conexión",
@@ -376,6 +377,7 @@
 		"friendRequestSent": "¡Solicitud de amistad enviada!",
 		"failedToSendRequest": "No se pudo enviar la solicitud",
 		"failedToSendFriendRequest": "No se pudo enviar la solicitud de amistad",
+		"cannotAddSelf": "No puedes agregarte a ti mismo como amigo",
 		"status": {
 			"online": "En línea",
 			"offline": "Desconectado"

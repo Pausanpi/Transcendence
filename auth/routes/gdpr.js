@@ -228,8 +228,13 @@ export default async function gdprRoutes(fastify, options) {
 				});
 			}
 
-			const confirmationText = 'DELETE MY ACCOUNT';
-			if (confirmation !== confirmationText) {
+			// Accept confirmation in English, Spanish, or Japanese
+			const validConfirmations = [
+				'DELETE MY ACCOUNT',      // English
+				'ELIMINAR MI CUENTA',     // Spanish
+				'アカウントを削除'         // Japanese
+			];
+			if (!validConfirmations.includes(confirmation)) {
 				return reply.status(422).send({
 					success: false,
 					error: 'gdpr.invalidConfirmation',
