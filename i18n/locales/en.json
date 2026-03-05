@@ -875,6 +875,8 @@
 	"dashboard": {
 		"dashboard": "📊 Dashboard",
 		"services": "Services",
-		"refresh": "🔄 Refresh"
+		"refresh": "🔄 Refresh",
+		"serviceOk": "OK",
+		"serviceUnavailable": "Service Unavailable"
 	}
 }

@@ -891,6 +891,8 @@
 	"dashboard": {
 		"dashboard": "📊 Panel de control",
 		"services": "Servicios",
-		"refresh": "🔄 Recargar"
+		"refresh": "🔄 Recargar",
+		"serviceOk": "OK",
+		"serviceUnavailable": "Servicio no disponible"
 	}
 }
