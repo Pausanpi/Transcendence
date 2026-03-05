@@ -13,8 +13,7 @@ clean:
 	@docker compose down -v
 fclean:
 	@docker compose down -v --rmi local
-logs:
-	@docker compose logs
+
 ps:
 	@docker compose ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 destroy:
@@ -32,19 +31,4 @@ status:
 	@docker volume ls
 	@docker network ls
 
-tails:
-	@echo "\n --- GATEWAY ---\n"
-	docker logs gateway | tail -n 20
-	@echo "\n --- AUTH ---\n"
-	docker logs auth | tail -n 20
-	@echo "\n --- I18N ---\n"
-	docker logs i18n | tail -n 20
-	@echo "\n --- DATABASE ---\n"
-	docker logs database | tail -n 20
-	@echo "\n --- USERS ---\n"
-	docker logs users | tail -n 20
-
-tsc:
-	gnome-terminal -- bash -c "cd frontend && npx tsc --watch; exec bash"
-
-.PHONY: all build up down fclean re logs ps clean destroy tails tsc
+.PHONY: all build up down fclean re ps clean destroy
