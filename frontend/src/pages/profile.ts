@@ -424,9 +424,10 @@ async function updateProfile(): Promise<void> {
 			console.error('Server error updating email:', error);
 		}
 		let errorMsg: string;
-		if (error.error) {
-			const translated = window.languageManager?.t(error.error);
-			errorMsg = translated !== null ? translated : error.error;
+		// Error message comes from error.message (standard Error property)
+		if (error.message) {
+			const translated = window.languageManager?.t(error.message);
+			errorMsg = translated !== null ? translated : error.message;
 		} else {
 			const translated = window.languageManager?.t('profile.failedToUpdateEmail');
 			errorMsg = translated !== null ? translated : 'Failed to update email';
