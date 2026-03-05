@@ -874,6 +874,8 @@
 	"dashboard": {
 		"dashboard": "📊 ダッシュボード",
 		"services": "サービス",
-		"refresh": "🔄 更新"
+		"refresh": "🔄 更新",
+		"serviceOk": "OK",
+		"serviceUnavailable": "サービス利用不可"
 	}
 }

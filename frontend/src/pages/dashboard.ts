@@ -42,13 +42,14 @@ export async function checkServices(): Promise<void> {
       const status = data.status || data.message || 'UNKNOWN';
       const isOk = status === 'OK' || status === 'ok' || status === 'healthy';
 
-      setStatus(s.name, isOk, status);
+      const okMsg = window.languageManager?.t('dashboard.serviceOk') || 'OK';
+      setStatus(s.name, isOk, okMsg);
     } catch (error: any) {
       if (error instanceof ServerError) {
         console.error(`Server error checking ${s.name}:`, error);
       }
-      const errorMsg = error.message || 'DOWN';
-      setStatus(s.name, false, errorMsg);
+      const unavailableMsg = window.languageManager?.t('dashboard.serviceUnavailable') || 'Service Unavailable';
+      setStatus(s.name, false, unavailableMsg);
     }
   }
 }
