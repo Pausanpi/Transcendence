@@ -160,6 +160,7 @@
 		"setup2FA": "2FA を設定",
 		"manage2FA": "2FA を管理",
 		"accountProtected": "アカウントは 2FA で保護されています",
+		"alreadyActive": "二要素認証は既に有効です",
 		"disable2FA": "2FA を無効化",
 		"generateBackupCodes": "新しいバックアップコードを生成",
 		"setupTitle": "2FA セットアップ",

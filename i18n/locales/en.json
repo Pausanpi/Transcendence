@@ -161,6 +161,7 @@
 		"setup2FA": "Setup 2FA",
 		"manage2FA": "Manage 2FA",
 		"accountProtected": "Your account is protected with 2FA.",
+		"alreadyActive": "Two-Factor Authentication is already active",
 		"disable2FA": "Disable 2FA",
 		"generateBackupCodes": "Generate New Backup Codes",
 		"setupTitle": "2FA Setup",
