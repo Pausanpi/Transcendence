@@ -4,12 +4,8 @@ x-healthchecks:
   retries: 3
   nginx: &nginx-healthcheck
     test: ["CMD", "nginx", "-t"]
-  prometheus: &prometheus-healthcheck
-    test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://prometheus:9090/-/healthy || exit 1"]
   vault: &vault-healthcheck
     test: ["CMD-SHELL", "curl -s curl http://vault:8200/v1/sys/health | grep -q '\"initialized\":true' || exit 1"]
-  grafana: &grafana-healthcheck
-    test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:3301/api/health || exit 1"]
   gateway: &gateway-healthcheck
     test: ["CMD", "curl", "-f", "-s", "http://gateway:3000/gateway/health"]
   database: &database-healthcheck

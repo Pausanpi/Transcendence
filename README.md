@@ -52,8 +52,6 @@ From there, you will be able to access the main page, where you can register a n
 - [i18next Documentation (Internationalization)](https://www.i18next.com/)
 
 - [Vault by HashiCorp Documentation](https://developer.hashicorp.com/vault/docs)
-- [Prometheus Documentation](https://prometheus.io/docs/)
-- [Grafana Documentation](https://grafana.com/docs/)
 
 - [Fetch API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 - [Fastify Multipart Plugin](https://www.fastify.io/docs/latest/Reference/Multipart/)
@@ -66,7 +64,6 @@ From there, you will be able to access the main page, where you can register a n
 - **database**: Manages user data, matches, and persistent storage.
 - **frontend**: User interface, game logic, and client-side features (TypeScript, Tailwind CSS).
 - **gateway**: API gateway and routing.
-- **grafana**: Monitoring and dashboards.
 - **i18n**: Internationalization and language support.
 - **nginx**: Reverse proxy, load balancing, and WAF (with ModSecurity). Serves static frontend files.
 - **shared**: Shared configuration and code.
@@ -192,10 +189,6 @@ Communication channels:
 **Internationalization:** i18n provides localization and language support for backend responses.
 
 **Secrets Management:** Vault is used for secure storage and management of sensitive data.
-
-**Monitoring:** Prometheus collects metrics and monitors backend services.
-
-**Observability:** Grafana visualizes metrics and logs for backend observability.
 
 **Other Libraries:**
 - Passport & @fastify/passport: For authentication strategies and user session management.
@@ -475,13 +468,7 @@ Columns:
 	Tested and compatible with Chrome, Firefox, and Edge.  
 	Team: csubires, joestrad, lcuevas-, pausanch
 
-## Monitoring & Reliability
-- **Prometheus monitoring**  
-	Collects metrics from backend services.  
-	Team: csubires
-- **Grafana dashboards**  
-	Visualizes metrics and logs for observability.  
-	Team: csubires
+## §ing & Reliability
 - **Health checks and status page**  
 	Service health endpoints and status dashboard.  
 	Team: csubires, lcuevas-
@@ -597,7 +584,7 @@ Minor: 10 × 1 = 10 pts
 # Individual Contributions
 
 ### csubires
-- Implemented backend framework (Fastify), authentication, 2FA, API security, public API, WAF/ModSecurity, HashiCorp Vault, Prometheus, Grafana, OAuth, GDPR features, profile management, health checks, and backups.
+- Implemented backend framework (Fastify), authentication, 2FA, API security, public API, WAF/ModSecurity, HashiCorp Vault, OAuth, GDPR features, profile management, health checks, and backups.
 - Contributed to i18n, profile management, browser support, and microservices structure.
 
 I wanted to develop a robust and connected cybersecurity package that felt complete. That in itself was a challenge, but then adapting it to a microservices structure—since I had developed this part as a monolithic package—was even more demanding. I am also pursuing professional training, so finding the time to coordinate and work with the rest of the team has been a constant effort.
@@ -644,7 +631,7 @@ Most of those steps are intuitive but we have prepared some manuals inside:
 - [OAuth Guide](docs/oauth-guide.md)  <!-- OAuth authentication setup and usage -->
 
 ## Team & Contact
-- GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/joestrad), [lcuevas-](https://github.com/lcuevas-), [pausanch](https://github.com/pausanch)
+- GitHub profiles: [csubires](https://github.com/csubires), [joestrad](https://github.com/josestradacord), [lcuevas-](https://github.com/100tfko), [pausanch](https://github.com/pausanpi)
 
 ## Limitations
 - Game logic runs entirely in the frontend. This means match results and records can potentially be manipulated by users, as the backend does not validate in-game actions. Use for learning and demonstration purposes only.
