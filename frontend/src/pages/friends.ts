@@ -30,6 +30,7 @@ interface PlayerStats {
   wins: number;
   losses: number;
   win_rate: number;
+  tournament_wins: number;
 }
 
 interface MatchHistoryItem {
@@ -456,7 +457,7 @@ async function viewPlayer(playerId: string): Promise<void> {
         </div>
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-4 gap-3 mb-6">
+        <div class="grid grid-cols-5 gap-3 mb-6">
           <div class="bg-gray-800 rounded-lg p-3 text-center">
             <p class="text-2xl font-bold text-yellow-400">${player.stats.games_played}</p>
             <p class="text-xs text-gray-400" data-i18n="profile.gamesPlayed">Games</p>
@@ -472,6 +473,10 @@ async function viewPlayer(playerId: string): Promise<void> {
           <div class="bg-gray-800 rounded-lg p-3 text-center">
             <p class="text-2xl font-bold text-blue-400">${player.stats.win_rate}%</p>
             <p class="text-xs text-gray-400" data-i18n="profile.winRate">Win%</p>
+          </div>
+          <div class="bg-gray-800 rounded-lg p-3 text-center">
+            <p class="text-2xl font-bold text-purple-400">${player.stats.tournament_wins || 0}</p>
+            <p class="text-xs text-gray-400" data-i18n="profile.tournamentWins">🏆 Tours</p>
           </div>
         </div>
 
